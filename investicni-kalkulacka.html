@@ -114,7 +114,7 @@ function syncManagerProject(p){
   m.data.address=$('listingAddress').value||m.data.address||'';
   m.data.url=$('listingURL').value||$('url').value||m.data.url||'';
   m.data.price=$('listingPrice').value||$('purchase').value||m.data.price||'';
-  if(!saved.activeId)saved.activeId=p.id;
+  saved.activeId=p.id;
   localStorage.setItem(key,JSON.stringify(saved));
  }catch(e){}
 }
@@ -228,7 +228,7 @@ $('openListingURL').addEventListener('click',openListingURL);
 ['listingAddress','listingURL'].forEach(id=>$(id).addEventListener('input',saveActiveProject));
 
 const ids=['name','url','strategy','purchase','buyCost','works','soft','reserve','holding','value','saleCost','target','units','ltv','rate','term','months'];
-const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:34000000,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
+const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:0,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
 const n=id=>Math.max(0,Number($(id).value)||0);
 const fmt=v=>new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
 function mortgage(principal,annualRate,termYears,holdMonths){
