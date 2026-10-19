@@ -146,6 +146,7 @@ function updateQuick(syncMain=true){
   $('reserve').value=reserve;
   $('value').value=Math.round(quickValue*1000000);
   save();
+  updateInvestment();
  }else calc();
  try{localStorage.setItem('rei-calc-quick-v1',JSON.stringify({purchase,works,soft,reserve,value:quickValue}));}catch(e){}
 }
