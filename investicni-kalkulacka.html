@@ -141,7 +141,7 @@ function applyProject(p){
  projectFields().forEach(el=>{if(Object.prototype.hasOwnProperty.call(p.values||{},el.id))el.value=p.values[el.id]});
  activeProjectId=p.id;
  projectSwitching=false;
- updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();syncManagerProject(p);
+ updateListingPriceM2();updateQuick(false);calc();updateInvestment();syncManagerProject(p);renderProjectTabs();
 }
 function renderProjectTabs(){
  const root=$('listingTabs');if(!root)return;root.innerHTML='';
