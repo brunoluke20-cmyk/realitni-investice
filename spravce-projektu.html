@@ -13,6 +13,64 @@
 <p class="muted">Před rozhodnutím ověř aktuální znění předpisů, přechodná ustanovení a konkrétní situaci s autorizovaným projektantem a příslušným stavebním úřadem. Aplikace negarantuje, že daný sklep lze povolit jako byt.</p></section>
 <section class="card"><h2>5. Závěr po prohlídce</h2><div class="grid"><div class="field"><label>Předběžné rozhodnutí</label><select id="decision"><option>Zatím nerozhodnuto</option><option>Pokračovat v prověřování</option><option>Jednat o ceně</option><option>Nutný odborný posudek</option><option>Odmítnout</option></select></div><div class="field"><label>Hlavní rizika a podmínky</label><textarea id="risks" rows="3" placeholder="Co musí být ověřeno před nabídkou…"></textarea></div></div><div class="actions"><button class="btn primary" id="export">Exportovat JSON zálohu</button><button class="btn" id="importBtn">Importovat JSON</button><input id="file" type="file" accept="application/json" hidden><button class="btn" onclick="window.print()">Tisk / Uložit PDF</button><button class="btn" id="reset">Obnovit výchozí formulář</button></div><p class="muted">Vyplněná data se ukládají lokálně v tomto prohlížeči. Exportuj zálohu, pokud si je chceš uchovat.</p></section></main>
 <script>
+const groups=[
+['A. Základní otázky pro makléře',[
+['Proč se dům prodává a jak dlouho je v nabídce?','Motivace prodávajícího a prostor pro jednání.'],
+['Kolik je aktuálně zájemců a proběhla nabídka?','Odlišit konkrétní nabídku od obecného tvrzení o zájmu.'],
+['Kdo dům užívá a kdy může být předán?','Obsazenost, nájemní smlouvy, termín předání.'],
+['Jsou obě obytné části povolené a evidované?','Fyzické oddělení neznamená automaticky samostatné legální byty.'],
+['Je k dispozici projektová dokumentace skutečného stavu?','Porovnat dokumentaci se skutečností.'],
+['Jaké opravy proběhly a jsou k nim doklady?','Faktury, revize, záruky a povolení.'],
+['Byly problémy s vlhkostí, zatékáním nebo prasklinami?','Požadovat podrobnosti a případné opravy.'],
+['Jaký je stav střechy, rozvodů a kotle?','Stáří, revize a očekávaná životnost.'],
+['Bylo prověřováno vytvoření dalších bytů?','Vyžádat studie, stanoviska a zamítnuté návrhy.'],
+['Je prodávající otevřen jednání po technické prohlídce?','Nejdřív shromáždit fakta, pak nabídnout cenu.']]],
+['B. Základní kontrola při prohlídce',[
+['Jaký je celkový stav domu a co působí nejhůř?','Poznamenej si první dojem a místa, která vyžadují bližší kontrolu.'],
+['Jsou vidět skvrny od vody, zatékání, plíseň nebo zatuchlý zápach?','Zkontroluj rohy místností, stropy, okolí oken a suterén.'],
+['Otevírají se okna a dveře normálně? Jsou vidět praskliny?','Závady vyfoť; závažné praskliny později konzultuj se statikem.'],
+['Jak vypadají koupelny, WC a kuchyně?','Zapiš, co lze ponechat a co bude potřeba předělat.'],
+['Jaký je stav zahrady, přístupu, plotu a parkování?','Ověř také, zda je přístup právně zajištěný.'],
+['Co je potřeba opravit hned a co může počkat?','Odděl havarijní závady od estetických úprav.'],
+['Jaké fotografie a dokumenty ještě potřebuji získat?','Například rozvaděč, kotel, sklep, střecha, půdorysy a revize.'],
+['Vyžádat vyúčtování energií a provozních nákladů','Vstup pro budoucí provozní model.'],
+['Získat předběžný rozpočet oprav a rekonstrukce','Oddělit nutné opravy od volitelných úprav.'],
+['Ověřit ceny srovnatelných nemovitostí a stanovit cenový strop','Nespoléhat na nepodložený odhad budoucí hodnoty.']]],
+['C. Odborné prověření – suterén a obytné využití',[
+['Změřit světlou výšku na více místech','Zaznamenat nejnižší místo, trámy a potrubí.'],
+['Změřit plochu každé místnosti','Ověřit geometrii a využitelnou plochu.'],
+['Jsou okna a dostatečné denní osvětlení?','Posoudit velikost, polohu a zastínění.'],
+['Je zajištěné větrání?','Prověřit přirozené nebo navržené nucené větrání.'],
+['Jsou známky vlhkosti, výkvětů či plísní?','Zkontrolovat rohy, podlahu, omítky a zápach.'],
+['Jaká je hydroizolace a odvodnění?','Ověřit dokumentaci a podle potřeby stavební průzkum.'],
+['Lze bezpečně řešit vstup a únikovou cestu?','Prověřit schody, dveře a požární řešení.'],
+['Je možné napojení WC, sprchy a kuchyně?','Odpady, spád, kanalizace, přívod vody.'],
+['Jaký je stav podlahy a podkladních vrstev?','Riziko nutnosti snížení podlahy a zásahu do základů.']]],
+['D. Odborné prověření – konstrukce a obálka domu',[
+['Jsou viditelné trhliny nebo deformace?','Vyfotit, lokalizovat, případně posoudit statikem.'],
+['Stav střechy, krovu, komínů a oplechování','Věk, zatékání, dřevokazné poškození.'],
+['Fasáda, zateplení a tepelné mosty','Doklady o provedení a riziko kondenzace.'],
+['Základy a odvodnění kolem domu','Terén u fasády, svody a voda u suterénu.']]],
+['E. Odborné prověření – instalace a provoz',[
+['Elektroinstalace a kapacita pro více bytů','Revize, jističe, samostatné okruhy a měření.'],
+['Voda, kanalizace a odpady','Stáří, stav, kapacita a trasy nových rozvodů.'],
+['Vytápění, kotel a komíny','Výkon, servis, revize a regulace po rozdělení.'],
+['Měření energií a možnost oddělení spotřeb','Elektroměry, vodoměry, vytápění a vyúčtování.']]],
+['F. Odborné prověření – dispozice, požár a přístupy',[
+['Samostatné vstupy a společné komunikace','Přístup bez průchodu cizím bytem.'],
+['Možnost umístit koupelnu a kuchyň','Instalační šachty a větrání.'],
+['Požární úseky, únikové cesty a dveře','Vyžaduje posouzení projektantem požární bezpečnosti.'],
+['Akustické oddělení bytů','Stropy, příčky, prostupy a technická zařízení.'],
+['Parkování, příjezd, kola a odpady','Ověřit místní požadavky a právní přístup.']]],
+['G. Odborné prověření – právo a územní plán',[
+['List vlastnictví, zástavy a věcná břemena','Prověřit aktuální katastr a právní omezení.'],
+['Povolený způsob užívání a kolaudační doklady','Vyžádat dostupné dokumenty a ověřit u úřadu.'],
+['Soulad skutečného stavu s dokumentací','Nepovolené úpravy mohou vyžadovat dodatečné řešení.'],
+['Územní plán a místní regulativy','Prověřit parcelu, limity a případné změny.'],
+['Potřebná povolení pro zamýšlenou změnu','Předběžná konzultace projektanta a stavebního úřadu.'],
+['Právní vymezení jednotek pro samostatný prodej','Prohlášení vlastníka, společné části, podíly a katastr.'],
+['Nájemní vztahy a termín vyklizení','Písemně ověřit smlouvy a podmínky předání.']]]
+];
 const ids=['name','address','url','price','date','strategy','status','contact','heightMin','heightMax','area','windows','notes','decision','risks'];
 const $=id=>document.getElementById(id);
 let state={checks:{},notes:{}},projects=[],activeId='';
