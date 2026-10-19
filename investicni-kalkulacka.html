@@ -180,7 +180,7 @@ async function importSrealityListing(){
  const id=extractSrealityId(url);
  if(!id){status.textContent='Odkaz nevypadá jako detail inzerátu Sreality s číselným ID. Zkontroluj URL.';return}
  try{
-  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id);
+  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id)+'&url='+encodeURIComponent(url);
   const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
   const data=await response.json().catch(()=>null);
   if(!response.ok){const detail=data&&(data.detail||data.error);throw new Error('HTTP '+response.status+(data&&data.upstreamStatus?' (Sreality HTTP '+data.upstreamStatus+')':'')+(detail?': '+detail:''))}
