@@ -102,14 +102,19 @@ function currentProject(){return projects.find(p=>p.id===activeProjectId)}
 function readProjectValues(){const values={};projectFields().forEach(el=>{if(el.id)values[el.id]=el.value});return values}
 function syncManagerProject(p){
  try{
-  const key='rei-manager-projects-v2',saved=JSON.parse(localStorage.getItem(key)||'null');
-  if(!saved||!Array.isArray(saved.projects))return;
-  const m=saved.projects.find(x=>x.id===p.id);if(!m)return;
+  const key='rei-manager-projects-v2';let saved=JSON.parse(localStorage.getItem(key)||'null');
+  if(!saved||!Array.isArray(saved.projects))saved={projects:[],activeId:p.id};
+  let m=saved.projects.find(x=>x.id===p.id);
+  if(!m){
+   m={id:p.id,data:{name:'',address:'',url:'',price:'',date:'',strategy:'Zatím nerozhodnuto',status:'Nová příležitost',contact:'',heightMin:'',heightMax:'',area:'',windows:'',notes:'',decision:'Zatím nerozhodnuto',risks:'',checks:{},itemNotes:{},answers:{},visits:[],activeVisitId:''}};
+   saved.projects.push(m);
+  }
   m.data=m.data||{};
-  m.data.name=$('name').value||p.title||m.data.name;
+  m.data.name=$('name').value||p.title||m.data.name||'Nový projekt';
   m.data.address=$('listingAddress').value||m.data.address||'';
   m.data.url=$('listingURL').value||$('url').value||m.data.url||'';
   m.data.price=$('listingPrice').value||$('purchase').value||m.data.price||'';
+  if(!saved.activeId)saved.activeId=p.id;
   localStorage.setItem(key,JSON.stringify(saved));
  }catch(e){}
 }
@@ -127,7 +132,7 @@ function applyProject(p){
  projectFields().forEach(el=>{if(Object.prototype.hasOwnProperty.call(p.values||{},el.id))el.value=p.values[el.id]});
  activeProjectId=p.id;
  projectSwitching=false;
- updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();
+ updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();syncManagerProject(p);
 }
 function renderProjectTabs(){
  const root=$('listingTabs');if(!root)return;root.innerHTML='';
