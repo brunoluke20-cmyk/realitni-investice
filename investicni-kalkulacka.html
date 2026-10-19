@@ -27,12 +27,12 @@
 </section>
 
 <section class="card" id="quickCalculator"><h2>Investiční kalkulačka</h2><p class="muted">Uprav předpoklady a zjisti, jak se mění celkový rozpočet. Jde o pracovní model, ne o odhad ceny rekonstrukce či budoucí tržní hodnoty.</p>
-<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="0" max="100" step="0.1" value="22.9"><div class="range-hints"><span>0</span><span>50</span><span>100 mil. Kč</span></div></div>
+<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="15" max="25" step="0.1" value="22.9"><div class="range-hints"><span>15</span><span>20</span><span>25</span></div></div>
 <div class="quick-slider"><label for="quickWorks">Rekonstrukce (mil. Kč)</label><output id="quickWorksOut" for="quickWorks">5,0</output><input id="quickWorks" type="range" min="1" max="12" step="0.1" value="5"><div class="range-hints"><span>1</span><span>6</span><span>12</span></div></div>
 <div class="quick-slider"><label for="quickSoft">Projekt, průzkumy, povolení a ostatní náklady (mil. Kč)</label><output id="quickSoftOut" for="quickSoft">1,0</output><input id="quickSoft" type="range" min="0.2" max="3" step="0.1" value="1"><div class="range-hints"><span>0,2</span><span>1,5</span><span>3</span></div></div>
 <div class="quick-slider"><label for="quickReserve">Rezerva na dodatečné výdaje</label><output id="quickReserveOut" for="quickReserve">15 %</output><input id="quickReserve" type="range" min="5" max="30" step="1" value="15"><div class="range-hints"><span>5 %</span><span>15 %</span><span>30 %</span></div></div>
 <div class="metric" style="margin:18px 0"><small>Z toho rezerva</small><strong id="quickReserveAmount">0,90 mil. Kč</strong></div>
-<h2 style="margin-top:20px">Odhad prodejní ceny po dokončení</h2><p class="muted">Zadej očekávanou prodejní cenu za m² podle srovnatelných dokončených nemovitostí. Plocha se předvyplní z inzerátu, můžeš ji upravit na skutečnou prodejní plochu po dokončení. Scénáře jsou modelové: −10 %, základní odhad a +10 %.</p><div class="grid"><div class="field"><label for="quickSellArea">Předpokládaná prodejní plocha po dokončení (m²)</label><input id="quickSellArea" type="number" min="0" step="0.1" placeholder="Doplň plochu"></div><div class="field"><label for="quickSellM2">Odhad prodejní ceny (Kč/m²)</label><input id="quickSellM2" type="number" min="0" step="1000" placeholder="Doplň podle srovnatelných nabídek"></div></div><div class="value-options" role="group" aria-label="Scénář budoucí prodejní ceny"><button class="value-option" type="button" data-scenario="0" aria-pressed="false">Konzervativní −10 %</button><button class="value-option" type="button" data-scenario="1" aria-pressed="true">Realistický</button><button class="value-option" type="button" data-scenario="2" aria-pressed="false">Optimistický +10 %</button></div><p id="quickValueExplanation" class="muted" role="status">Doplň plochu a cenu za m²; kalkulačka pak spočítá tři scénáře.</p>
+<h2 style="margin-top:20px">Předpokládaná hodnota po dokončení (mil. Kč)</h2><div class="value-options" role="group" aria-label="Předpokládaná hodnota po dokončení"><button class="value-option" type="button" data-value="30" aria-pressed="false">30 mil.</button><button class="value-option" type="button" data-value="34" aria-pressed="true">34 mil.</button><button class="value-option" type="button" data-value="38" aria-pressed="false">38 mil.</button></div>
 <div class="quick-results"><div class="metric"><small>Modelované celkové náklady</small><strong id="quickTotal">29,80 mil. Kč</strong></div><div class="metric"><small>Rozdíl před dalšími náklady</small><strong id="quickDifference">4,20 mil. Kč</strong></div></div>
 <p class="muted">Tento rychlý přehled počítá kupní cenu, rekonstrukci, projektové náklady a rezervu. Nezahrnuje další pořizovací náklady, provoz, prodejní náklady ani úroky z hypotéky; ty lze upravit v podrobné kalkulaci níže.</p></section>
 
@@ -100,40 +100,12 @@ let projects=[],activeProjectId=null,projectSwitching=false;
 function makeId(){return 'listing-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
 function currentProject(){return projects.find(p=>p.id===activeProjectId)}
 function readProjectValues(){const values={};projectFields().forEach(el=>{if(el.id)values[el.id]=el.value});return values}
-function syncManagerProject(p){
- try{
-  const key='rei-manager-projects-v2';let saved=JSON.parse(localStorage.getItem(key)||'null');
-  if(!saved||!Array.isArray(saved.projects))saved={projects:[],activeId:p.id};
-  let m=saved.projects.find(x=>x.id===p.id);
-  if(!m){
-   const sourceUrl=$('listingURL').value||$('url').value||p.values?.url||'';
-   const title=($('name').value||p.title||'').trim().toLowerCase();
-   m=saved.projects.find(x=>sourceUrl&&x.data&&x.data.url===sourceUrl);
-   if(!m&&title&& !['nový inzerát','nový projekt','první nabídka','nabídka 1'].includes(title))
-    m=saved.projects.find(x=>x.data&&(x.data.name||'').trim().toLowerCase()===title);
-   if(m){p.id=m.id;activeProjectId=m.id;}
-  }
-  if(!m){
-   m={id:p.id,data:{name:'',address:'',url:'',price:'',date:'',strategy:'Zatím nerozhodnuto',status:'Nová příležitost',contact:'',heightMin:'',heightMax:'',area:'',windows:'',notes:'',decision:'Zatím nerozhodnuto',risks:'',checks:{},itemNotes:{},answers:{},visits:[],activeVisitId:''}};
-   saved.projects.push(m);
-  }
-  m.data=m.data||{};
-  m.data.name=$('name').value||p.title||m.data.name||'Nový projekt';
-  m.data.address=$('listingAddress').value||m.data.address||'';
-  m.data.url=$('listingURL').value||$('url').value||m.data.url||'';
-  m.data.price=$('listingPrice').value||$('purchase').value||m.data.price||'';
-  saved.activeId=p.id;
-  localStorage.setItem(key,JSON.stringify(saved));
-  localStorage.setItem(projectKey,JSON.stringify(projects));
- }catch(e){}
-}
 function saveActiveProject(){
  if(projectSwitching||!activeProjectId)return;
  const p=currentProject();if(!p)return;
  p.values=readProjectValues();
  p.title=($('name').value||$('listingAddress').value||p.title||'Nový inzerát').trim();
  try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
- syncManagerProject(p);
  renderProjectTabs();
 }
 function applyProject(p){
@@ -141,7 +113,7 @@ function applyProject(p){
  projectFields().forEach(el=>{if(Object.prototype.hasOwnProperty.call(p.values||{},el.id))el.value=p.values[el.id]});
  activeProjectId=p.id;
  projectSwitching=false;
- updateListingPriceM2();updateQuick(false);calc();updateInvestment();syncManagerProject(p);renderProjectTabs();
+ updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();
 }
 function renderProjectTabs(){
  const root=$('listingTabs');if(!root)return;root.innerHTML='';
@@ -217,8 +189,8 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(0,Math.min(100,facts.price/1000000)).toFixed(1);filled.push('cena')}
-  if(facts.area){$('listingArea').value=String(facts.area);$('quickSellArea').value=String(facts.area);filled.push('plocha')}
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}
+  if(facts.area){$('listingArea').value=String(facts.area);filled.push('plocha')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
   $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
   const p=currentProject();if(p){p.title=facts.name||facts.location||p.title;p.values=readProjectValues();saveActiveProject()}
@@ -233,11 +205,11 @@ $('addListing').addEventListener('click',()=>{saveActiveProject();const values=r
 $('renameListing').addEventListener('click',()=>{const p=currentProject();if(!p)return;const title=prompt('Nový název záložky:',p.title);if(title===null||!title.trim())return;p.title=title.trim();if($('name'))$('name').value=title.trim();saveActiveProject();renderProjectTabs()});
 $('deleteListing').addEventListener('click',()=>{if(projects.length<=1)return;const p=currentProject();if(!p||!confirm('Opravdu smazat nabídku „'+p.title+'“?'))return;const idx=projects.findIndex(x=>x.id===p.id);projects=projects.filter(x=>x.id!==p.id);try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){};const next=projects[Math.max(0,idx-1)];applyProject(next)});
 $('openListingURL').addEventListener('click',openListingURL);
-['listingPrice','listingArea'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='listingArea'&&!$('quickSellArea').value)$('quickSellArea').value=$('listingArea').value;updateListingPriceM2();updateQuick(false);saveActiveProject()}));
+['listingPrice','listingArea'].forEach(id=>$(id).addEventListener('input',()=>{updateListingPriceM2();saveActiveProject()}));
 ['listingAddress','listingURL'].forEach(id=>$(id).addEventListener('input',saveActiveProject));
 
 const ids=['name','url','strategy','purchase','buyCost','works','soft','reserve','holding','value','saleCost','target','units','ltv','rate','term','months'];
-const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:0,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
+const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:34000000,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
 const n=id=>Math.max(0,Number($(id).value)||0);
 const fmt=v=>new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
 function mortgage(principal,annualRate,termYears,holdMonths){
@@ -297,10 +269,6 @@ let quickValue=quickDefaults.value;
 const quickFmt=v=>v.toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' mil. Kč';
 function updateQuick(syncMain=true){
  const purchase=Number($('quickPurchase').value),works=Number($('quickWorks').value),soft=Number($('quickSoft').value),reserve=Number($('quickReserve').value);
- const sellArea=Number($('quickSellArea').value)||0,sellM2=Number($('quickSellM2').value)||0;
- const baseValue=sellArea>0&&sellM2>0?sellArea*sellM2/1000000:0;
- const scenarioValues=[baseValue*.9,baseValue,baseValue*1.1];
- quickValue=scenarioValues[quickScenario]||0;
  $('quickPurchaseOut').textContent=purchase.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
  $('quickWorksOut').textContent=works.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
  $('quickSoftOut').textContent=soft.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -308,26 +276,22 @@ function updateQuick(syncMain=true){
  const reserveAmount=(works+soft)*reserve/100,total=purchase+works+soft+reserveAmount,difference=quickValue-total;
  $('quickReserveAmount').textContent=quickFmt(reserveAmount);
  $('quickTotal').textContent=quickFmt(total);
- $('quickDifference').textContent=baseValue>0?quickFmt(difference):'Doplň odhad ceny';
- $('quickDifference').style.color=baseValue>0&&difference>=0?'#147a52':'#b42318';
- $('quickValueExplanation').textContent=baseValue>0?'Výpočet: '+sellArea.toLocaleString('cs-CZ')+' m² × '+new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(sellM2)+' Kč/m². Realistický základ: '+quickFmt(baseValue)+'. Scénáře ±10 % jsou pracovní rozpětí, nikoli ocenění znalcem.':'Doplň plochu a cenu za m²; kalkulačka pak spočítá tři scénáře.';
- document.querySelectorAll('.value-option').forEach(b=>{const i=Number(b.dataset.scenario);b.setAttribute('aria-pressed',String(i===quickScenario));b.disabled=baseValue<=0;const labels=['Konzervativní −10 %','Realistický','Optimistický +10 %'];b.textContent=baseValue>0?labels[i]+': '+quickFmt(scenarioValues[i]):labels[i];});
+ $('quickDifference').textContent=quickFmt(difference);
+ $('quickDifference').style.color=difference>=0?'#147a52':'#b42318';
+ document.querySelectorAll('.value-option').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.value)===quickValue)));
  if(syncMain){
   $('purchase').value=Math.round(purchase*1000000);
   $('works').value=Math.round(works*1000000);
   $('soft').value=Math.round(soft*1000000);
   $('reserve').value=reserve;
-  $('value').value=baseValue>0?Math.round(quickValue*1000000):'';
+  $('value').value=Math.round(quickValue*1000000);
   save();
   updateInvestment();
  }else calc();
- try{localStorage.setItem('rei-calc-quick-v1',JSON.stringify({purchase,works,soft,reserve,area:sellArea,sellM2,scenario:quickScenario}));}catch(e){}
+ try{localStorage.setItem('rei-calc-quick-v1',JSON.stringify({purchase,works,soft,reserve,value:quickValue}));}catch(e){}
 }
-['quickPurchase','quickWorks','quickSoft','quickReserve','quickSellArea','quickSellM2'].forEach(id=>$(id).addEventListener('input',()=>{
- if(id==='quickSellArea'&&Number($('quickSellArea').value)>0){$('listingArea').value=$('quickSellArea').value;updateListingPriceM2();}
- updateQuick(true);
-}));
-document.querySelectorAll('.value-option').forEach(b=>b.addEventListener('click',()=>{quickScenario=Number(b.dataset.scenario);updateQuick(true);}));
+['quickPurchase','quickWorks','quickSoft','quickReserve'].forEach(id=>$(id).addEventListener('input',()=>updateQuick(true)));
+document.querySelectorAll('.value-option').forEach(b=>b.addEventListener('click',()=>{quickValue=Number(b.dataset.value);updateQuick(true);}));
 
 
 function getVal(id){return Math.max(0,Number($(id).value)||0)}
@@ -378,33 +342,16 @@ $('export').onclick=()=>{const blob=new Blob([JSON.stringify(Object.fromEntries(
 $('importBtn').onclick=()=>$('file').click();
 $('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());ids.forEach(id=>{if(d[id]!==undefined)$(id).value=d[id]});save()}catch{alert('Soubor se nepodařilo načíst.')}};
 $('reset').onclick=()=>{if(confirm('Obnovit výchozí hodnoty?')){ids.forEach(id=>$(id).value=defaults[id]);save()}};
-try{const q=JSON.parse(localStorage.getItem('rei-calc-quick-v1')||'null');if(q){if(q.purchase!==undefined)$('quickPurchase').value=q.purchase;if(q.works!==undefined)$('quickWorks').value=q.works;if(q.soft!==undefined)$('quickSoft').value=q.soft;if(q.reserve!==undefined)$('quickReserve').value=q.reserve;if(q.area!==undefined)$('quickSellArea').value=q.area;if(q.sellM2!==undefined)$('quickSellM2').value=q.sellM2;if(q.scenario!==undefined)quickScenario=q.scenario;}}catch(e){}
+try{const q=JSON.parse(localStorage.getItem('rei-calc-quick-v1')||'null');if(q){if(q.purchase!==undefined)$('quickPurchase').value=q.purchase;if(q.works!==undefined)$('quickWorks').value=q.works;if(q.soft!==undefined)$('quickSoft').value=q.soft;if(q.reserve!==undefined)$('quickReserve').value=q.reserve;if(q.value!==undefined)quickValue=q.value;}}catch(e){}
 try{const d=JSON.parse(localStorage.getItem('rei-calc-v1')||'null');if(d)ids.forEach(id=>{if(d[id]!==undefined)$(id).value=d[id]})}catch{}
 
 try{
  const saved=JSON.parse(localStorage.getItem(projectKey)||'null');
- projects=Array.isArray(saved)?saved.filter(p=>p&&p.id&&p.values):[];
- const requestedId=new URLSearchParams(location.search).get('project');
- if(requestedId){
-  const manager=JSON.parse(localStorage.getItem('rei-manager-projects-v2')||'null');
-  const m=manager&&Array.isArray(manager.projects)?manager.projects.find(x=>x.id===requestedId):null;
-  let linked=projects.find(p=>p.id===requestedId);
-  if(!linked){
-   const values=readProjectValues();
-   if(m&&m.data){
-    values.name=m.data.name||values.name;values.url=m.data.url||values.url;values.listingURL=m.data.url||values.listingURL;
-    values.listingAddress=m.data.address||'';values.listingPrice=m.data.price||'';values.purchase=m.data.price||values.purchase;if(m.data.price)values.quickPurchase=Math.max(0,Math.min(100,Number(m.data.price)/1000000)).toFixed(1);
-   }
-   linked={id:requestedId,title:(m&&m.data&&m.data.name)||'Nový projekt',values};projects.push(linked);
-  }else if(m&&m.data){
-   linked.values.name=m.data.name||linked.values.name;linked.values.url=m.data.url||linked.values.url;
-   linked.values.listingURL=m.data.url||linked.values.listingURL;linked.values.listingAddress=m.data.address||linked.values.listingAddress;
-   if(m.data.price){linked.values.listingPrice=String(m.data.price);linked.values.purchase=String(m.data.price);linked.values.quickPurchase=Math.max(0,Math.min(100,Number(m.data.price)/1000000)).toFixed(1);}
-  }
-  try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
-  applyProject(linked);
- }else if(projects.length)applyProject(projects[0]);
- else createProject(($('name').value||'První nabídka'),readProjectValues());
+ if(Array.isArray(saved)&&saved.length){
+  projects=saved.filter(p=>p&&p.id&&p.values);
+  if(!projects.length)createProject('Nabídka 1',readProjectValues());
+  else applyProject(projects[0]);
+ }else createProject(($('name').value||'První nabídka'),readProjectValues());
 }catch(e){projects=[];createProject(($('name').value||'První nabídka'),readProjectValues())}
 projectFields().forEach(el=>{if(!['listingPriceM2'].includes(el.id)){el.addEventListener('input',saveActiveProject);el.addEventListener('change',saveActiveProject)}});
 if(!$('listingURL').value&&$('url').value)$('listingURL').value=$('url').value;
