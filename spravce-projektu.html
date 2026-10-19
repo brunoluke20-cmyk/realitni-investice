@@ -6,6 +6,25 @@
 <section class="card"><h2>2. Průběh prověření</h2><div class="grid"><div class="stat"><span class="muted">Splněno</span><strong id="done">0</strong></div><div class="stat"><span class="muted">Otevřeno</span><strong id="open">0</strong></div><div class="stat"><span class="muted">Postup</span><strong id="pct">0 %</strong></div></div><div class="progress"><div id="bar"></div></div><p class="muted">Zaškrtni prověřené body; u nejasných položek přidej poznámku a úkol.</p></section>
 <div id="checklists"></div>
 <section class="card"><h2>3. Rozměry suterénu a technické poznámky</h2><div class="grid"><div class="field"><label>Světlá výška – nejnižší místo (m)</label><input id="heightMin" type="number" step=".01" placeholder="Změřit na místě"></div><div class="field"><label>Světlá výška – nejvyšší místo (m)</label><input id="heightMax" type="number" step=".01" placeholder="Změřit na místě"></div><div class="field"><label>Plocha místnosti (m²)</label><input id="area" type="number" step=".1" placeholder="Změřit / ověřit v dokumentaci"></div><div class="field"><label>Výška oken vůči terénu</label><select id="windows"><option value="">Nezjištěno</option><option>Okna nad terénem</option><option>Částečně pod terénem</option><option>Plně pod terénem / světlík</option><option>Bez oken</option></select></div></div><div class="field" style="margin-top:12px"><label>Poznámky z prohlídky</label><textarea id="notes" rows="5" placeholder="Vlhkost, zápach, trhliny, rozvody, fotografie k pořízení, odpovědi makléře…"></textarea></div></section>
+
+<section class="card" id="visitNotesCard">
+<h2>3. Záznamy z prohlídek</h2>
+<p class="muted">Záznamy se ukládají pod aktuální nemovitost „<strong id="visitProjectName">—</strong>“. Můžeš vytvořit více záznamů, později je znovu otevřít a upravit. Ukládají se průběžně do tohoto prohlížeče; tlačítko Uložit záznam provede uložení i na vyžádání.</p>
+<div class="grid">
+<div class="field"><label for="visitSelect">Uložené prohlídky</label><select id="visitSelect"><option value="">Zatím žádný záznam</option></select></div>
+<div class="field"><label for="visitTitle">Název záznamu</label><input id="visitTitle" placeholder="Např. První prohlídka s makléřem"></div>
+<div class="field"><label for="visitDate">Datum prohlídky</label><input id="visitDate" type="date"></div>
+<div class="field"><label for="visitAttendees">Kdo byl na prohlídce</label><input id="visitAttendees" placeholder="Já, makléř, projektant…"></div>
+</div>
+<div class="field" style="margin-top:12px"><label for="visitNotes">Poznámky z této prohlídky</label><textarea id="visitNotes" rows="8" placeholder="Stav nemovitosti, odpovědi makléře, naměřené hodnoty, domluvené kroky a otázky k ověření…"></textarea></div>
+<div class="actions" style="margin-top:12px">
+<button class="btn primary" id="saveVisit" type="button">Uložit záznam</button>
+<button class="btn" id="newVisit" type="button">+ Nový záznam prohlídky</button>
+<button class="btn" id="deleteVisit" type="button">Smazat tento záznam</button>
+</div>
+<p class="muted" id="visitSaveStatus" role="status" aria-live="polite">Záznamy se ukládají do tohoto prohlížeče.</p>
+</section>
+
 <section class="card"><h2>4. Legislativní orientační průvodce</h2><div class="notice"><strong>Důležité:</strong> fyzické rozdělení domu, povolení užívání nových bytů a právní vymezení jednotek jsou odlišné kroky. Tento přehled je pomůcka pro prověrku, nikoli závazné právní stanovisko.</div>
 <h3>Rozměry a obytný prostor</h3><ul><li><strong>Minimální plocha obytného prostoru:</strong> 8 m² podle definice ve vyhlášce č. 146/2024 Sb.; nejde o univerzální minimální plochu celého bytu.</li><li><strong>Světlá výška:</strong> obecně 2,5 m; vyhláška stanoví podmínky pro snížení na 2,2 m nad nejvýše polovinou podlahové plochy místnosti. Pro podkroví a šikmé stropy platí zvláštní pravidla.</li><li><strong>Suterén:</strong> samotná výška nestačí. Posuzuje se také denní osvětlení, větrání, vlhkost, hydroizolace, bezpečný přístup, požární řešení, hluk, vytápění a hygienické požadavky.</li><li><strong>Celý byt:</strong> musí splnit požadavky na stavební uspořádání a bezpečné užívání. Obytná místnost 8 m² neznamená, že celý byt může mít 8 m².</li></ul>
 <h3>Co právně ověřit</h3><ul><li>Stávající povolený způsob užívání a dokumentaci skutečného provedení.</li><li>Zda změna dispozice nebo počtu bytů vyžaduje povolení záměru či další postup stavebního úřadu.</li><li>Požární bezpečnost, únikové cesty, akustiku, větrání, osvětlení a hygienické zázemí.</li><li>Požadavky na parkování, přístup, odpady a kapacity přípojek.</li><li>Pro samostatný prodej: vymezení jednotek, společných částí a podílů dle občanského zákoníku a zápis do katastru.</li></ul>
@@ -73,19 +92,57 @@ const groups=[
 ];
 const ids=['name','address','url','price','date','strategy','status','contact','heightMin','heightMax','area','windows','notes','decision','risks'];
 const $=id=>document.getElementById(id);
-let state={checks:{},notes:{}},projects=[],activeId='';
+let state={checks:{},notes:{},answers:{}},projects=[],activeId='',visitRecords=[],activeVisitId='';
 const oldKey='rei-manager-v1',storageKey='rei-manager-projects-v2';
 function blankData(name='Nová nemovitost'){return {name,address:'',url:'',price:'',date:'',strategy:'Zatím nerozhodnuto',status:'Nová příležitost',contact:'',heightMin:'',heightMax:'',area:'',windows:'',notes:'',decision:'Zatím nerozhodnuto',risks:'',checks:{},itemNotes:{}};}
-function snapshot(){const d={};ids.forEach(id=>d[id]=$(id).value);d.checks=state.checks;d.itemNotes=state.notes;d.answers=state.answers||{};return d;}
+function snapshot(){saveVisitDraft(false);const d={};ids.forEach(id=>d[id]=$(id).value);d.checks=state.checks;d.itemNotes=state.notes;d.answers=state.answers||{};d.visits=visitRecords;d.activeVisitId=activeVisitId;return d;}
 function persistProjects(){try{localStorage.setItem(storageKey,JSON.stringify({projects,activeId}));}catch(e){}}
 function saveCurrent(){const p=projects.find(x=>x.id===activeId);if(p)p.data=snapshot();persistProjects();}
 function renderTabs(){const root=$('projectTabs');root.innerHTML='';projects.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='tab';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(p.id===activeId));b.textContent=(p.data.name||'Bez názvu').trim()||'Bez názvu';b.title=p.data.url||p.data.address||p.data.name;b.addEventListener('click',()=>{if(p.id!==activeId)loadProject(p.id);});root.appendChild(b);});}
-function loadProject(id){if(id!==activeId)saveCurrent();activeId=id;const p=projects.find(x=>x.id===id);if(!p)return;const d=p.data||blankData();ids.forEach(key=>{if($(key)&&d[key]!==undefined)$(key).value=d[key];});state={checks:d.checks||{},notes:d.itemNotes||{},answers:d.answers||{}};build();update(false);renderTabs();persistProjects();}
+function loadProject(id){if(id!==activeId)saveCurrent();activeId=id;const p=projects.find(x=>x.id===id);if(!p)return;const d=p.data||blankData();ids.forEach(key=>{if($(key)&&d[key]!==undefined)$(key).value=d[key];});state={checks:d.checks||{},notes:d.itemNotes||{},answers:d.answers||{}};visitRecords=Array.isArray(d.visits)?d.visits:[];activeVisitId=d.activeVisitId||'';build();update(false);renderTabs();renderVisits();persistProjects();}
 function build(){const root=$('checklists');root.innerHTML='';groups.forEach((g,gi)=>{const sec=document.createElement('section');sec.className='card';const h=document.createElement('h2');h.textContent=g[0];sec.appendChild(h);const advanced=/Odborné prověření/.test(g[0]);if(advanced){const details=document.createElement('details');details.open=false;const summary=document.createElement('summary');summary.textContent='Rozbalit odborný checklist';summary.style.cursor='pointer';summary.style.fontWeight='600';summary.style.padding='8px 0';const content=document.createElement('div');g[1].forEach((item,ii)=>addCheck(content,item,gi,ii));details.append(summary,content);sec.appendChild(details);}else g[1].forEach((item,ii)=>addCheck(sec,item,gi,ii));root.appendChild(sec);});}
 function addCheck(parent,item,gi,ii){const key=gi+'-'+ii,row=document.createElement('div');row.className='check';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!state.checks[key];cb.setAttribute('aria-label','Označit položku jako prověřenou');cb.addEventListener('change',()=>{state.checks[key]=cb.checked;update();});const div=document.createElement('div'),strong=document.createElement('strong'),p=document.createElement('p'),answer=document.createElement('div'),note=document.createElement('input');strong.textContent=item[0];p.textContent=item[1];answer.style.cssText='display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px';const yesNo=/^(Je\b|Jsou\b|Bylo\b|Byly\b|Byl\b|Lze\b|Má\b|Mají\b|Může\b|Mohou\b|Proběhla\b|Otevírají\b|Existuje\b|Je-li\b|Jsou-li\b|Byla\b|Je možné\b|Je zajištěné\b|Je možné\b|Je prodávající\b|Je k dispozici\b|Je možné\b|Jsou vidět\b|Jsou známky\b|Jsou obě\b|Je potřeba\b|Je otevřen\b|Je vidět\b|Je možné\b)/i.test(item[0]);if(yesNo){const label=document.createElement('span');label.textContent='Odpověď:';label.style.cssText='font-size:13px;color:#586777';answer.appendChild(label);['Ano','Ne','Nezjištěno'].forEach(value=>{const lab=document.createElement('label');lab.style.cssText='display:inline-flex;align-items:center;gap:5px;font-size:14px;cursor:pointer';const radio=document.createElement('input');radio.type='radio';radio.name='answer-'+key;radio.value=value;radio.checked=(state.answers||{})[key]===value;radio.addEventListener('change',()=>{state.answers=state.answers||{};state.answers[key]=value;persistCurrentOnly();});lab.append(radio,document.createTextNode(value));answer.appendChild(lab);});}else{note.placeholder='Odpověď / poznámka / úkol…';note.value=state.notes[key]||'';note.style.cssText='margin-top:8px;width:100%;padding:9px;border:1px solid #cbd5df;border-radius:8px;font:inherit';note.addEventListener('input',()=>{state.notes[key]=note.value;persistCurrentOnly();});answer.appendChild(note);}div.append(strong,p,answer);row.append(cb,div);parent.appendChild(row);}
 function persistCurrentOnly(){const p=projects.find(x=>x.id===activeId);if(p)p.data=snapshot();persistProjects();}
 function update(save=true){const all=groups.reduce((s,g)=>s+g[1].length,0),done=Object.values(state.checks).filter(Boolean).length;$('done').textContent=done;$('open').textContent=all-done;$('pct').textContent=Math.round(done/all*100)+' %';$('bar').style.width=(done/all*100)+'%';$('listing').href=$('url').value||'#';if(save)persistCurrentOnly();}
-ids.forEach(id=>$(id).addEventListener('input',()=>{update();if(id==='name')renderTabs();}));
+
+function currentVisit(){return visitRecords.find(v=>v.id===activeVisitId)||null;}
+function saveVisitDraft(showStatus=true){
+ const v=currentVisit();
+ if(!v)return;
+ v.title=$('visitTitle').value;
+ v.date=$('visitDate').value;
+ v.attendees=$('visitAttendees').value;
+ v.notes=$('visitNotes').value;
+ const p=projects.find(x=>x.id===activeId);
+ if(p){p.data=p.data||{};p.data.visits=visitRecords;p.data.activeVisitId=activeVisitId;}
+ if(showStatus)$('visitSaveStatus').textContent='Uloženo do projektu „'+(($('name').value||'Bez názvu').trim())+'“ v tomto prohlížeči.';
+ persistProjects();
+ renderVisits(false);
+}
+function renderVisits(loadSelected=true){
+ const sel=$('visitSelect');if(!sel)return;
+ $('visitProjectName').textContent=($('name').value||'Bez názvu').trim();
+ sel.innerHTML='';
+ if(!visitRecords.length){const o=document.createElement('option');o.value='';o.textContent='Zatím žádný záznam';sel.appendChild(o);}
+ visitRecords.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=(v.title||'Prohlídka bez názvu')+(v.date?' — '+v.date:'');sel.appendChild(o);});
+ sel.value=visitRecords.some(v=>v.id===activeVisitId)?activeVisitId:'';
+ if(loadSelected){
+  const v=currentVisit();
+  $('visitTitle').value=v?.title||'';
+  $('visitDate').value=v?.date||'';
+  $('visitAttendees').value=v?.attendees||'';
+  $('visitNotes').value=v?.notes||'';
+  $('deleteVisit').disabled=!v;
+  $('visitSaveStatus').textContent=v?'Otevřen záznam „'+(v.title||'Prohlídka bez názvu')+'“. Změny se průběžně ukládají.':'Vytvoř nový záznam prohlídky.';
+ }
+}
+$('saveVisit').addEventListener('click',()=>{if(!currentVisit()){const id='visit-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);visitRecords.push({id,title:$('visitTitle').value||'Prohlídka '+(visitRecords.length+1),date:$('visitDate').value,attendees:$('visitAttendees').value,notes:$('visitNotes').value});activeVisitId=id;}saveVisitDraft(true);renderVisits();});
+$('newVisit').addEventListener('click',()=>{saveVisitDraft(false);const id='visit-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);visitRecords.push({id,title:'Prohlídka '+(visitRecords.length+1),date:new Date().toISOString().slice(0,10),attendees:'',notes:''});activeVisitId=id;saveVisitDraft(false);renderVisits();$('visitTitle').focus();$('visitTitle').select();$('visitSaveStatus').textContent='Nový záznam vytvořen. Doplň poznámky; změny se průběžně ukládají.';});
+$('visitSelect').addEventListener('change',()=>{saveVisitDraft(false);activeVisitId=$('visitSelect').value;const p=projects.find(x=>x.id===activeId);if(p){p.data.visits=visitRecords;p.data.activeVisitId=activeVisitId;}persistProjects();renderVisits();});
+$('deleteVisit').addEventListener('click',()=>{const v=currentVisit();if(!v)return;if(!confirm('Smazat záznam „'+(v.title||'Prohlídka bez názvu')+'“?'))return;visitRecords=visitRecords.filter(x=>x.id!==activeVisitId);activeVisitId=visitRecords[0]?.id||'';saveVisitDraft(false);const p=projects.find(x=>x.id===activeId);if(p){p.data.visits=visitRecords;p.data.activeVisitId=activeVisitId;}persistProjects();renderVisits();$('visitSaveStatus').textContent='Záznam byl smazán.';});
+['visitTitle','visitDate','visitAttendees','visitNotes'].forEach(id=>$(id).addEventListener('input',()=>{saveVisitDraft(true);}));
+
+ids.forEach(id=>$(id).addEventListener('input',()=>{update();if(id==='name'){renderTabs();renderVisits(false);}}));
 $('newProject').onclick=()=>{saveCurrent();const d=blankData('Nová nemovitost '+(projects.length+1));const id='property-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);projects.push({id,data:d});activeId=id;loadProject(id);$('name').focus();$('name').select();};
 $('renameProject').onclick=()=>{const current=projects.find(p=>p.id===activeId);if(!current)return;const next=prompt('Název záložky / nemovitosti:',current.data.name||'');if(next&&next.trim()){$('name').value=next.trim();current.data.name=next.trim();saveCurrent();renderTabs();}};
 $('deleteProject').onclick=()=>{if(projects.length<=1){alert('Musí zůstat alespoň jedna nemovitost.');return;}const current=projects.find(p=>p.id===activeId);if(!confirm('Smazat „'+(current?.data.name||'tuto nemovitost')+'“ včetně checklistu a poznámek?'))return;projects=projects.filter(p=>p.id!==activeId);activeId=projects[0].id;loadProject(activeId);};
