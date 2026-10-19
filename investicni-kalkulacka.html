@@ -180,7 +180,7 @@ async function importSrealityListing(){
  const id=extractSrealityId(url);
  if(!id){status.textContent='Odkaz nevypadá jako detail inzerátu Sreality s číselným ID. Zkontroluj URL.';return}
  try{
-  const endpoint='https://www.sreality.cz/api/cs/v2/estates/'+encodeURIComponent(id);
+  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id);
   const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
   if(!response.ok)throw new Error('Portál vrátil HTTP '+response.status);
   const data=await response.json();const facts=extractListingFacts(data);
@@ -195,7 +195,7 @@ async function importSrealityListing(){
   if(filled.length)status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';
   else status.textContent='Portál odpověděl, ale cena, plocha, dispozice ani lokalita nebyly v rozpoznatelném formátu. Nic jsem nedoplňoval odhadem.';
  }catch(err){
-  status.textContent='Automatické načtení se nepodařilo ('+(err&&err.message?err.message:'chyba načtení')+'). Prohlížeč může blokovat přístup k API nebo portál změnil rozhraní. Odkaz zůstal uložen; žádná neověřená data nebyla doplněna.';
+  status.textContent='Automatické načtení se nepodařilo ('+(err&&err.message?err.message:'chyba načtení')+'). Zprostředkující služba se nedostala k datům Sreality nebo portál změnil API. Odkaz zůstal uložen; žádná neověřená data nebyla doplněna.';
  }
 }
 $('importSreality').addEventListener('click',importSrealityListing);
