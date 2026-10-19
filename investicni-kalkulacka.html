@@ -1,6 +1,29 @@
 <!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#13243a"><title>Investiční kalkulačka</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17212b;font:15px/1.5 system-ui,sans-serif}header{background:#13243a;color:white;padding:22px 16px}main{max-width:1050px;margin:20px auto;padding:0 14px}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:16px;margin:12px 0}h1{font-size:clamp(25px,5vw,34px);margin:4px 0}h2{font-size:19px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field label{display:block;color:#586777;font-size:13px;margin-bottom:4px}.field input,.field select{width:100%;padding:11px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.metric{background:#f5f7fa;border:1px solid #e0e6ed;border-radius:10px;padding:12px}.metric small{display:block;color:#586777}.metric strong{font-size:clamp(20px,4vw,27px);overflow-wrap:anywhere}.btn{padding:10px 13px;border-radius:9px;border:1px solid #ccd5df;background:white;font:inherit;font-weight:600;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}.muted{color:#647180;font-size:13px}a{color:#2457d6}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.notice{background:#fff8e6;padding:12px;border-radius:10px;font-size:13px}.chart-wrap{position:relative;width:100%;min-height:280px}canvas{display:block;width:100%;height:300px}.quick-slider{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;margin:14px 0 22px}.quick-slider label{font-weight:600}.quick-slider output{font-size:19px;font-weight:750;font-variant-numeric:tabular-nums}.quick-slider input[type=range]{grid-column:1/-1;width:100%;accent-color:#2457d6;margin:8px 0}.range-hints{grid-column:1/-1;display:flex;justify-content:space-between;color:#647180;font-size:12px;margin-top:-8px}.value-options{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 18px}.value-option{flex:1;min-width:85px;padding:13px 10px;border:1px solid #cbd5df;border-radius:10px;background:white;font:inherit;font-weight:650;cursor:pointer}.value-option[aria-pressed=true]{background:#eaf0ff;border-color:#2457d6;color:#173fa8}.quick-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.quick-results .metric strong{font-size:clamp(23px,4vw,30px)}@media(max-width:480px){.quick-slider{gap:4px 8px}.quick-slider output{font-size:17px}}@media print{.actions{display:none}}
 .positive{color:#147a52!important}.negative{color:#b42318!important}.market-link{white-space:nowrap;font-size:13px}@media(max-width:680px){#cashflowSection table{font-size:13px}}</style></head><body><header><small>REALITNÍ INVESTICE / <a href="index.html" style="color:white">DOMŮ</a></small><h1>Investiční kalkulačka</h1><p>Kalkulace projektu a scénáře kupní ceny</p></header><main>
+<section class="card" id="listingWorkspace">
+<h2>Porovnávané nabídky</h2>
+<p class="muted">Každá záložka má vlastní vstupy a výsledky. Přidej inzerát a kalkuluj ho odděleně; data se ukládají v tomto prohlížeči.</p>
+<div id="listingTabs" role="tablist" aria-label="Investiční nabídky" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"></div>
+<div class="actions">
+<button class="btn primary" type="button" id="addListing">＋ Přidat inzerát</button>
+<button class="btn" type="button" id="renameListing">Přejmenovat záložku</button>
+<button class="btn" type="button" id="deleteListing">Smazat záložku</button>
+</div>
+</section>
+<section class="card" id="listingFacts">
+<h2>Údaje z inzerátu</h2>
+<p class="muted">Vyplň cenu a užitnou plochu z inzerátu. Cena za m² se dopočítá automaticky. Samotný odkaz nestačí k bezpečnému načtení údajů ze všech realitních webů — portály načítání třetími stranami často blokují.</p>
+<div class="grid">
+<div class="field"><label for="listingAddress">Adresa / název nabídky</label><input id="listingAddress" placeholder="Ulice, město nebo název inzerátu"></div>
+<div class="field"><label for="listingPrice">Inzerovaná cena (Kč)</label><input id="listingPrice" type="number" min="0" step="100000" value="22900000"></div>
+<div class="field"><label for="listingArea">Užitná plocha (m²)</label><input id="listingArea" type="number" min="0" step="0.1" placeholder="Např. 180"></div>
+<div class="field"><label for="listingPriceM2">Cena za m² (Kč/m²)</label><input id="listingPriceM2" type="text" readonly value="—"></div>
+<div class="field"><label for="listingURL">URL inzerátu</label><input id="listingURL" type="url" placeholder="https://..."></div>
+<div class="field"><label>Otevřít inzerát</label><button class="btn" type="button" id="openListingURL">Otevřít odkaz ↗</button></div>
+</div>
+</section>
+
 <section class="card" id="quickCalculator"><h2>Investiční kalkulačka</h2><p class="muted">Uprav předpoklady a zjisti, jak se mění celkový rozpočet. Jde o pracovní model, ne o odhad ceny rekonstrukce či budoucí tržní hodnoty.</p>
 <div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="15" max="25" step="0.1" value="22.9"><div class="range-hints"><span>15</span><span>20</span><span>25</span></div></div>
 <div class="quick-slider"><label for="quickWorks">Rekonstrukce (mil. Kč)</label><output id="quickWorksOut" for="quickWorks">5,0</output><input id="quickWorks" type="range" min="1" max="12" step="0.1" value="5"><div class="range-hints"><span>1</span><span>6</span><span>12</span></div></div>
@@ -67,6 +90,57 @@
 <section class="card"><h2>Výsledky</h2><div class="grid"><div class="metric"><small>Celkové náklady včetně rezervy</small><strong id="total">—</strong></div><div class="metric"><small>Modelovaný zisk po nákladech výstupu</small><strong id="profit">—</strong></div><div class="metric"><small>Marže z hodnoty po dokončení</small><strong id="margin">—</strong></div><div class="metric"><small>Maximální kupní cena při cílovém zisku</small><strong id="maxBuy">—</strong></div><div class="metric"><small>Počet uvažovaných bytů</small><strong id="unitCount">—</strong></div><div class="metric"><small>Náklady na jeden plánovaný byt*</small><strong id="perUnit">—</strong></div><div class="metric"><small>Výše hypotéky</small><strong id="loanAmount">—</strong></div><div class="metric"><small>Měsíční splátka hypotéky</small><strong id="monthlyPayment">—</strong></div><div class="metric"><small>Úroky za dobu držení projektu</small><strong id="holdInterest">—</strong></div><div class="metric"><small>Celkové úroky za celou splatnost</small><strong id="fullInterest">—</strong></div></div><p class="muted">*Pouze aritmetický průměr celkových nákladů; neznamená, že všechny jednotky mají stejnou plochu nebo hodnotu.</p><div class="notice">Výsledek je pouze orientační model, nikoli ocenění ani příslib zisku. Nezahrnuje automaticky všechny daně, náklady a rizika. Odhad budoucí hodnoty a počet legálně povolitelných bytů je nutné nezávisle ověřit.</div></section>
 <section class="card"><h2>Rychlý scénář hodnoty po dokončení</h2><div class="grid"><div class="metric"><small>Pesimistický (−10 % z odhadu)</small><strong id="low">—</strong></div><div class="metric"><small>Základní scénář</small><strong id="base">—</strong></div><div class="metric"><small>Optimistický (+10 % z odhadu)</small><strong id="high">—</strong></div></div></section><section class="card"><h2>Graf scénářů zisku</h2><p class="muted">Modelovaný zisk po odečtení nákladů včetně odhadovaných úroků z hypotéky. Graf se přepočítá při změně vstupů.</p><div class="chart-wrap"><canvas id="profitChart" role="img" aria-label="Sloupcový graf pesimistického, základního a optimistického scénáře zisku"></canvas></div></section></main>
 <script>
+
+const projectKey='rei-calc-listings-v1';
+const projectFields=()=>Array.from(document.querySelectorAll('main input[id],main select[id],main textarea[id]')).filter(el=>!['file','listingPriceM2'].includes(el.id)&&!['projectTitle'].includes(el.id));
+let projects=[],activeProjectId=null,projectSwitching=false;
+function makeId(){return 'listing-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
+function currentProject(){return projects.find(p=>p.id===activeProjectId)}
+function readProjectValues(){const values={};projectFields().forEach(el=>{if(el.id)values[el.id]=el.value});return values}
+function saveActiveProject(){
+ if(projectSwitching||!activeProjectId)return;
+ const p=currentProject();if(!p)return;
+ p.values=readProjectValues();
+ p.title=($('name').value||$('listingAddress').value||p.title||'Nový inzerát').trim();
+ try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
+ renderProjectTabs();
+}
+function applyProject(p){
+ if(!p)return;projectSwitching=true;
+ projectFields().forEach(el=>{if(Object.prototype.hasOwnProperty.call(p.values||{},el.id))el.value=p.values[el.id]});
+ activeProjectId=p.id;
+ projectSwitching=false;
+ updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();
+}
+function renderProjectTabs(){
+ const root=$('listingTabs');if(!root)return;root.innerHTML='';
+ projects.forEach(p=>{
+  const b=document.createElement('button');b.type='button';b.className='btn'+(p.id===activeProjectId?' primary':'');b.setAttribute('role','tab');b.setAttribute('aria-selected',String(p.id===activeProjectId));b.textContent=p.title||'Nový inzerát';
+  b.onclick=()=>{saveActiveProject();applyProject(p)};root.appendChild(b);
+ });
+ $('deleteListing').disabled=projects.length<=1;
+}
+function createProject(title,values){
+ const p={id:makeId(),title:title||'Nový inzerát',values:values||readProjectValues()};
+ projects.push(p);try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
+ applyProject(p);
+}
+function updateListingPriceM2(){
+ const price=Number($('listingPrice').value)||0,area=Number($('listingArea').value)||0;
+ $('listingPriceM2').value=price>0&&area>0?new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(price/area)+' Kč/m²':'—';
+}
+function openListingURL(){
+ const url=($('listingURL').value||$('url').value||'').trim();
+ if(/^https?:\/\//i.test(url))window.open(url,'_blank','noopener');
+ else alert('Nejdřív vlož platný odkaz začínající https:// nebo http://.');
+}
+$('addListing').addEventListener('click',()=>{saveActiveProject();const values=readProjectValues();const title=prompt('Název nové nabídky:','Nový inzerát '+(projects.length+1));if(title===null)return;values.name=title;values.listingAddress='';values.listingURL='';values.url='';createProject(title,values)});
+$('renameListing').addEventListener('click',()=>{const p=currentProject();if(!p)return;const title=prompt('Nový název záložky:',p.title);if(title===null||!title.trim())return;p.title=title.trim();if($('name'))$('name').value=title.trim();saveActiveProject();renderProjectTabs()});
+$('deleteListing').addEventListener('click',()=>{if(projects.length<=1)return;const p=currentProject();if(!p||!confirm('Opravdu smazat nabídku „'+p.title+'“?'))return;const idx=projects.findIndex(x=>x.id===p.id);projects=projects.filter(x=>x.id!==p.id);try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){};const next=projects[Math.max(0,idx-1)];applyProject(next)});
+$('openListingURL').addEventListener('click',openListingURL);
+['listingPrice','listingArea'].forEach(id=>$(id).addEventListener('input',()=>{updateListingPriceM2();saveActiveProject()}));
+['listingAddress','listingURL'].forEach(id=>$(id).addEventListener('input',saveActiveProject));
+
 const ids=['name','url','strategy','purchase','buyCost','works','soft','reserve','holding','value','saleCost','target','units','ltv','rate','term','months'];
 const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:34000000,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
 const $=id=>document.getElementById(id);
@@ -204,6 +278,18 @@ $('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text
 $('reset').onclick=()=>{if(confirm('Obnovit výchozí hodnoty?')){ids.forEach(id=>$(id).value=defaults[id]);save()}};
 try{const q=JSON.parse(localStorage.getItem('rei-calc-quick-v1')||'null');if(q){if(q.purchase!==undefined)$('quickPurchase').value=q.purchase;if(q.works!==undefined)$('quickWorks').value=q.works;if(q.soft!==undefined)$('quickSoft').value=q.soft;if(q.reserve!==undefined)$('quickReserve').value=q.reserve;if(q.value!==undefined)quickValue=q.value;}}catch(e){}
 try{const d=JSON.parse(localStorage.getItem('rei-calc-v1')||'null');if(d)ids.forEach(id=>{if(d[id]!==undefined)$(id).value=d[id]})}catch{}
+
+try{
+ const saved=JSON.parse(localStorage.getItem(projectKey)||'null');
+ if(Array.isArray(saved)&&saved.length){
+  projects=saved.filter(p=>p&&p.id&&p.values);
+  if(!projects.length)createProject('Nabídka 1',readProjectValues());
+  else applyProject(projects[0]);
+ }else createProject(($('name').value||'První nabídka'),readProjectValues());
+}catch(e){projects=[];createProject(($('name').value||'První nabídka'),readProjectValues())}
+projectFields().forEach(el=>{if(!['listingPriceM2'].includes(el.id)){el.addEventListener('input',saveActiveProject);el.addEventListener('change',saveActiveProject)}});
+updateListingPriceM2();
+
 updateQuick(true);updateInvestment();window.addEventListener('resize',()=>chart([{name:'Pesimistický',value:parseFloat(($('low').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Základní',value:parseFloat(($('base').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Optimistický',value:parseFloat(($('high').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0}]));
 
 </script></body></html>
