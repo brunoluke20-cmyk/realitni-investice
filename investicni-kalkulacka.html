@@ -106,6 +106,14 @@ function syncManagerProject(p){
   if(!saved||!Array.isArray(saved.projects))saved={projects:[],activeId:p.id};
   let m=saved.projects.find(x=>x.id===p.id);
   if(!m){
+   const sourceUrl=$('listingURL').value||$('url').value||p.values?.url||'';
+   const title=($('name').value||p.title||'').trim().toLowerCase();
+   m=saved.projects.find(x=>sourceUrl&&x.data&&x.data.url===sourceUrl);
+   if(!m&&title&& !['nový inzerát','nový projekt','první nabídka','nabídka 1'].includes(title))
+    m=saved.projects.find(x=>x.data&&(x.data.name||'').trim().toLowerCase()===title);
+   if(m){p.id=m.id;activeProjectId=m.id;}
+  }
+  if(!m){
    m={id:p.id,data:{name:'',address:'',url:'',price:'',date:'',strategy:'Zatím nerozhodnuto',status:'Nová příležitost',contact:'',heightMin:'',heightMax:'',area:'',windows:'',notes:'',decision:'Zatím nerozhodnuto',risks:'',checks:{},itemNotes:{},answers:{},visits:[],activeVisitId:''}};
    saved.projects.push(m);
   }
@@ -116,6 +124,7 @@ function syncManagerProject(p){
   m.data.price=$('listingPrice').value||$('purchase').value||m.data.price||'';
   saved.activeId=p.id;
   localStorage.setItem(key,JSON.stringify(saved));
+  localStorage.setItem(projectKey,JSON.stringify(projects));
  }catch(e){}
 }
 function saveActiveProject(){
