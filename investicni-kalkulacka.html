@@ -109,6 +109,6 @@ $('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text
 $('reset').onclick=()=>{if(confirm('Obnovit výchozí hodnoty?')){ids.forEach(id=>$(id).value=defaults[id]);save()}};
 try{const q=JSON.parse(localStorage.getItem('rei-calc-quick-v1')||'null');if(q){if(q.purchase!==undefined)$('quickPurchase').value=q.purchase;if(q.works!==undefined)$('quickWorks').value=q.works;if(q.soft!==undefined)$('quickSoft').value=q.soft;if(q.reserve!==undefined)$('quickReserve').value=q.reserve;if(q.value!==undefined)quickValue=q.value;}}catch(e){}
 try{const d=JSON.parse(localStorage.getItem('rei-calc-v1')||'null');if(d)ids.forEach(id=>{if(d[id]!==undefined)$(id).value=d[id]})}catch{}
-updateQuick(false);window.addEventListener('resize',()=>chart([{name:'Pesimistický',value:parseFloat(($('low').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Základní',value:parseFloat(($('base').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Optimistický',value:parseFloat(($('high').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0}]));
+updateQuick(true);window.addEventListener('resize',()=>chart([{name:'Pesimistický',value:parseFloat(($('low').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Základní',value:parseFloat(($('base').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Optimistický',value:parseFloat(($('high').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0}]));
 
 </script></body></html>
