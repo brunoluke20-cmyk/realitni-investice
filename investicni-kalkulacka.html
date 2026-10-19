@@ -183,7 +183,7 @@ async function importSrealityListing(){
   const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id)+'&url='+encodeURIComponent(url);
   const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
   const data=await response.json().catch(()=>null);
-  if(!response.ok){const detail=data&&(data.detail||data.error);throw new Error('HTTP '+response.status+(data&&data.upstreamStatus?' (Sreality HTTP '+data.upstreamStatus+')':'')+(detail?': '+detail:''))}
+  if(!response.ok){const detail=data&&(data.detail||data.error);const trace=data&&Array.isArray(data.diagnostics)?' | diagnostika: '+data.diagnostics.map(x=>x.target+': '+(x.status||x.error||'bez odpovědi')+(x.length?' ('+x.length+' znaků)':'')+(x.sample?' ['+x.sample.slice(0,90)+']':'')).join(' ; '):'';throw new Error('HTTP '+response.status+(data&&data.upstreamStatus?' (Sreality HTTP '+data.upstreamStatus+')':'')+(detail?': '+detail:'')+trace)}
   if(!data)throw new Error('Server nevrátil platná data');
   const facts=extractListingFacts(data);
   const filled=[];
