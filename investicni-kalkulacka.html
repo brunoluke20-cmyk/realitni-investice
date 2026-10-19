@@ -13,14 +13,16 @@
 </section>
 <section class="card" id="listingFacts">
 <h2>Údaje z inzerátu</h2>
-<p class="muted">Vyplň cenu a užitnou plochu z inzerátu. Cena za m² se dopočítá automaticky. Samotný odkaz nestačí k bezpečnému načtení údajů ze všech realitních webů — portály načítání třetími stranami často blokují.</p>
+<p class="muted">Vlož odkaz na inzerát Sreality a zkus automaticky načíst jen údaje, které portál skutečně vrátí. Neověřené nebo chybějící údaje zůstanou prázdné. Cena za m² se dopočítá z načtené ceny a plochy.</p>
 <div class="grid">
-<div class="field"><label for="listingAddress">Adresa / název nabídky</label><input id="listingAddress" placeholder="Ulice, město nebo název inzerátu"></div>
-<div class="field"><label for="listingPrice">Inzerovaná cena (Kč)</label><input id="listingPrice" type="number" min="0" step="100000" value="22900000"></div>
-<div class="field"><label for="listingArea">Užitná plocha (m²)</label><input id="listingArea" type="number" min="0" step="0.1" placeholder="Např. 180"></div>
+<div class="field" style="grid-column:1/-1"><label for="listingURL">URL inzerátu Sreality</label><input id="listingURL" type="url" placeholder="https://www.sreality.cz/detail/..."></div>
+<div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="importSreality">Načíst údaje z inzerátu</button> <span id="listingImportStatus" class="muted" role="status" aria-live="polite">Zatím nenačteno.</span></div>
+<div class="field"><label for="listingAddress">Název / lokalita z inzerátu</label><input id="listingAddress" placeholder="Doplní se, pokud jsou údaje dostupné"></div>
+<div class="field"><label for="listingPrice">Inzerovaná cena (Kč)</label><input id="listingPrice" type="number" min="0" step="100000" placeholder="Načte se z inzerátu"></div>
+<div class="field"><label for="listingArea">Užitná plocha (m²)</label><input id="listingArea" type="number" min="0" step="0.1" placeholder="Načte se z inzerátu"></div>
+<div class="field"><label for="listingDisposition">Dispozice</label><input id="listingDisposition" placeholder="Např. 2+kk" readonly></div>
 <div class="field"><label for="listingPriceM2">Cena za m² (Kč/m²)</label><input id="listingPriceM2" type="text" readonly value="—"></div>
-<div class="field"><label for="listingURL">URL inzerátu</label><input id="listingURL" type="url" placeholder="https://..."></div>
-<div class="field"><label>Otevřít inzerát</label><button class="btn" type="button" id="openListingURL">Otevřít odkaz ↗</button></div>
+<div class="field"><label>Zdroj</label><button class="btn" type="button" id="openListingURL">Otevřít inzerát ↗</button></div>
 </div>
 </section>
 
@@ -134,6 +136,68 @@ function openListingURL(){
  if(/^https?:\/\//i.test(url))window.open(url,'_blank','noopener');
  else alert('Nejdřív vlož platný odkaz začínající https:// nebo http://.');
 }
+function extractSrealityId(url){
+ try{const u=new URL(url);if(u.hostname!=='www.sreality.cz'&&!u.hostname.endsWith('.sreality.cz'))return null;const m=u.pathname.match(/\\/(\\d{6,})(?:\\/)?$/);return m?m[1]:null}catch(e){return null}
+}
+function collectStrings(obj,out=[],depth=0){
+ if(depth>7||obj==null)return out;
+ if(typeof obj==='string'||typeof obj==='number'){out.push(String(obj));return out}
+ if(Array.isArray(obj)){obj.forEach(v=>collectStrings(v,out,depth+1));return out}
+ if(typeof obj==='object')Object.entries(obj).forEach(([k,v])=>{out.push(k);if(v&&typeof v==='object'&&('name'in v||'value'in v||'value_raw'in v)){if(v.name!=null)out.push(String(v.name));if(v.value!=null)out.push(String(v.value));if(v.value_raw!=null)out.push(String(v.value_raw))}collectStrings(v,out,depth+1)});
+ return out;
+}
+function findByKey(obj,keys,depth=0){
+ if(!obj||typeof obj!=='object'||depth>8)return null;
+ for(const [k,v] of Object.entries(obj)){if(keys.includes(k.toLowerCase())){if(typeof v==='string'||typeof v==='number')return v;if(v&&typeof v==='object'){if(v.value_raw!=null)return v.value_raw;if(v.value!=null&&typeof v.value!=='object')return v.value;if(v.name)return v.name}}}
+ for(const v of Object.values(obj)){const found=findByKey(v,keys,depth+1);if(found!==null&&found!==undefined&&found!=='')return found}
+ return null;
+}
+function extractListingFacts(data){
+ const name=findByKey(data,['name','advert_name','title']);
+ const locality=findByKey(data,['locality','locality_name','address']);
+ let price=findByKey(data,['price_czk','price','price_value','price_czk_value_raw']);
+ if(price&&typeof price==='object')price=price.value_raw??price.value??null;
+ if(typeof price==='string'){const digits=price.replace(/[^0-9]/g,'');price=digits?Number(digits):null}
+ if(typeof price!=='number'||!Number.isFinite(price)||price<=0)price=null;
+ let area=null,disposition=null;
+ const texts=collectStrings(data,[]);
+ const allText=[String(name||''),...texts].join(' | ');
+ const areaKeys=['usable_area','floor_area','surface','area','usable_surface'];
+ const areaCandidate=findByKey(data,areaKeys);
+ if(areaCandidate!==null){const num=Number(String(areaCandidate).replace(',','.').replace(/[^0-9.]/g,''));if(Number.isFinite(num)&&num>0&&num<100000)area=num}
+ if(!area){const match=allText.match(/(?:užitná plocha|podlahová plocha|plocha bytu|plocha|area)[^0-9]{0,20}(\\d+(?:[,.]\\d+)?)\\s*(?:m²|m2|m\\^2)?/i)||allText.match(/(\\d+(?:[,.]\\d+)?)\\s*m(?:²|2|\\^2)/i);if(match){const num=Number(match[1].replace(',','.'));if(Number.isFinite(num)&&num>0&&num<100000)area=num}}
+ const disp=allText.match(/\\b([1-6]\\s*\\+\\s*(?:kk|[1-6]))\\b/i);if(disp)disposition=disp[1].replace(/\\s/g,'').toLowerCase();
+ let location='';
+ if(typeof locality==='string')location=locality;
+ else if(locality&&typeof locality==='object')location=[locality.city,locality.citypart,locality.street,locality.name].filter(Boolean).join(', ');
+ if(!location&&name)location=String(name);
+ return {name:name?String(name):'',location,price,area,disposition};
+}
+async function importSrealityListing(){
+ const status=$('listingImportStatus');const url=($('listingURL').value||'').trim();
+ status.textContent='Načítám údaje z Sreality…';
+ const id=extractSrealityId(url);
+ if(!id){status.textContent='Odkaz nevypadá jako detail inzerátu Sreality s číselným ID. Zkontroluj URL.';return}
+ try{
+  const endpoint='https://www.sreality.cz/api/cs/v2/estates/'+encodeURIComponent(id);
+  const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
+  if(!response.ok)throw new Error('Portál vrátil HTTP '+response.status);
+  const data=await response.json();const facts=extractListingFacts(data);
+  const filled=[];
+  if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
+  else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}
+  if(facts.area){$('listingArea').value=String(facts.area);filled.push('plocha')}
+  if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
+  $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
+  const p=currentProject();if(p){p.title=facts.name||facts.location||p.title;p.values=readProjectValues();saveActiveProject()}
+  if(filled.length)status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';
+  else status.textContent='Portál odpověděl, ale cena, plocha, dispozice ani lokalita nebyly v rozpoznatelném formátu. Nic jsem nedoplňoval odhadem.';
+ }catch(err){
+  status.textContent='Automatické načtení se nepodařilo ('+(err&&err.message?err.message:'chyba načtení')+'). Prohlížeč může blokovat přístup k API nebo portál změnil rozhraní. Odkaz zůstal uložen; žádná neověřená data nebyla doplněna.';
+ }
+}
+$('importSreality').addEventListener('click',importSrealityListing);
 $('addListing').addEventListener('click',()=>{saveActiveProject();const values=readProjectValues();const title=prompt('Název nové nabídky:','Nový inzerát '+(projects.length+1));if(title===null)return;values.name=title;values.listingAddress='';values.listingURL='';values.url='';createProject(title,values)});
 $('renameListing').addEventListener('click',()=>{const p=currentProject();if(!p)return;const title=prompt('Nový název záložky:',p.title);if(title===null||!title.trim())return;p.title=title.trim();if($('name'))$('name').value=title.trim();saveActiveProject();renderProjectTabs()});
 $('deleteListing').addEventListener('click',()=>{if(projects.length<=1)return;const p=currentProject();if(!p||!confirm('Opravdu smazat nabídku „'+p.title+'“?'))return;const idx=projects.findIndex(x=>x.id===p.id);projects=projects.filter(x=>x.id!==p.id);try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){};const next=projects[Math.max(0,idx-1)];applyProject(next)});
