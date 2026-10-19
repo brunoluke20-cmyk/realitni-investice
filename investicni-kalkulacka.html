@@ -27,7 +27,7 @@
 </section>
 
 <section class="card" id="quickCalculator"><h2>Investiční kalkulačka</h2><p class="muted">Uprav předpoklady a zjisti, jak se mění celkový rozpočet. Jde o pracovní model, ne o odhad ceny rekonstrukce či budoucí tržní hodnoty.</p>
-<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="15" max="25" step="0.1" value="22.9"><div class="range-hints"><span>15</span><span>20</span><span>25</span></div></div>
+<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="0" max="100" step="0.1" value="22.9"><div class="range-hints"><span>0</span><span>50</span><span>100 mil. Kč</span></div></div>
 <div class="quick-slider"><label for="quickWorks">Rekonstrukce (mil. Kč)</label><output id="quickWorksOut" for="quickWorks">5,0</output><input id="quickWorks" type="range" min="1" max="12" step="0.1" value="5"><div class="range-hints"><span>1</span><span>6</span><span>12</span></div></div>
 <div class="quick-slider"><label for="quickSoft">Projekt, průzkumy, povolení a ostatní náklady (mil. Kč)</label><output id="quickSoftOut" for="quickSoft">1,0</output><input id="quickSoft" type="range" min="0.2" max="3" step="0.1" value="1"><div class="range-hints"><span>0,2</span><span>1,5</span><span>3</span></div></div>
 <div class="quick-slider"><label for="quickReserve">Rezerva na dodatečné výdaje</label><output id="quickReserveOut" for="quickReserve">15 %</output><input id="quickReserve" type="range" min="5" max="30" step="1" value="15"><div class="range-hints"><span>5 %</span><span>15 %</span><span>30 %</span></div></div>
@@ -203,7 +203,7 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(0,Math.min(100,facts.price/1000000)).toFixed(1);filled.push('cena')}
   if(facts.area){$('listingArea').value=String(facts.area);$('quickSellArea').value=String(facts.area);filled.push('plocha')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
   $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
@@ -297,7 +297,7 @@ function updateQuick(syncMain=true){
  $('quickDifference').textContent=baseValue>0?quickFmt(difference):'Doplň odhad ceny';
  $('quickDifference').style.color=baseValue>0&&difference>=0?'#147a52':'#b42318';
  $('quickValueExplanation').textContent=baseValue>0?'Výpočet: '+sellArea.toLocaleString('cs-CZ')+' m² × '+new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(sellM2)+' Kč/m². Realistický základ: '+quickFmt(baseValue)+'. Scénáře ±10 % jsou pracovní rozpětí, nikoli ocenění znalcem.':'Doplň plochu a cenu za m²; kalkulačka pak spočítá tři scénáře.';
- document.querySelectorAll('.value-option').forEach(b=>{const i=Number(b.dataset.scenario);b.setAttribute('aria-pressed',String(i===quickScenario));b.disabled=baseValue<=0;});
+ document.querySelectorAll('.value-option').forEach(b=>{const i=Number(b.dataset.scenario);b.setAttribute('aria-pressed',String(i===quickScenario));b.disabled=baseValue<=0;const labels=['Konzervativní −10 %','Realistický','Optimistický +10 %'];b.textContent=baseValue>0?labels[i]+': '+quickFmt(scenarioValues[i]):labels[i];});
  if(syncMain){
   $('purchase').value=Math.round(purchase*1000000);
   $('works').value=Math.round(works*1000000);
@@ -379,13 +379,13 @@ try{
    const values=readProjectValues();
    if(m&&m.data){
     values.name=m.data.name||values.name;values.url=m.data.url||values.url;values.listingURL=m.data.url||values.listingURL;
-    values.listingAddress=m.data.address||'';values.listingPrice=m.data.price||'';values.purchase=m.data.price||values.purchase;
+    values.listingAddress=m.data.address||'';values.listingPrice=m.data.price||'';values.purchase=m.data.price||values.purchase;if(m.data.price)values.quickPurchase=Math.max(0,Math.min(100,Number(m.data.price)/1000000)).toFixed(1);
    }
    linked={id:requestedId,title:(m&&m.data&&m.data.name)||'Nový projekt',values};projects.push(linked);
   }else if(m&&m.data){
    linked.values.name=m.data.name||linked.values.name;linked.values.url=m.data.url||linked.values.url;
    linked.values.listingURL=m.data.url||linked.values.listingURL;linked.values.listingAddress=m.data.address||linked.values.listingAddress;
-   if(m.data.price){linked.values.listingPrice=String(m.data.price);linked.values.purchase=String(m.data.price);}
+   if(m.data.price){linked.values.listingPrice=String(m.data.price);linked.values.purchase=String(m.data.price);linked.values.quickPurchase=Math.max(0,Math.min(100,Number(m.data.price)/1000000)).toFixed(1);}
   }
   try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
   applyProject(linked);
