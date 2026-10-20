@@ -273,7 +273,10 @@ $('openListingURL').addEventListener('click',openListingURL);
 const ids=['name','url','strategy','purchase','buyCost','works','soft','reserve','holding','value','saleCost','target','units','ltv','rate','term','months'];
 const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:34000000,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
 const n=id=>Math.max(0,parseNumericInput($(id).value));
-const moneyInputIds=["listingPrice","rent1","value1","rent2","value2","rent3","value3","rent4","value4","purchase","buyCost","works","soft","holding","value","target"];\nfunction formatMoneyInput(el){const value=parseNumericInput(el.value);if(el.value.trim()==='')return;el.value=Math.round(value).toLocaleString('cs-CZ',{maximumFractionDigits:0})}\nmoneyInputIds.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('blur',()=>{formatMoneyInput(el);saveActiveProject()});el.addEventListener('focus',()=>{el.value=String(parseNumericInput(el.value))});formatMoneyInput(el)});\nconst fmt=v=>Math.abs(v)>=1000000?(v/1000000).toLocaleString('cs-CZ',{maximumFractionDigits:2})+' mil. Kč':new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
+const moneyInputIds=["listingPrice","rent1","value1","rent2","value2","rent3","value3","rent4","value4","purchase","buyCost","works","soft","holding","value","target"];
+function formatMoneyInput(el){const value=parseNumericInput(el.value);if(el.value.trim()==='')return;el.value=Math.round(value).toLocaleString('cs-CZ',{maximumFractionDigits:0})}
+moneyInputIds.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('blur',()=>{formatMoneyInput(el);saveActiveProject()});el.addEventListener('focus',()=>{el.value=String(parseNumericInput(el.value))});formatMoneyInput(el)});
+const fmt=v=>Math.abs(v)>=1000000?(v/1000000).toLocaleString('cs-CZ',{maximumFractionDigits:2})+' mil. Kč':new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
 function mortgage(principal,annualRate,termYears,holdMonths){
  const r=annualRate/1200, count=Math.max(1,Math.round(termYears*12));
  const payment=r===0?principal/count:principal*r/(1-Math.pow(1+r,-count));
@@ -356,7 +359,8 @@ function updateQuick(syncMain=true){
 document.querySelectorAll('.value-option').forEach(b=>b.addEventListener('click',()=>{quickValue=Number(b.dataset.value);updateQuick(true);}));
 
 
-function parseNumericInput(value){const cleaned=String(value??'').replace(/[\s\u00a0]/g,'').replace(',','.');const parsed=Number(cleaned);return Number.isFinite(parsed)?parsed:0}\nfunction getVal(id){return Math.max(0,parseNumericInput($(id).value))}
+function parseNumericInput(value){const cleaned=String(value??'').replace(/[\s\u00a0]/g,'').replace(',','.');const parsed=Number(cleaned);return Number.isFinite(parsed)?parsed:0}
+function getVal(id){return Math.max(0,parseNumericInput($(id).value))}
 function signClass(el,val){el.classList.toggle('positive',val>=0);el.classList.toggle('negative',val<0)}
 function updateMarketLinks(){
  const location=($('marketLocation').value||'').trim()||'Praha';
