@@ -21,6 +21,12 @@
 <div class="metric"><small>Mapa – body v okolí</small><strong id="locationAnalysisCount">—</strong></div>
 </div>
 <p id="locationAnalysisResolved" class="muted"></p>
+<h3 style="margin-top:18px">Dostupnost centra Prahy</h3>
+<div class="quick-results">
+<div class="metric"><small>Autem na Náměstí Míru</small><strong id="locationCenterDriveTime">Počítám…</strong></div>
+<div class="metric"><small>Délka trasy autem</small><strong id="locationCenterDriveDistance">—</strong></div>
+</div>
+<p id="locationCenterRouteNote" class="muted">Orientační výpočet trasy po silnicích. Nezahrnuje aktuální dopravní zácpy; doba jízdy se může měnit.</p>
 <h3 style="margin-top:18px">Co je v okolí a jak daleko</h3>
 <p class="muted">Vzdálenosti jsou přímou vzdáleností od zadané adresy, nikoli délkou pěší trasy.</p>
 <div id="locationAnalysisPlaces"></div>
@@ -180,6 +186,26 @@ async function browserOverpass(lat,lon,address){
  const categories=names.map(name=>{const rows=places.filter(p=>p.category===name);return {name,count:rows.length,places:rows.slice(0,80)}});
  return {address,lat,lon,radius_m:radius,map_source:'OpenStreetMap / přímé načtení ('+winner.host+')',overpass_available:true,counts,score,label,coverage_percent:100,categories,places:places.slice(0,350),limitation:'Vzdálenosti jsou přímou vzdáleností od zadaného bodu, nikoli délkou pěší trasy. Data vycházejí z OpenStreetMap a mohou být neúplná. Jízdní řády a aktuální provoz spojů zde nejsou ověřovány.'};
 }
+async function calculateCenterRoute(lat,lon){
+ const time=$('locationCenterDriveTime'),distance=$('locationCenterDriveDistance'),note=$('locationCenterRouteNote');
+ time.textContent='Počítám…';distance.textContent='—';
+ if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){time.textContent='Nedostupné';note.textContent='Souřadnice adresy se nepodařilo získat, trasu nelze vypočítat.';return}
+ // Cíl: Náměstí Míru, Praha (souřadnice středu náměstí).
+ const destinationLon=14.4378,destinationLat=50.0755;
+ try{
+  const url='https://router.project-osrm.org/route/v1/driving/'+Number(lon)+','+Number(lat)+';'+destinationLon+','+destinationLat+'?overview=false&steps=false';
+  const response=await fetch(url,{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(12000)});
+  const result=await response.json();
+  if(!response.ok||result.code!=='Ok'||!result.routes||!result.routes.length)throw new Error('Trasa není dostupná');
+  const route=result.routes[0],minutes=Math.round(route.duration/60),km=route.distance/1000;
+  time.textContent=minutes+' min';
+  distance.textContent=km.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' km';
+  note.textContent='Cíl: Náměstí Míru, Praha. Orientační čas jízdy autem vypočtený podle silniční sítě OpenStreetMap; nezahrnuje aktuální zácpy, parkování ani čas hledání parkovacího místa.';
+ }catch(error){
+  time.textContent='Nelze spočítat';distance.textContent='—';
+  note.textContent='Výpočet silniční trasy je momentálně nedostupný. Zkus analýzu znovu později.';
+ }
+}
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
@@ -200,6 +226,7 @@ async function analyzeLocation(){
   $('locationAnalysisResults').hidden=false;$('locationAnalysisScore').textContent=data.score+' / 100';$('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
   $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';$('locationAnalysisCount').textContent=String(data.counts?.mapped_objects??0);
   $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Okruh '+((data.radius_m||1500)/1000).toLocaleString('cs-CZ')+' km · Zdroj: '+(data.map_source||'OpenStreetMap');
+  calculateCenterRoute(Number(data.lat),Number(data.lon));
   const counts=data.counts||{};$('locationCountTransit').textContent=String(counts.transit||0);$('locationCountShops').textContent=String(counts.shops||0);
   $('locationCountEducationHealth').textContent=String((counts.education||0)+(counts.health||0));$('locationCountBusinessGreen').textContent=String((counts.services||0)+(counts.green||0));
   $('locationAnalysisLimit').textContent=data.limitation||'Výsledek závisí na úplnosti mapových dat.';renderPlaces(data);
