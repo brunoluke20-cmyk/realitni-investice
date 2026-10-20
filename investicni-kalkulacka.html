@@ -19,7 +19,8 @@
 <div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="importSreality">Načíst údaje z inzerátu</button> <span id="listingImportStatus" class="muted" role="status" aria-live="polite">Zatím nenačteno.</span></div>
 <div class="field"><label for="listingAddress">Název / lokalita z inzerátu</label><input id="listingAddress" placeholder="Doplní se, pokud jsou údaje dostupné"></div>
 <div class="field"><label for="listingPrice">Inzerovaná cena (Kč)</label><input id="listingPrice" type="number" min="0" step="100000" placeholder="Načte se z inzerátu"></div>
-<div class="field"><label for="listingArea">Užitná plocha (m²)</label><input id="listingArea" type="number" min="0" step="0.1" placeholder="Načte se z inzerátu"></div>
+<div class="field"><label for="listingArea">Užitná / podlahová plocha (m²)</label><input id="listingArea" type="number" min="0" step="0.1" placeholder="Načte se z inzerátu"></div>
+ <div class="field"><label for="listingLandArea">Plocha pozemku (m²)</label><input id="listingLandArea" type="number" min="0" step="0.1" placeholder="Pokud ji inzerát uvádí"></div>
 <div class="field"><label for="listingDisposition">Dispozice</label><input id="listingDisposition" placeholder="Např. 2+kk" readonly></div>
 <div class="field"><label for="listingPriceM2">Cena za m² (Kč/m²)</label><input id="listingPriceM2" type="text" readonly value="—"></div>
 <div class="field"><label>Zdroj</label><button class="btn" type="button" id="openListingURL">Otevřít inzerát ↗</button></div>
@@ -224,17 +225,22 @@ async function importSrealityListing(){
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
   if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}
-  if(facts.area){$('listingArea').value=String(facts.area);filled.push('plocha')}
+  if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
+  if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
   $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
   const p=currentProject();if(p){p.title=facts.name||facts.location||p.title;p.values=readProjectValues();saveActiveProject()}
-  if(filled.length)status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';
-  else status.textContent='Portál odpověděl, ale cena, plocha, dispozice ani lokalita nebyly v rozpoznatelném formátu. Nic jsem nedoplňoval odhadem.';
+  if(filled.length){status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';status.dataset.loadedUrl=url}
+  else status.textContent='Portál odpověděl, ale cenu, plochu, dispozici ani lokalitu se nepodařilo spolehlivě rozpoznat. Nic jsem nedoplňoval odhadem.';
  }catch(err){
   status.textContent='Automatické načtení se nepodařilo ('+(err&&err.message?err.message:'chyba načtení')+'). Zprostředkující služba se nedostala k datům Sreality nebo portál změnil API. Odkaz zůstal uložen; žádná neověřená data nebyla doplněna.';
- }
+ }finally{status.dataset.loading='0'}
 }
 $('importSreality').addEventListener('click',importSrealityListing);
+// Odkaz lze vložit a údaje se načtou automaticky; tlačítko zůstává jako ruční možnost.
+$('listingURL').addEventListener('paste',()=>setTimeout(importSrealityListing,0));
+$('listingURL').addEventListener('change',importSrealityListing);
+$('listingURL').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();importSrealityListing()}});
 $('addListing').addEventListener('click',()=>{saveActiveProject();const values=readProjectValues();const title=prompt('Název nové nabídky:','Nový inzerát '+(projects.length+1));if(title===null)return;values.name=title;values.listingAddress='';values.listingURL='';values.listingPrice='';values.listingArea='';values.listingDisposition='';values.listingPriceM2='';values.url='';createProject(title,values)});
 $('renameListing').addEventListener('click',()=>{const p=currentProject();if(!p)return;const title=prompt('Nový název záložky:',p.title);if(title===null||!title.trim())return;p.title=title.trim();if($('name'))$('name').value=title.trim();saveActiveProject();renderProjectTabs()});
 $('deleteListing').addEventListener('click',()=>{if(projects.length<=1)return;const p=currentProject();if(!p||!confirm('Opravdu smazat nabídku „'+p.title+'“?'))return;const idx=projects.findIndex(x=>x.id===p.id);projects=projects.filter(x=>x.id!==p.id);try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){};const next=projects[Math.max(0,idx-1)];applyProject(next)});
