@@ -152,7 +152,7 @@ function renderLocalScore(data, transitMinutes=null, dailyDepartures=null){
  };
  const maxKnown=scoreParts.departures===0?8:10;
  const raw=Object.values(scoreParts).reduce((a,b)=>a+b,0);
- const score=Math.max(0,Math.min(10,raw+(dailyDepartures===null?1:0)));
+ const score=Math.max(0,Math.min(10,dailyDepartures===null?(raw/8*10):raw));
  $('locationAnalysisScore').textContent=score.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' / 10';
  $('locationAnalysisLabel').textContent=score>=8?'Velmi dobrá dostupnost':score>=6.5?'Dobrá dostupnost':score>=4.5?'Průměrná dostupnost':score>=2.5?'Slabší dostupnost':'Nízká dostupnost';
  const root=$('locationAnalysisFactors');root.replaceChildren();
@@ -361,7 +361,7 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
     }catch(e){return {...line,count:null,ok:false}}
    }));
    rows.forEach(line=>{const li=document.createElement('li');li.textContent=modeName(line.mode)+' '+line.route+' ('+line.stop+'): '+(line.count===null?'počet se nepodařilo ověřit':line.count+' evidovaných odjezdů za den');freqList.appendChild(li)});details.appendChild(freqList);
-   const totalDailyDepartures=rows.reduce((sum,line)=>sum+(Number.isFinite(line.count)?line.count:0),0);
+   const totalDailyDepartures=rows.some(line=>line.count===null)?null:rows.reduce((sum,line)=>sum+(Number.isFinite(line.count)?line.count:0),0);
    if(scoreData)renderLocalScore(scoreData,best._duration/60,totalDailyDepartures);
    const note=document.createElement('p');note.style.margin='6px 0 0';note.textContent='Počty jsou počítány z dostupných odjezdů na nástupních zastávkách vybraných linek pro '+dateForSearch+'. Mohou se lišit podle pracovního dne/víkendu a podle úplnosti dat zdroje.';details.appendChild(note);
   }
