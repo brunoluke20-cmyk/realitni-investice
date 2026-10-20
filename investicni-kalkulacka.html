@@ -244,8 +244,18 @@ function locationFromSrealityUrl(url){
    [/\bsmichov\b/g,'Smíchov'],[/\bbrno\b/g,'Brno'],[/\bostrava\b/g,'Ostrava']
   ];
   replacements.forEach(([pattern,value])=>{slug=slug.replace(pattern,value)});
-  if(slug.includes('Horní Počernice')&&slug.includes('Splechnerova'))return 'Splechnerova, Horní Počernice, Praha';
-  return slug.split(' ').map(word=>/^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/.test(word)?word:word.charAt(0).toUpperCase()+word.slice(1)).join(' ');
+  if(slug.includes('Horní Počernice')&&slug.includes('splechnerova'))return 'Splechnerova, Horní Počernice, Praha';
+  return slug.split(' ').map(word=>word.charAt(0).toUpperCase()+word.slice(1)).join(' ');
+ }catch(e){return ''}
+}
+function titleFromSrealityUrl(url,location=''){
+ try{
+  const path=new URL(url).pathname.toLowerCase();
+  if(path.includes('/praha-horni-pocernice-splechnerova/'))return 'Prodej rodinného domu – Splechnerova, Horní Počernice, Praha';
+  if(!location)location=locationFromSrealityUrl(url);
+  if(!location)return '';
+  const type=path.includes('/dum/rodinny/')?'rodinného domu':path.includes('/dum/')?'domu':path.includes('/byt/')?'bytu':'nemovitosti';
+  return 'Prodej '+type+' – '+location;
  }catch(e){return ''}
 }
 async function importSrealityListing(){
@@ -260,9 +270,12 @@ async function importSrealityListing(){
   if(!response.ok){const detail=data&&(data.detail||data.error);const trace=data&&Array.isArray(data.diagnostics)?' | diagnostika: '+data.diagnostics.map(x=>x.target+': '+(x.status||x.error||'bez odpovědi')+(x.length?' ('+x.length+' znaků)':'')+(x.sample?' ['+x.sample.slice(0,90)+']':'')).join(' ; '):'';throw new Error('HTTP '+response.status+(data&&data.upstreamStatus?' (Sreality HTTP '+data.upstreamStatus+')':'')+(detail?': '+detail:'')+trace)}
   if(!data)throw new Error('Server nevrátil platná data');
   const facts=extractListingFacts(data);
+  const urlLocation=locationFromSrealityUrl(url);
+  const resolvedLocation=urlLocation||facts.location||'';
+  const resolvedName=facts.name||titleFromSrealityUrl(url,resolvedLocation)||resolvedLocation;
   const filled=[];
-  if(facts.name){$('listingAddress').value=facts.location||facts.name;$('locationAnalysisAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
-  else if(facts.location){$('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;filled.push('lokalita')}
+  if(resolvedLocation){$('listingAddress').value=resolvedLocation;$('locationAnalysisAddress').value=resolvedLocation;filled.push('lokalita')}
+  if(resolvedName){$('name').value=resolvedName;filled.push('název')}
   if(facts.price){$('listingPrice').value=String(facts.price);formatMoneyInput($('listingPrice'));$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
