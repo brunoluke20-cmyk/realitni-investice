@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#13243a"><title>Analýza lukrativnosti okolí</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17212b;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:#13243a;color:white;padding:24px 16px}main{max-width:950px;margin:22px auto;padding:0 14px}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:18px;margin:12px 0}h1{font-size:clamp(26px,5vw,36px);margin:5px 0}h2{font-size:20px;margin:0 0 12px}.muted{color:#647180;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field label{display:block;color:#586777;font-size:13px;margin-bottom:5px}.field input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.metric{background:#f5f7fa;border:1px solid #e0e6ed;border-radius:10px;padding:12px}.metric small{display:block;color:#586777}.metric strong{display:block;font-size:clamp(20px,4vw,27px);overflow-wrap:anywhere}.quick-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.btn{padding:11px 14px;border-radius:9px;border:1px solid #ccd5df;background:white;font:inherit;font-weight:650;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}a{color:#2457d6}.notice{background:#fff8e6;padding:12px;border-radius:10px;font-size:13px}.toplink{color:white}@media(max-width:520px){.card{padding:14px}}
+</style></head><body>
+<header><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
+<main>
+<p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 1,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
+<section class="card" id="locationAnalysisSection">
+<h2>Analýza lukrativnosti okolí</h2>
+<p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 1,5 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
+<div class="grid">
+<div class="field" style="grid-column:1/-1"><label for="locationAnalysisAddress">Adresa nemovitosti</label><input id="locationAnalysisAddress" autocomplete="street-address" placeholder="Např. Doubravínova 1765, Praha-Řepy"></div>
+<div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="analyzeLocation">Analyzovat okolí</button> <span id="locationAnalysisStatus" class="muted" role="status" aria-live="polite">Zatím nebyla provedena analýza.</span></div>
+</div>
+<div id="locationAnalysisResults" hidden>
+<div class="quick-results" style="margin-top:14px">
+<div class="metric"><small>Skóre dostupných mapových údajů</small><strong id="locationAnalysisScore">—</strong></div>
+<div class="metric"><small>Orientační závěr</small><strong id="locationAnalysisLabel">—</strong></div>
+<div class="metric"><small>Dostupné váhy hodnocení</small><strong id="locationAnalysisCoverage">—</strong></div>
+<div class="metric"><small>Mapa – body v okolí</small><strong id="locationAnalysisCount">—</strong></div>
+</div>
+<p id="locationAnalysisResolved" class="muted"></p>
+<h3 style="margin-top:18px">Hodnocení pouze z nalezených údajů</h3>
+<div id="locationAnalysisFactors"></div>
+<h3 style="margin-top:18px">Co se podařilo najít v okruhu 1,5 km</h3>
+<div class="quick-results">
+<div class="metric"><small>Dopravní body</small><strong id="locationCountTransit">—</strong></div>
+<div class="metric"><small>Obchody</small><strong id="locationCountShops">—</strong></div>
+<div class="metric"><small>Školy a zdravotnictví</small><strong id="locationCountEducationHealth">—</strong></div>
+<div class="metric"><small>Firmy a rekreace</small><strong id="locationCountBusinessGreen">—</strong></div>
+</div>
+<p id="locationAnalysisLimit" class="notice" style="margin-top:14px"></p>
+<p class="muted">Mapové údaje: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>. Výsledky mohou být neúplné; neznamená to, že v okolí daný objekt neexistuje.</p>
+</div>
+</section>
+<div class="card"><h2>Jak výsledek číst</h2><p class="muted">Skóre se počítá jen z faktorů, pro které se podařilo získat údaje. Bezpečnost, skutečné nájemné, výnosnost a budoucí rozvoj se bez spolehlivých dat neodhadují. Chybějící mapový záznam neznamená, že daná služba v okolí neexistuje.</p><p class="muted">Zdroj mapových údajů: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p></div>
+</main><script>
+const $=id=>document.getElementById(id);
+async function analyzeLocation(){
+ const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation');
+ const address=(input.value||'').trim();
+ if(address.length<4){status.textContent='Zadej celou adresu včetně města.';input.focus();return}
+ button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Vyhledávám adresu a mapové body v okruhu 1,5 km. Může to chvíli trvat.';
+ $('locationAnalysisResults').hidden=true;
+ try{
+  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis?address='+encodeURIComponent(address);
+  const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
+  const data=await response.json().catch(()=>null);
+  if(!response.ok||!data)throw new Error((data&&data.error)||('Služba vrátila HTTP '+response.status));
+  if(typeof data.score!=='number')throw new Error(data.error||'Pro tuto adresu se nepodařilo vypočítat skóre.');
+  $('locationAnalysisResults').hidden=false;
+  $('locationAnalysisScore').textContent=data.score+' / 100';
+  $('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
+  $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';
+  $('locationAnalysisCount').textContent=String(data.counts&&data.counts.mapped_objects||0);
+  $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Souřadnice: '+Number(data.lat).toFixed(5)+', '+Number(data.lon).toFixed(5);
+  const counts=data.counts||{};
+  $('locationCountTransit').textContent=String(counts.transit||0);
+  $('locationCountShops').textContent=String(counts.shops||0);
+  $('locationCountEducationHealth').textContent=String((counts.education||0)+(counts.health||0));
+  $('locationCountBusinessGreen').textContent=String((counts.offices||0)+(counts.green||0));
+  $('locationAnalysisLimit').textContent=data.limitation||'Výsledek je orientační a závisí na úplnosti mapových dat.';
+  const root=$('locationAnalysisFactors');root.replaceChildren();
+  (data.factors||[]).forEach(f=>{
+   const wrap=document.createElement('div');wrap.style.cssText='border:1px solid #e0e6ed;border-radius:10px;padding:12px;margin:9px 0;background:#fff';
+   const head=document.createElement('div');head.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:flex-start';
+   const name=document.createElement('strong');name.textContent=f.name+' ('+f.weight+' %)';
+   const value=document.createElement('strong');value.textContent=f.score===null||f.score===undefined?'Bez ověřených dat':f.score+'/10';
+   head.append(name,value);wrap.append(head);
+   if(f.score!==null&&f.score!==undefined){const track=document.createElement('div');track.style.cssText='height:7px;background:#e8edf3;border-radius:99px;margin:9px 0;overflow:hidden';const bar=document.createElement('div');bar.style.cssText='height:7px;background:#2457d6;border-radius:99px;width:'+Math.max(0,Math.min(100,f.score*10))+'%';track.append(bar);wrap.append(track)}
+   const note=document.createElement('p');note.className='muted';note.style.margin='6px 0 0';note.textContent=f.note||'';wrap.append(note);root.append(wrap);
+  });
+  status.textContent=data.overpass_available?'Analýza dokončena. Čísla vycházejí z evidovaných mapových bodů; neznamenají ověřenou poptávku po nájmu.':'Adresa byla nalezena, ale mapová data okolí se nepodařilo načíst. Zkus to později.';
+ }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')+'. Zkus doplnit přesnou adresu nebo analýzu opakovat.'}
+ finally{button.disabled=false;button.textContent='Analyzovat lukrativnost lokality'}
+}
+$('analyzeLocation').addEventListener('click',analyzeLocation);
+$('locationAnalysisAddress').value=($('listingAddress')&&$('listingAddress').value)||$('marketLocation').value||'';
+$('locationAnalysisAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();analyzeLocation()}});
+
+</script></body></html>
