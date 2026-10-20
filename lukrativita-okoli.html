@@ -219,7 +219,7 @@ async function calculateCenterTransit(lat,lon){
  const formatTime=value=>{
   if(value===null||value===undefined||value==='')return '';
   let d;
-  if(typeof value==='number'||/^\\d{10,13}$/.test(String(value))){const n=Number(value);d=new Date(n<1e12?n*1000:n)}
+  if(typeof value==='number'||/^\d{10,13}$/.test(String(value))){const n=Number(value);d=new Date(n<1e12?n*1000:n)}
   else d=new Date(value);
   return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Prague'});
  };
