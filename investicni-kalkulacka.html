@@ -273,7 +273,7 @@ $('openListingURL').addEventListener('click',openListingURL);
 const ids=['name','url','strategy','purchase','buyCost','works','soft','reserve','holding','value','saleCost','target','units','ltv','rate','term','months'];
 const defaults={name:'Doubravínova – Praha Řepy',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',strategy:'sale',purchase:22900000,buyCost:250000,works:5000000,soft:1000000,reserve:15,holding:750000,value:34000000,saleCost:3,target:4000000,units:3,ltv:80,rate:5,term:30,months:18};
 const n=id=>Math.max(0,Number($(id).value)||0);
-const fmt=v=>new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
+const fmt=v=>Math.abs(v)>=1000000?(v/1000000).toLocaleString('cs-CZ',{maximumFractionDigits:2})+' mil. Kč':new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(v);
 function mortgage(principal,annualRate,termYears,holdMonths){
  const r=annualRate/1200, count=Math.max(1,Math.round(termYears*12));
  const payment=r===0?principal/count:principal*r/(1-Math.pow(1+r,-count));
