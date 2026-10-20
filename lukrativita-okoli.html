@@ -236,7 +236,7 @@ async function calculateCenterRoute(lat,lon){
   const route=result.routes[0],minutes=Math.round(route.duration/60),km=route.distance/1000;
   time.textContent=minutes+' min';
   distance.textContent=km.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' km';
-  note.textContent='Cíl: Náměstí Míru, Praha. Orientační čas jízdy autem vypočtený podle silniční sítě OpenStreetMap; nezahrnuje aktuální zácpy, parkování ani čas hledání parkovacího místa.'; $('locationCenterRouteNote').textContent += ' Veřejná doprava: orientační spojení podle jízdních řádů z komunitní služby Transitous; dostupnost spojů a případné změny ověř před cestou.';';
+  note.textContent='Cíl: Náměstí Míru, Praha. Orientační čas jízdy autem vypočtený podle silniční sítě OpenStreetMap; nezahrnuje aktuální zácpy, parkování ani čas hledání parkovacího místa. Čas MHD je orientační podle jízdních řádů komunitní služby Transitous; dostupnost spojů a případné změny ověř před cestou.';
  }catch(error){
   time.textContent='Nelze spočítat';distance.textContent='—';
   note.textContent='Výpočet silniční trasy je momentálně nedostupný. Zkus analýzu znovu později.';
