@@ -84,6 +84,7 @@ async function verifyAndUnlock(){
    clearSession();lockApp(result.error||'Přihlášení vypršelo. Přihlas se znovu.');return;
   }
   $('authGate').hidden=true;$('appHeader').hidden=false;$('appMain').hidden=false;
+  document.dispatchEvent(new Event('rei-app-unlocked'));
  }catch(_e){lockApp('Přístup se nepodařilo ověřit. Zkontroluj připojení a obnov stránku.')}
  finally{accessCheckInProgress=false}
 }
@@ -512,4 +513,19 @@ suggestions.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{if(!e.target.closest('.address-wrap'))closeAddressSuggestions()});
 $('analyzeLocation').addEventListener('click',analyzeLocation);
 addressInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&suggestions.hidden){e.preventDefault();analyzeLocation()}});
+let sharedAutoAnalysisStarted=false;
+function loadSharedListingAndAnalyze(){
+ if(sharedAutoAnalysisStarted||$('appMain').hidden)return;
+ let shared;
+ try{shared=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'null')}catch(_e){shared=null}
+ if(!shared)return;
+ const address=String(shared.address||shared.location||'').trim();
+ if(address.length<4)return;
+ sharedAutoAnalysisStarted=true;
+ addressInput.value=address;
+ $('locationAnalysisStatus').textContent='Načtena adresa ze sdíleného inzerátu. Spouštím analýzu okolí…';
+ analyzeLocation();
+}
+document.addEventListener('rei-app-unlocked',loadSharedListingAndAnalyze);
+if(!$('appMain').hidden)loadSharedListingAndAnalyze();
 </script><script src="tools-menu.js"></script></body></html>
