@@ -270,7 +270,7 @@ async function calculateCenterTransit(lat,lon){
     const departure=formatTime(it._start),arrival=formatTime(it._end);
     const transfers=Number(it.transfers??it.numberOfTransfers);
     const heading=document.createElement('p');heading.style.margin='0 0 5px';heading.style.fontWeight='600';
-    heading.textContent=(index===0?'Nejbližší spoj':'Další možnost')+(departure&&arrival?' · '+departure+'–'+arrival:'')+' · '+Math.round(it._duration/60)+' min'+(Number.isFinite(transfers)?' · '+transfers+' přestupů':'');
+    heading.textContent=(index===0?'Nejbližší odjezd':'Další odjezd')+(departure&&arrival?' · '+departure+'–'+arrival:'')+' · '+Math.round(it._duration/60)+' min'+(Number.isFinite(transfers)?' · '+transfers+' přestupů':'');
     card.appendChild(heading);
     const list=document.createElement('ol');list.style.margin='0';list.style.paddingLeft='22px';
     it._legs.forEach(leg=>{
