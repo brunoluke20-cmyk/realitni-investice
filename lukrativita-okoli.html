@@ -464,12 +464,22 @@ async function calculateCenterRoute(lat,lon){
   note.textContent='Výpočet silniční trasy je momentálně nedostupný. Zkus analýzu znovu později.';
  }
 }
+async function fetchAnalysisWithSession(url){
+ const headers=await protectedHeaders();
+ let response=await fetch(url,{headers,cache:'no-store'});
+ if(response.status===401){
+  const verifyHeaders=await protectedHeaders();
+  const verification=await fetch(API+'?action=authorize',{headers:verifyHeaders,cache:'no-store'});
+  if(verification.ok)response=await fetch(url,{headers:await protectedHeaders(),cache:'no-store'});
+ }
+ return response;
+}
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
  button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 1 km…';$('locationAnalysisResults').hidden=true;
  try{
-  const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:await protectedHeaders()});
+  const response=await fetchAnalysisWithSession(API+'?address='+encodeURIComponent(address));
   let data=await response.json().catch(()=>null);
   if(!response.ok||!data){
    if(response.status===503&&data&&Number.isFinite(Number(data.lat))&&Number.isFinite(Number(data.lon))){
