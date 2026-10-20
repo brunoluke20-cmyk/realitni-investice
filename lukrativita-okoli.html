@@ -21,6 +21,9 @@
 <div class="metric"><small>Mapa – body v okolí</small><strong id="locationAnalysisCount">—</strong></div>
 </div>
 <p id="locationAnalysisResolved" class="muted"></p>
+<h3 style="margin-top:18px">Co je v okolí a jak daleko</h3>
+<p class="muted">Vzdálenosti jsou přímou vzdáleností od zadané adresy, nikoli délkou pěší trasy.</p>
+<div id="locationAnalysisPlaces"></div>
 <h3 style="margin-top:18px">Hodnocení pouze z nalezených údajů</h3>
 <div id="locationAnalysisFactors"></div>
 <h3 style="margin-top:18px">Co se podařilo najít v okruhu 1,5 km</h3>
@@ -37,94 +40,81 @@
 <div class="card"><h2>Jak výsledek číst</h2><p class="muted">Skóre se počítá jen z faktorů, pro které se podařilo získat údaje. Bezpečnost, skutečné nájemné, výnosnost a budoucí rozvoj se bez spolehlivých dat neodhadují. Chybějící mapový záznam neznamená, že daná služba v okolí neexistuje.</p><p class="muted">Zdroj mapových údajů: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p></div>
 </main><script>
 const $=id=>document.getElementById(id);
+const API='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis';
 const addressInput=$('locationAnalysisAddress'),suggestions=$('locationAddressSuggestions');
 let suggestionTimer=null,suggestionAbort=null,suggestionItems=[],activeSuggestion=-1;
 function closeAddressSuggestions(){suggestions.hidden=true;addressInput.setAttribute('aria-expanded','false');activeSuggestion=-1}
-function chooseAddress(item){
- addressInput.value=item.label;
- closeAddressSuggestions();
- addressInput.focus();
-}
+function chooseAddress(item){addressInput.value=item.label;addressInput.dataset.lat=item.lat;addressInput.dataset.lon=item.lon;closeAddressSuggestions();addressInput.focus()}
 function renderAddressSuggestions(items){
  suggestionItems=items;suggestions.replaceChildren();activeSuggestion=-1;
  if(!items.length){closeAddressSuggestions();return}
  items.forEach((item,index)=>{
   const li=document.createElement('li');li.setAttribute('role','option');li.id='locationAddressOption'+index;
-  const btn=document.createElement('button');btn.type='button';btn.tabIndex=-1;
-  const main=document.createElement('span');main.className='suggestion-main';main.textContent=item.main;
-  const detail=document.createElement('span');detail.className='suggestion-detail';detail.textContent=item.detail;
-  btn.append(main,detail);
-  btn.addEventListener('mousedown',e=>e.preventDefault());
-  btn.addEventListener('click',()=>chooseAddress(item));
+  const btn=document.createElement('button');btn.type='button';
+  const main=document.createElement('span');main.className='suggestion-main';main.textContent=item.label;
+  const detail=document.createElement('span');detail.className='suggestion-detail';detail.textContent='Vybrat toto místo';
+  btn.append(main,detail);btn.addEventListener('mousedown',e=>e.preventDefault());btn.addEventListener('click',()=>chooseAddress(item));
   li.append(btn);suggestions.append(li);
  });
  suggestions.hidden=false;addressInput.setAttribute('aria-expanded','true');
 }
 async function findAddressSuggestions(query){
- if(suggestionAbort)suggestionAbort.abort();
- suggestionAbort=new AbortController();
+ if(suggestionAbort)suggestionAbort.abort();suggestionAbort=new AbortController();
  try{
-  const url='https://photon.komoot.io/api/?limit=6&lang=cs&q='+encodeURIComponent(query);
-  const response=await fetch(url,{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  const data=await response.json();
-  const seen=new Set();
-  const items=(data.features||[]).map(feature=>{
-   const p=feature.properties||{},parts=[p.name,p.housenumber,p.street,p.postcode,p.city||p.town||p.village,p.state,p.country].filter(Boolean);
-   const label=[p.name,p.housenumber,p.street,p.postcode,p.city||p.town||p.village,p.country].filter(Boolean).join(', ');
-   return {label:label||parts.join(', '),main:[p.name,p.housenumber,p.street].filter(Boolean).join(' ' )||label,detail:[p.postcode,p.city||p.town||p.village,p.state,p.country].filter(Boolean).join(', '),coordinates:feature.geometry&&feature.geometry.coordinates};
-  }).filter(item=>item.label&&!seen.has(item.label)&&seen.add(item.label));
-  if(addressInput.value.trim()===query)renderAddressSuggestions(items);
+  const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||'Vyhledávání adres není dostupné');
+  if(addressInput.value.trim()===query)renderAddressSuggestions(data.results||[]);
  }catch(err){if(err.name!=='AbortError')closeAddressSuggestions()}
 }
+function makePlaceLink(place){
+ const a=document.createElement('a');a.href='https://www.openstreetmap.org/'+encodeURIComponent(place.osm_type||'node')+'/'+encodeURIComponent(place.osm_id);a.target='_blank';a.rel='noopener';a.textContent='Mapa';return a;
+}
+function renderPlaces(data){
+ const root=$('locationAnalysisPlaces');root.replaceChildren();
+ (data.categories||[]).forEach(cat=>{
+  const box=document.createElement('details');box.style.cssText='border:1px solid #e0e6ed;border-radius:10px;margin:9px 0;background:#fff';box.open=cat.count>0;
+  const summary=document.createElement('summary');summary.style.cssText='padding:12px;font-weight:700;cursor:pointer';summary.textContent=cat.name+' ('+cat.count+')';box.append(summary);
+  if(!cat.count){const p=document.createElement('p');p.className='muted';p.style.cssText='padding:0 12px';p.textContent='V dostupných mapových datech nebyl v okruhu 1,5 km nalezen žádný záznam.';box.append(p)}
+  (cat.places||[]).forEach(place=>{
+   const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 12px;border-top:1px solid #edf0f4';
+   const left=document.createElement('div');const name=document.createElement('strong');name.textContent=place.name;
+   const meta=document.createElement('div');meta.className='muted';meta.textContent=place.distance_m<1000?place.distance_m+' m od adresy':(place.distance_m/1000).toFixed(2).replace('.',',')+' km od adresy';
+   left.append(name,meta);row.append(left,makePlaceLink(place));box.append(row);
+  });root.append(box);
+ });
+ if(!(data.categories||[]).length)root.textContent='Mapa nevrátila žádná místa v okolí.';
+}
 async function analyzeLocation(){
- const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation');
- const address=(input.value||'').trim();
- if(address.length<4){status.textContent='Zadej celou adresu včetně města.';input.focus();return}
- button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Vyhledávám adresu a mapové body v okruhu 1,5 km. Může to chvíli trvat.';
- $('locationAnalysisResults').hidden=true;
+ const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
+ if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
+ button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 1,5 km…';$('locationAnalysisResults').hidden=true;
  try{
-  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis?address='+encodeURIComponent(address);
-  const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
+  const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:{'Accept':'application/json'}});
   const data=await response.json().catch(()=>null);
-  if(!response.ok||!data){const message=(data&&data.error)||('Služba vrátila HTTP '+response.status);const detail=data&&data.detail?' ('+data.detail+')':'';throw new Error(message+detail)}
-  if(typeof data.score!=='number')throw new Error(data.error||'Pro tuto adresu se nepodařilo vypočítat skóre.');
-  $('locationAnalysisResults').hidden=false;
-  $('locationAnalysisScore').textContent=data.score+' / 100';
-  $('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
-  $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';
-  $('locationAnalysisCount').textContent=String(data.counts&&data.counts.mapped_objects||0);
-  $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Souřadnice: '+Number(data.lat).toFixed(5)+', '+Number(data.lon).toFixed(5);
-  const counts=data.counts||{};
-  $('locationCountTransit').textContent=String(counts.transit||0);
-  $('locationCountShops').textContent=String(counts.shops||0);
-  $('locationCountEducationHealth').textContent=String((counts.education||0)+(counts.health||0));
-  $('locationCountBusinessGreen').textContent=String((counts.offices||0)+(counts.green||0));
-  $('locationAnalysisLimit').textContent=data.limitation||'Výsledek je orientační a závisí na úplnosti mapových dat.';
+  if(!response.ok||!data)throw new Error((data&&data.error||'Služba vrátila HTTP '+response.status)+(data&&data.detail?' ('+data.detail+')':''));
+  if(typeof data.score!=='number')throw new Error(data.error||'Server nevrátil výsledek analýzy.');
+  $('locationAnalysisResults').hidden=false;$('locationAnalysisScore').textContent=data.score+' / 100';$('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
+  $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';$('locationAnalysisCount').textContent=String(data.counts?.mapped_objects??0);
+  $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Okruh '+((data.radius_m||1500)/1000).toLocaleString('cs-CZ')+' km · Zdroj: '+(data.map_source||'OpenStreetMap');
+  const counts=data.counts||{};$('locationCountTransit').textContent=String(counts.transit||0);$('locationCountShops').textContent=String(counts.shops||0);
+  $('locationCountEducationHealth').textContent=String((counts.education||0)+(counts.health||0));$('locationCountBusinessGreen').textContent=String((counts.services||0)+(counts.green||0));
+  $('locationAnalysisLimit').textContent=data.limitation||'Výsledek závisí na úplnosti mapových dat.';renderPlaces(data);
   const root=$('locationAnalysisFactors');root.replaceChildren();
-  (data.factors||[]).forEach(f=>{
-   const wrap=document.createElement('div');wrap.style.cssText='border:1px solid #e0e6ed;border-radius:10px;padding:12px;margin:9px 0;background:#fff';
-   const head=document.createElement('div');head.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:flex-start';
-   const name=document.createElement('strong');name.textContent=f.name+' ('+f.weight+' %)';
-   const value=document.createElement('strong');value.textContent=f.score===null||f.score===undefined?'Bez ověřených dat':f.score+'/10';
-   head.append(name,value);wrap.append(head);
-   if(f.score!==null&&f.score!==undefined){const track=document.createElement('div');track.style.cssText='height:7px;background:#e8edf3;border-radius:99px;margin:9px 0;overflow:hidden';const bar=document.createElement('div');bar.style.cssText='height:7px;background:#2457d6;border-radius:99px;width:'+Math.max(0,Math.min(100,f.score*10))+'%';track.append(bar);wrap.append(track)}
-   const note=document.createElement('p');note.className='muted';note.style.margin='6px 0 0';note.textContent=f.note||'';wrap.append(note);root.append(wrap);
-  });
-  status.textContent=data.overpass_available?'Analýza dokončena. Čísla vycházejí z evidovaných mapových bodů; neznamenají ověřenou poptávku po nájmu.':'Adresa byla nalezena, ale mapová data okolí se nepodařilo načíst. Zkus to později.';
- }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')+'. Zkus doplnit přesnou adresu nebo analýzu opakovat.'}
- finally{button.disabled=false;button.textContent='Analyzovat lukrativnost lokality'}
+  [['Doprava a MHD',counts.transit],['Obchody',counts.shops],['Školy',counts.schools],['Školky',counts.kindergartens],['Zdravotnictví',counts.health],['Služby',counts.services],['Sport a zeleň',counts.green]].forEach(([name,value])=>{const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf0f4';const a=document.createElement('span');a.textContent=name;const b=document.createElement('strong');b.textContent=String(value??0);row.append(a,b);root.append(row)});
+  status.textContent='Analýza dokončena. Nalezeno '+(counts.mapped_objects||0)+' mapových záznamů. Rozklikni kategorie a prohlédni si vzdálenosti.';
+ }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')}
+ finally{button.disabled=false;button.textContent='Analyzovat okolí'}
 }
 addressInput.addEventListener('input',()=>{
- const query=addressInput.value.trim();
- if(suggestionTimer)clearTimeout(suggestionTimer);
+ delete addressInput.dataset.lat;delete addressInput.dataset.lon;
+ const query=addressInput.value.trim();if(suggestionTimer)clearTimeout(suggestionTimer);
  if(query.length<3){if(suggestionAbort)suggestionAbort.abort();closeAddressSuggestions();return}
- suggestionTimer=setTimeout(()=>findAddressSuggestions(query),300);
+ suggestionTimer=setTimeout(()=>findAddressSuggestions(query),350);
 });
 addressInput.addEventListener('keydown',e=>{
  if(suggestions.hidden)return;
- if(e.key==='ArrowDown'){e.preventDefault();activeSuggestion=Math.min(activeSuggestion+1,suggestionItems.length-1);const option=suggestions.children[activeSuggestion];if(option){[...suggestions.children].forEach((el,i)=>el.setAttribute('aria-selected',String(i===activeSuggestion)));option.querySelector('button').focus()} }
- else if(e.key==='Escape'){closeAddressSuggestions()}
+ if(e.key==='ArrowDown'){e.preventDefault();activeSuggestion=Math.min(activeSuggestion+1,suggestionItems.length-1);const option=suggestions.children[activeSuggestion];if(option)option.querySelector('button').focus()}
+ else if(e.key==='Escape')closeAddressSuggestions();
  else if(e.key==='Enter'&&activeSuggestion>=0){e.preventDefault();chooseAddress(suggestionItems[activeSuggestion])}
 });
 suggestions.addEventListener('keydown',e=>{
@@ -133,7 +123,5 @@ suggestions.addEventListener('keydown',e=>{
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.address-wrap'))closeAddressSuggestions()});
 $('analyzeLocation').addEventListener('click',analyzeLocation);
-$('locationAnalysisAddress').value=($('listingAddress')&&$('listingAddress').value)||$('marketLocation').value||'';
-$('locationAnalysisAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();analyzeLocation()}});
-
+addressInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&suggestions.hidden){e.preventDefault();analyzeLocation()}});
 </script></body></html>
