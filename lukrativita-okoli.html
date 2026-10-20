@@ -8,10 +8,10 @@
 <div id="authGate" class="auth-gate"><section class="auth-card"><small>REALITNÍ INVESTICE · SOUKROMÝ PŘÍSTUP</small><h1>Přihlášení do aplikace</h1><p class="muted">Zadej přihlašovací jméno a heslo pro přístup k analýze lokality.</p><form id="authForm"><label for="authUsername">Uživatelské jméno</label><input id="authUsername" type="text" autocomplete="username" required maxlength="80" placeholder="Uživatelské jméno"><label for="authPassword">Heslo</label><input id="authPassword" type="password" autocomplete="current-password" required maxlength="200" placeholder="Heslo"><button class="btn primary" id="authSubmit" type="submit">Přihlásit se</button></form><p id="authStatus" class="auth-status" role="status" aria-live="polite">Kontroluji přihlášení…</p></section></div>
 <header id="appHeader" hidden><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><button class="btn" id="authSignOut" type="button" style="float:right">Odhlásit</button><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
 <main id="appMain" hidden>
-<p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 0,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
+<p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 1 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
 <section class="card" id="locationAnalysisSection">
 <h2>Analýza lukrativnosti okolí</h2>
-<p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 0,5 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
+<p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 1 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
 <div class="grid">
 <div class="field address-wrap" style="grid-column:1/-1"><label for="locationAnalysisAddress">Adresa nemovitosti</label><input id="locationAnalysisAddress" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="locationAddressSuggestions" placeholder="Začni psát ulici, číslo a město…"><ul id="locationAddressSuggestions" class="suggestions" role="listbox" hidden></ul><small class="muted">Začni psát adresu a vyber správné místo z automaticky dohledaných návrhů.</small></div>
 <div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="analyzeLocation">Analyzovat okolí</button> <span id="locationAnalysisStatus" class="muted" role="status" aria-live="polite">Zatím nebyla provedena analýza.</span></div>
@@ -41,7 +41,7 @@
 <div id="locationDevelopmentNotes" class="muted">Dohledávám územní rozvoj a nové projekty…</div>
 <h3 style="margin-top:18px">Hodnocení pouze z nalezených údajů</h3>
 <div id="locationAnalysisFactors"></div>
-<h3 style="margin-top:18px">Co se podařilo najít v okruhu 0,5 km</h3>
+<h3 style="margin-top:18px">Co se podařilo najít v okruhu 1 km</h3>
 <div class="quick-results">
 <div class="metric"><small>Dopravní body</small><strong id="locationCountTransit">—</strong></div>
 <div class="metric"><small>Obchody</small><strong id="locationCountShops">—</strong></div>
@@ -213,12 +213,12 @@ function renderLocalScore(data, transitMinutes=null, dailyDepartures=null){
  $('locationAnalysisLabel').textContent=score>=8?'Velmi dobrá dostupnost':score>=6.5?'Dobrá dostupnost':score>=4.5?'Průměrná dostupnost':score>=2.5?'Slabší dostupnost':'Nízká dostupnost';
  const root=$('locationAnalysisFactors');root.replaceChildren();
  const factors=[
-  ['Zastávky a stanice v okruhu 500 m',transitStops],
-  ['Obchody v okruhu 500 m',shops],
+  ['Zastávky a stanice v okruhu 1 km',transitStops],
+  ['Obchody v okruhu 1 km',shops],
   ['Denní odjezdy použitých linek',dailyDepartures===null?'zatím neověřeno':dailyDepartures],
-  ['Školy a školky v okruhu 500 m',education],
-  ['Zdravotnictví a služby v okruhu 500 m',publicServices],
-  ['Sport a zeleň v okruhu 500 m',green],
+  ['Školy a školky v okruhu 1 km',education],
+  ['Zdravotnictví a služby v okruhu 1 km',publicServices],
+  ['Sport a zeleň v okruhu 1 km',green],
   ['Nejbližší evidovaný úřad',nearestOffice===null?'nenalezen':nearestOffice+' m'],
   ['Nejrychlejší nalezená cesta do centra',transitMinutes===null?'zatím neověřeno':Math.round(transitMinutes)+' min']
  ];
@@ -257,7 +257,7 @@ function renderPlaces(data){
  (data.categories||[]).forEach(cat=>{
   const box=document.createElement('details');box.style.cssText='border:1px solid #e0e6ed;border-radius:10px;margin:9px 0;background:#fff';box.open=cat.count>0;
   const summary=document.createElement('summary');summary.style.cssText='padding:12px;font-weight:700;cursor:pointer';summary.textContent=cat.name+' ('+cat.count+')';box.append(summary);
-  if(!cat.count){const p=document.createElement('p');p.className='muted';p.style.cssText='padding:0 12px';p.textContent='V dostupných mapových datech nebyl v okruhu 0,5 km nalezen žádný záznam.';box.append(p)}
+  if(!cat.count){const p=document.createElement('p');p.className='muted';p.style.cssText='padding:0 12px';p.textContent='V dostupných mapových datech nebyl v okruhu 1 km nalezen žádný záznam.';box.append(p)}
   (cat.places||[]).forEach(place=>{
    const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 12px;border-top:1px solid #edf0f4';
    const left=document.createElement('div');const name=document.createElement('strong');name.textContent=place.name;
@@ -375,7 +375,7 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
  try{
   const allowLongWalk=!!$('locationTransitWalk15')?.checked;
  const found=await Promise.all(probeTimes.map(async time=>{
-   const params=new URLSearchParams({fromPlace:Number(lat)+','+Number(lon),toPlace:'50.0755,14.4378',time:asIso(dateForSearch,time),arriveBy:'false',timetableView:'true',searchWindow:'3600',directModes:'WALK',preTransitModes:'WALK',postTransitModes:'WALK',maxPreTransitTime:String(allowLongWalk?900:120),maxPostTransitTime:'900',transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',numItineraries:'8',language:'cs'});
+   const params=new URLSearchParams({fromPlace:Number(lat)+','+Number(lon),toPlace:'50.0755,14.4378',time:asIso(dateForSearch,time),arriveBy:'false',timetableView:'true',searchWindow:'3600',directModes:'WALK',preTransitModes:'WALK',postTransitModes:'WALK',maxPreTransitTime:String(allowLongWalk?900:120),maxPostTransitTime:'900',maxMatchingDistance:'250',transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',numItineraries:'8',language:'cs'});
    const response=await fetch('https://api.transitous.org/api/v5/plan?'+params,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(18000)});
    if(!response.ok)throw new Error('Jízdní řády vrátily HTTP '+response.status);
    const data=await response.json();
@@ -447,7 +447,7 @@ async function calculateCenterRoute(lat,lon){
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
- button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 0,5 km…';$('locationAnalysisResults').hidden=true;
+ button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 1 km…';$('locationAnalysisResults').hidden=true;
  try{
   const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:await protectedHeaders()});
   let data=await response.json().catch(()=>null);
