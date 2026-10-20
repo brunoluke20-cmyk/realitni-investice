@@ -8,6 +8,34 @@
     ['lukrativita-okoli.html', '📍', 'Lukrativita okolí']
   ];
   const current = location.pathname.split('/').pop() || 'index.html';
+  // Snapshot the current listing before navigating so the next tool receives the same property.
+  function syncCurrentListing() {
+    try {
+      const read = (...ids) => {
+        for (const id of ids) {
+          const el = document.getElementById(id);
+          if (el && String(el.value || '').trim()) return String(el.value).trim();
+        }
+        return '';
+      };
+      const old = JSON.parse(localStorage.getItem('rei-shared-project-v1') || '{}');
+      const address = read('locationAnalysisAddress', 'listingAddress', 'address');
+      const name = read('name', 'listingName', 'projectName') || old.name || old.title || address;
+      const url = read('listingURL', 'url', 'listingUrl') || old.url || old.listingURL || '';
+      const price = read('listingPrice', 'price', 'purchase') || old.price || old.listingPrice || '';
+      const area = read('listingArea', 'area') || old.area || old.listingArea || '';
+      const next = { ...old, name, title: name || old.title || '', address: address || old.address || old.location || '', location: address || old.location || old.address || '', url, listingURL: url, price, listingPrice: price, area, listingArea: area, updatedAt: new Date().toISOString() };
+      localStorage.setItem('rei-shared-project-v1', JSON.stringify(next));
+    } catch (_e) {}
+  }
+  document.addEventListener('click', event => {
+    const link = event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    let target;
+    try { target = new URL(link.href, location.href); } catch (_e) { return; }
+    if (target.origin !== location.origin || !tools.some(([href]) => href === target.pathname.split('/').pop())) return;
+    syncCurrentListing();
+  }, true);
   const style = document.createElement('style');
   style.textContent = `
     #reiMenuButton{display:none}
