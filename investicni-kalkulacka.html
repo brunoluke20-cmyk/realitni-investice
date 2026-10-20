@@ -344,6 +344,7 @@ function updateQuick(syncMain=true){
  $('quickTotal').textContent=quickFmt(total);
  $('quickDifference').textContent=quickFmt(difference);
  $('quickDifference').style.color=difference>=0?'#147a52':'#b42318';
+ $('quickValueRange').value=String(quickValue);
  $('quickValueOut').textContent=quickValue.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
  $('quickMargin').textContent=margin.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' %';
  $('quickMargin').style.color=margin>=0?'#147a52':'#b42318';
