@@ -5,10 +5,10 @@
 </style></head><body>
 <header><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
 <main>
-<p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 1,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
+<p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 0,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
 <section class="card" id="locationAnalysisSection">
 <h2>Analýza lukrativnosti okolí</h2>
-<p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 1,5 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
+<p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 0,5 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
 <div class="grid">
 <div class="field address-wrap" style="grid-column:1/-1"><label for="locationAnalysisAddress">Adresa nemovitosti</label><input id="locationAnalysisAddress" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="locationAddressSuggestions" placeholder="Začni psát ulici, číslo a město…"><ul id="locationAddressSuggestions" class="suggestions" role="listbox" hidden></ul><small class="muted">Začni psát adresu a vyber správné místo z automaticky dohledaných návrhů.</small></div>
 <div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="analyzeLocation">Analyzovat okolí</button> <span id="locationAnalysisStatus" class="muted" role="status" aria-live="polite">Zatím nebyla provedena analýza.</span></div>
@@ -34,7 +34,7 @@
 <div id="locationAnalysisPlaces"></div>
 <h3 style="margin-top:18px">Hodnocení pouze z nalezených údajů</h3>
 <div id="locationAnalysisFactors"></div>
-<h3 style="margin-top:18px">Co se podařilo najít v okruhu 1,5 km</h3>
+<h3 style="margin-top:18px">Co se podařilo najít v okruhu 0,5 km</h3>
 <div class="quick-results">
 <div class="metric"><small>Dopravní body</small><strong id="locationCountTransit">—</strong></div>
 <div class="metric"><small>Obchody</small><strong id="locationCountShops">—</strong></div>
@@ -112,7 +112,7 @@ function renderPlaces(data){
  (data.categories||[]).forEach(cat=>{
   const box=document.createElement('details');box.style.cssText='border:1px solid #e0e6ed;border-radius:10px;margin:9px 0;background:#fff';box.open=cat.count>0;
   const summary=document.createElement('summary');summary.style.cssText='padding:12px;font-weight:700;cursor:pointer';summary.textContent=cat.name+' ('+cat.count+')';box.append(summary);
-  if(!cat.count){const p=document.createElement('p');p.className='muted';p.style.cssText='padding:0 12px';p.textContent='V dostupných mapových datech nebyl v okruhu 1,5 km nalezen žádný záznam.';box.append(p)}
+  if(!cat.count){const p=document.createElement('p');p.className='muted';p.style.cssText='padding:0 12px';p.textContent='V dostupných mapových datech nebyl v okruhu 0,5 km nalezen žádný záznam.';box.append(p)}
   (cat.places||[]).forEach(place=>{
    const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 12px;border-top:1px solid #edf0f4';
    const left=document.createElement('div');const name=document.createElement('strong');name.textContent=place.name;
@@ -149,7 +149,7 @@ function browserLabel(t){
  return String(t.amenity||t.public_transport||t.railway||t.leisure||t.office||'Místo').replaceAll('_',' ');
 }
 async function browserOverpass(lat,lon,address){
- const radius=1500;
+ const radius=500;
  const query='[out:json][timeout:12];('+
   'node(around:'+radius+','+lat+','+lon+')["public_transport"];'+
   'node(around:'+radius+','+lat+','+lon+')["railway"~"station|halt|tram_stop|subway_entrance|stop"];'+
@@ -308,7 +308,7 @@ async function calculateCenterRoute(lat,lon){
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
- button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 1,5 km…';$('locationAnalysisResults').hidden=true;
+ button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 0,5 km…';$('locationAnalysisResults').hidden=true;
  try{
   const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:{'Accept':'application/json'}});
   let data=await response.json().catch(()=>null);
@@ -324,7 +324,7 @@ async function analyzeLocation(){
   if(typeof data.score!=='number')throw new Error(data.error||'Server nevrátil výsledek analýzy.');
   $('locationAnalysisResults').hidden=false;$('locationAnalysisScore').textContent=data.score+' / 100';$('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
   $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';$('locationAnalysisCount').textContent=String(data.counts?.mapped_objects??0);
-  $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Okruh '+((data.radius_m||1500)/1000).toLocaleString('cs-CZ')+' km · Zdroj: '+(data.map_source||'OpenStreetMap');
+  $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Okruh '+((data.radius_m||500)/1000).toLocaleString('cs-CZ')+' km · Zdroj: '+(data.map_source||'OpenStreetMap');
   calculateCenterRoute(Number(data.lat),Number(data.lon));
   calculateCenterTransit(Number(data.lat),Number(data.lon));
   const counts=data.counts||{};$('locationCountTransit').textContent=String(counts.transit||0);$('locationCountShops').textContent=String(counts.shops||0);
