@@ -5,7 +5,7 @@
 
 .auth-gate{position:fixed;inset:0;z-index:9999;background:#f3f5f8;display:flex;align-items:center;justify-content:center;padding:18px}.auth-gate[hidden]{display:none}.auth-card{width:min(100%,440px);background:#fff;border:1px solid #dfe5eb;border-radius:16px;padding:24px;box-shadow:0 18px 55px #17212b18}.auth-card h1{font-size:25px;margin:0 0 8px}.auth-card label{display:block;margin:16px 0 5px;font-size:13px;color:#586777}.auth-card input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.auth-card button{margin-top:12px}.auth-status{min-height:24px;margin-top:12px;font-size:13px;color:#586777}header[hidden],main[hidden]{display:none!important}
 </style></head><body>
-<div id="authGate" class="auth-gate"><section class="auth-card"><small>REALITNÍ INVESTICE · SOUKROMÝ PŘÍSTUP</small><h1>Přihlášení do aplikace</h1><p class="muted">Přístup mají pouze e-mailové adresy schválené správcem. Po zadání e-mailu obdržíš jednorázový přihlašovací odkaz.</p><form id="authForm"><label for="authEmail">Povolený e-mail</label><input id="authEmail" type="email" autocomplete="email" required maxlength="254" placeholder="jmeno@example.cz"><button class="btn primary" id="authSubmit" type="submit">Poslat přihlašovací odkaz</button></form><p id="authStatus" class="auth-status" role="status" aria-live="polite">Ověřuji přístup…</p></section></div>
+<div id="authGate" class="auth-gate"><section class="auth-card"><small>REALITNÍ INVESTICE · SOUKROMÝ PŘÍSTUP</small><h1>Přihlášení do aplikace</h1><p class="muted">Zadej přihlašovací jméno a heslo pro přístup k analýze lokality.</p><form id="authForm"><label for="authUsername">Uživatelské jméno</label><input id="authUsername" type="text" autocomplete="username" required maxlength="80" placeholder="Uživatelské jméno"><label for="authPassword">Heslo</label><input id="authPassword" type="password" autocomplete="current-password" required maxlength="200" placeholder="Heslo"><button class="btn primary" id="authSubmit" type="submit">Přihlásit se</button></form><p id="authStatus" class="auth-status" role="status" aria-live="polite">Kontroluji přihlášení…</p></section></div>
 <header id="appHeader" hidden><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><button class="btn" id="authSignOut" type="button" style="float:right">Odhlásit</button><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
 <main id="appMain" hidden>
 <p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 0,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
@@ -53,67 +53,62 @@
 </div>
 </section>
 <div class="card"><h2>Jak výsledek číst</h2><p class="muted">Skóre se počítá jen z faktorů, pro které se podařilo získat údaje. Bezpečnost, skutečné nájemné, výnosnost a budoucí rozvoj se bez spolehlivých dat neodhadují. Chybějící mapový záznam neznamená, že daná služba v okolí neexistuje.</p><p class="muted">Zdroj mapových údajů: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p></div>
-</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.js"></script>
-<script>
+</main><script>
 const $=id=>document.getElementById(id);
 const API='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis';
 
 const SUPABASE_URL='https://zikhzhgxrjpjrkivmwrf.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppa2h6aGd4cmpwanJraXZtd3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNjk4ODUsImV4cCI6MjEwMjc0NTg4NX0.-IesVNl4JTozOtPIGhDieJRUN0vcsm0FTNwEyouZzZ8';
-const AUTH_API=SUPABASE_URL+'/functions/v1/auth-request';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6Inppa2h6aGd4cmpwanJraXZtd3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNjk4ODUsImV4cCI6MjEwMjc0NTg4NX0.-IesVNl4JTozOtPIGhDieJRUN0vcsm0FTNwEyouZzZ8';
+const AUTH_API=SUPABASE_URL+'/functions/v1/auth-login';
 const APP_REDIRECT_URL='https://brunoluke20-cmyk.github.io/realitni-investice/lukrativita-okoli.html';
-const supabaseClient=window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const TOKEN_KEY='realitni-investice-session';
 function lockApp(message){
  $('authGate').hidden=false;$('appHeader').hidden=true;$('appMain').hidden=true;
  if(message)$('authStatus').textContent=message;
 }
+function getSessionToken(){try{return localStorage.getItem(TOKEN_KEY)||''}catch(_e){return ''}}
+function clearSession(){try{localStorage.removeItem(TOKEN_KEY)}catch(_e){}}
 async function protectedHeaders(){
- if(!supabaseClient)throw new Error('Nepodařilo se načíst přihlašovací knihovnu. Obnov stránku.');
- const {data,error}=await supabaseClient.auth.getSession();
- if(error||!data.session?.access_token)throw new Error('Přihlášení vypršelo. Přihlas se znovu.');
- return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+data.session.access_token,'Accept':'application/json'};
+ const token=getSessionToken();
+ if(!token)throw new Error('Přihlášení vypršelo. Přihlas se znovu.');
+ return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token,'Accept':'application/json'};
 }
 let accessCheckInProgress=false;
-async function verifyAndUnlock(session){
- if(!session?.access_token||accessCheckInProgress)return;
+async function verifyAndUnlock(){
+ if(!getSessionToken()||accessCheckInProgress)return;
  accessCheckInProgress=true;
  try{
-  const response=await fetch(API+'?action=authorize',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+session.access_token,'Accept':'application/json'}});
+  const response=await fetch(API+'?action=authorize',{headers:await protectedHeaders()});
   const result=await response.json().catch(()=>({}));
   if(!response.ok||!result.authorized){
-   lockApp(result.error||'Tento účet nemá povolený přístup. Požádej správce o přidání e-mailu do seznamu.');
-   if(response.status===401||response.status===403)await supabaseClient.auth.signOut();
-   return;
+   clearSession();lockApp(result.error||'Přihlášení vypršelo. Přihlas se znovu.');return;
   }
   $('authGate').hidden=true;$('appHeader').hidden=false;$('appMain').hidden=false;
  }catch(_e){lockApp('Přístup se nepodařilo ověřit. Zkontroluj připojení a obnov stránku.')}
  finally{accessCheckInProgress=false}
 }
-if(supabaseClient){
- supabaseClient.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT')lockApp('Byl(a) jsi odhlášen(a).');
-  else if(session&&(event==='INITIAL_SESSION'||event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))Promise.resolve().then(()=>verifyAndUnlock(session));
- });
- supabaseClient.auth.getSession().then(({data,error})=>{
-  if(error)lockApp('Přihlášení se nepodařilo načíst.');
-  else if(data.session)verifyAndUnlock(data.session);
-  else lockApp('Zadej e-mail, který správce přidal do seznamu povolených uživatelů.');
- });
-}else lockApp('Přihlašovací knihovna se nenačetla. Obnov stránku nebo zkontroluj připojení.');
 $('authForm').addEventListener('submit',async e=>{
- e.preventDefault();const email=$('authEmail').value.trim().toLowerCase(),button=$('authSubmit');
- if(!email)return;
- button.disabled=true;button.textContent='Odesílám…';$('authStatus').textContent='Ověřuji e-mail a připravuji odkaz…';
+ e.preventDefault();
+ const username=$('authUsername').value.trim(),password=$('authPassword').value,button=$('authSubmit');
+ if(!username||!password)return;
+ button.disabled=true;button.textContent='Ověřuji…';$('authStatus').textContent='Ověřuji přihlašovací údaje…';
  try{
-  const response=await fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify({email,redirectTo:APP_REDIRECT_URL})});
+  const response=await fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify({username,password})});
   const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.error||'Odkaz se nepodařilo odeslat.');
-  $('authStatus').textContent=result.message||'Pokud je adresa povolená, přijde na ni přihlašovací odkaz.';
+  if(!response.ok)throw new Error(result.error||'Přihlášení se nepodařilo.');
+  if(!result.token)throw new Error('Server nevrátil přihlašovací relaci.');
+  try{localStorage.setItem(TOKEN_KEY,result.token)}catch(_e){throw new Error('Pro přihlášení je potřeba povolit místní úložiště prohlížeče.')}
+  $('authPassword').value='';
+  $('authStatus').textContent='Přihlášení proběhlo, ověřuji přístup…';
+  await verifyAndUnlock();
  }catch(err){$('authStatus').textContent=err.message||'Přihlašovací služba je dočasně nedostupná.'}
- finally{button.disabled=false;button.textContent='Poslat přihlašovací odkaz'}
+ finally{button.disabled=false;button.textContent='Přihlásit se'}
 });
-$('authSignOut').addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut();lockApp('Byl(a) jsi odhlášen(a).')});
-
+$('authSignOut').addEventListener('click',()=>{
+ clearSession();lockApp('Byl(a) jsi odhlášen(a).');
+});
+if(getSessionToken())verifyAndUnlock();
+else lockApp('Zadej uživatelské jméno a heslo.');
 const addressInput=$('locationAnalysisAddress'),suggestions=$('locationAddressSuggestions');
 let suggestionTimer=null,suggestionAbort=null,suggestionItems=[],activeSuggestion=-1;
 function closeAddressSuggestions(){suggestions.hidden=true;addressInput.setAttribute('aria-expanded','false');activeSuggestion=-1}
