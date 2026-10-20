@@ -87,6 +87,10 @@
 </div>
 <p id="locationAnalysisLimit" class="notice" style="margin-top:14px"></p>
 <p class="muted">Mapové údaje: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>. Výsledky mohou být neúplné; neznamená to, že v okolí daný objekt neexistuje.</p>
+<h3 style="margin-top:18px">Dostupnost MHD na Náměstí Míru</h3>
+<div class="quick-results"><div class="metric"><small>Nejrychlejší nalezená cesta MHD</small><strong id="locationCenterTransitTime">—</strong></div></div>
+<div id="locationCenterTransitDetails" class="muted" aria-live="polite" style="margin-top:10px">Po dokončení analýzy se vyhledá spojení v různých časech reprezentativního pracovního dne.</div>
+<p class="muted">Zdroj jízdních řádů: Transitous. Jde o odhad podle dostupných dat, ne o živé informace o zpožděních či výlukách.</p>
 </div>
 </section>
 
@@ -367,6 +371,38 @@ function updateInvestment(){
 ['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
 
 
+
+async function calculateCenterTransit(lat,lon){
+ const output=$('locationCenterTransitTime'),details=$('locationCenterTransitDetails');
+ output.textContent='Počítám…';details.textContent='Hledám návazné spoje na Náměstí Míru…';
+ if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';details.textContent='Chybí souřadnice výchozí adresy.';return}
+ const tz='Europe/Prague';
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const day=new Date(Date.UTC(+parts.year,+parts.month-1,+parts.day));day.setUTCDate(day.getUTCDate()+(((2-day.getUTCDay()+7)%7)||7));
+ const date=day.getUTCFullYear()+'-'+String(day.getUTCMonth()+1).padStart(2,'0')+'-'+String(day.getUTCDate()).padStart(2,'0');
+ const times=['07:30','08:30','10:00','12:00','16:00','17:30','19:00'];
+ const asIso=(date,time)=>{const [y,m,d]=date.split('-').map(Number),[h,min]=time.split(':').map(Number),target=Date.UTC(y,m-1,d,h,min);let guess=target;for(let i=0;i<3;i++){const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(guess)).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));guess+=target-Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second)}return new Date(guess).toISOString()};
+ const stopName=p=>p?.name||p?.stop?.name||p?.place?.name||'';
+ const routeName=l=>l.routeShortName||l.route_short_name||l.route?.shortName||l.displayName||l.routeLongName||'';
+ const modeName=m=>({WALK:'pěšky',FOOT:'pěšky',BUS:'autobus',TRAM:'tramvaj',SUBWAY:'metro',RAIL:'vlak',SUBURBAN:'příměstský vlak'}[String(m||'').toUpperCase()]||String(m||'doprava').toLowerCase());
+ const fmt=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',timeZone:tz})};
+ try{
+  const results=await Promise.all(times.map(async time=>{
+   const q=new URLSearchParams({fromPlace:Number(lat)+','+Number(lon),toPlace:'50.0755,14.4378',time:asIso(date,time),arriveBy:'false',timetableView:'true',searchWindow:'3600',directModes:'WALK',preTransitModes:'WALK',postTransitModes:'WALK',maxPreTransitTime:'300',maxPostTransitTime:'900',maxMatchingDistance:'250',transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',numItineraries:'8',language:'cs'});
+   const r=await fetch('https://api.transitous.org/api/v5/plan?'+q,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(18000)});if(!r.ok)throw Error('Jízdní řády HTTP '+r.status);
+   const d=await r.json(),items=Array.isArray(d.itineraries)?d.itineraries:(Array.isArray(d.plan?.itineraries)?d.plan.itineraries:[]);
+   return items.map(it=>{const legs=Array.isArray(it.legs)?it.legs:[],start=it.startTime||it.start_time||it.departureTime||legs[0]?.startTime||legs[0]?.start_time,end=it.endTime||it.end_time||it.arrivalTime||legs.at(-1)?.endTime||legs.at(-1)?.end_time;let duration=Number(it.duration);if(!Number.isFinite(duration)||duration<=0)duration=(Date.parse(end)-Date.parse(start))/1000;return {...it,_legs:legs,_start:start,_end:end,_duration:duration}}).filter(it=>it._duration>0&&Number.isFinite(it._duration)&&it._legs.some(l=>!['WALK','FOOT'].includes(String(l.mode||'').toUpperCase())));
+  }));
+  const all=results.flat().sort((a,b)=>a._duration-b._duration),seen=new Set();const best=all.find(it=>{const k=it._legs.map(l=>String(l.mode||'')+':'+routeName(l)+':'+stopName(l.from)+':'+stopName(l.to)).join('|');if(seen.has(k))return false;seen.add(k);return true});
+  if(!best)throw Error('Pro zadanou adresu nebyla nalezena trasa MHD.');
+  output.textContent=Math.round(best._duration/60)+' min';details.replaceChildren();
+  const intro=document.createElement('p');intro.textContent='Nejrychlejší nalezená varianta z '+times.length+' časů v reprezentativní úterý ('+date+'). Celkový čas zahrnuje pěší úseky, přestupy a čekání podle dostupného jízdního řádu; výsledek se neřídí aktuálním časem.';details.appendChild(intro);
+  const head=document.createElement('strong');head.textContent='Trasa '+(fmt(best._start)&&fmt(best._end)?fmt(best._start)+'–'+fmt(best._end)+' · ':'')+Math.round(best._duration/60)+' min';details.appendChild(head);
+  const list=document.createElement('ol');list.style.paddingLeft='22px';
+  best._legs.forEach(l=>{const li=document.createElement('li'),mode=String(l.mode||'').toUpperCase(),route=routeName(l),from=stopName(l.from),to=stopName(l.to),a=fmt(l.startTime||l.start_time),b=fmt(l.endTime||l.end_time),duration=Number(l.duration),bits=[modeName(mode)];if(route&&!['WALK','FOOT'].includes(mode))bits.push('linka '+route);if(from||to)bits.push([from,to].filter(Boolean).join(' → '));if(a&&b)bits.push(a+'–'+b);if(Number.isFinite(duration)&&duration>0)bits.push(Math.round(duration/60)+' min');li.textContent=bits.join(' · ');list.appendChild(li)});details.appendChild(list);
+ }catch(e){output.textContent='Nelze spočítat';details.textContent='Spojení se nepodařilo načíst. Zkus analýzu opakovat později. Může jít o nedostupnost zdroje jízdních řádů nebo chybějící data pro danou adresu.'}
+}
+
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation');
  const address=(input.value||'').trim();
@@ -402,6 +438,7 @@ async function analyzeLocation(){
    const note=document.createElement('p');note.className='muted';note.style.margin='6px 0 0';note.textContent=f.note||'';wrap.append(note);root.append(wrap);
   });
   $('marketLocation').value=data.address||address;updateInvestment();
+  calculateCenterTransit(Number(data.lat),Number(data.lon));
   status.textContent=data.overpass_available?'Analýza dokončena. Čísla vycházejí z evidovaných mapových bodů; neznamenají ověřenou poptávku po nájmu.':'Adresa byla nalezena, ale mapová data okolí se nepodařilo načíst. Zkus to později.';
   try{localStorage.setItem('rei-location-analysis-v1',JSON.stringify({query:address,data,at:new Date().toISOString()}))}catch(e){}
  }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')+'. Zkus doplnit přesnou adresu nebo analýzu opakovat.'}
