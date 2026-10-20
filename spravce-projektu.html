@@ -156,4 +156,5 @@ function init(){try{const saved=JSON.parse(localStorage.getItem(storageKey)||'nu
 init();
 function adoptSharedProject(){try{const d=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'null');if(!d||!(d.url||d.address||d.name||d.title))return;const url=d.url||d.listingURL||'',name=d.name||d.title||d.address||'Sdílený projekt';let p=projects.find(x=>x.data&&((url&&(x.data.url||'')===url)||((d.address||d.location)&&(x.data.address||'')===(d.address||d.location))));if(!p){const data=blankData(name);data.name=name;data.address=d.address||d.location||'';data.url=url;data.price=d.price||d.listingPrice||'';p={id:'shared-'+Date.now(),data};projects.push(p)}else{p.data.name=name;p.data.address=d.address||d.location||p.data.address;p.data.url=url||p.data.url;p.data.price=d.price||d.listingPrice||p.data.price}persistProjects();loadProject(p.id)}catch(e){}}
 adoptSharedProject();
-</script></body></html>
+</script><script src="auth.js"></script>
+</body></html>
