@@ -150,9 +150,9 @@ function renderLocalScore(data, transitMinutes=null, dailyDepartures=null){
   office:nearestOffice===null?0:(nearestOffice<=500?1.5:nearestOffice<=1000?1.2:nearestOffice<=2000?.7:nearestOffice<=3000?.3:0),
   travel:transitMinutes===null?0:(transitMinutes<=25?.5:transitMinutes<=40?.4:transitMinutes<=55?.25:transitMinutes<=75?.1:0)
  };
- const maxKnown=scoreParts.departures===0?8:10;
  const raw=Object.values(scoreParts).reduce((a,b)=>a+b,0);
- const score=Math.max(0,Math.min(10,dailyDepartures===null?(raw/8*10):raw));
+ const maxKnown=1.5+2+(dailyDepartures===null?0:2)+1+1+.5+(nearestOffice===null?0:1.5)+(transitMinutes===null?0:.5);
+ const score=maxKnown>0?Math.max(0,Math.min(10,raw/maxKnown*10)):0;
  $('locationAnalysisScore').textContent=score.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' / 10';
  $('locationAnalysisLabel').textContent=score>=8?'Velmi dobrá dostupnost':score>=6.5?'Dobrá dostupnost':score>=4.5?'Průměrná dostupnost':score>=2.5?'Slabší dostupnost':'Nízká dostupnost';
  const root=$('locationAnalysisFactors');root.replaceChildren();
