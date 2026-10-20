@@ -359,13 +359,25 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
  output.textContent='Počítám…';if(details)details.textContent='Hledám nejrychlejší trasu a ověřuji četnost spojů…';
  if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';if(details)details.textContent='Chybí souřadnice výchozí adresy.';return}
  const tz='Europe/Prague';
- const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
- const today=parts.year+'-'+parts.month+'-'+parts.day;
- const nowMinutes=Number(parts.hour)*60+Number(parts.minute);
- const times=['06:30','08:30','11:00','14:00','17:00','20:00'].filter(t=>Number(t.slice(0,2))*60+Number(t.slice(3))>=nowMinutes+10);
- const probeTimes=times.length?times:['06:30','08:30','11:00','14:00','17:00','20:00'];
- const dateForSearch=times.length?today:(()=>{const d=new Date();d.setDate(d.getDate()+1);return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d)})();
- const asIso=(date,time)=>new Date(date+'T'+time+':00').toISOString();
+ // Nehledáme odjezd "teď". Pro srovnání lokality použijeme reprezentativní
+ // pracovní den a prověříme více částí dne, aby výsledek nezávisel na aktuálním čase.
+ const nowParts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const baseDay=new Date(Date.UTC(Number(nowParts.year),Number(nowParts.month)-1,Number(nowParts.day)));
+ const daysUntilTuesday=(2-baseDay.getUTCDay()+7)%7 || 7;
+ baseDay.setUTCDate(baseDay.getUTCDate()+daysUntilTuesday);
+ const dateForSearch=baseDay.getUTCFullYear()+'-'+String(baseDay.getUTCMonth()+1).padStart(2,'0')+'-'+String(baseDay.getUTCDate()).padStart(2,'0');
+ const probeTimes=['06:30','07:30','08:30','10:00','12:00','14:00','16:00','17:30','19:00','21:00'];
+ // Převod času pražského jízdního řádu na ISO/UTC; Edge runtime běží v UTC.
+ const asIso=(date,time)=>{
+  const [y,mo,d]=date.split('-').map(Number),[hh,mm]=time.split(':').map(Number);
+  const target=Date.UTC(y,mo-1,d,hh,mm,0);let guess=target;
+  for(let i=0;i<3;i++){
+   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(guess)).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+   const represented=Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),Number(parts.hour),Number(parts.minute),Number(parts.second));
+   guess+=target-represented;
+  }
+  return new Date(guess).toISOString();
+ };
  const fmt=value=>{if(value===null||value===undefined||value==='')return '';let d;if(typeof value==='number'||/^\\d{10,13}$/.test(String(value))){const n=Number(value);d=new Date(n<1e12?n*1000:n)}else d=new Date(value);return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',timeZone:tz})};
  const stopName=p=>p?.name||p?.stop?.name||p?.place?.name||'';
  const modeName=mode=>({WALK:'pěšky',FOOT:'pěšky',BUS:'autobus',TRAM:'tramvaj',SUBWAY:'metro',RAIL:'vlak',SUBURBAN:'příměstský vlak',FERRY:'loď'}[String(mode||'').toUpperCase()]||String(mode||'doprava').toLowerCase());
@@ -391,7 +403,7 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
   if(scoreData)renderLocalScore(scoreData,best._duration/60,null);
   if(!details)return;
   details.replaceChildren();
-  const intro=document.createElement('p');intro.style.margin='0 0 8px';intro.textContent='Nejrychlejší nalezené spojení MHD: přibližně '+Math.round(best._duration/60)+' min. Porovnáno několik časů během dne ('+probeTimes.join(', ')+'). '+(allowLongWalk?'Je povolena pěší cesta k první zastávce až 15 minut.':'Pěší přístup k první zastávce je omezen přibližně na 2 minuty.')+' Čas slouží jen k prohledání jízdních řádů, nejde o požadavek na konkrétní odjezd.';details.appendChild(intro);
+  const intro=document.createElement('p');intro.style.margin='0 0 8px';intro.textContent='Nejrychlejší nalezené spojení MHD: přibližně '+Math.round(best._duration/60)+' min. Prověřeno '+probeTimes.length+' časů během reprezentativního pracovního dne ('+dateForSearch+': '+probeTimes.join(', ')+'). Výsledek nezávisí na aktuálním čase. '+(allowLongWalk?'Je povolena pěší cesta k první zastávce až 15 minut.':'Pěší přístup k první zastávce je omezen přibližně na 2 minuty.')+' Čas zahrnuje nalezené návaznosti spojů a čekání podle jízdního řádu.';details.appendChild(intro);
   const card=document.createElement('div');card.style.cssText='border:1px solid var(--border-color, #ddd);border-radius:8px;padding:8px 10px;margin:0 0 8px';
   const head=document.createElement('p');head.style.margin='0 0 6px';head.style.fontWeight='600';head.textContent='Nejrychlejší varianta'+(fmt(best._start)&&fmt(best._end)?' · '+fmt(best._start)+'–'+fmt(best._end):'')+' · '+Math.round(best._duration/60)+' min';card.appendChild(head);
   const list=document.createElement('ol');list.style.margin='0';list.style.paddingLeft='22px';
