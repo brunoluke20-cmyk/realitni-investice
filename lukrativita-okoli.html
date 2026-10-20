@@ -387,7 +387,7 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
  try{
   const allowLongWalk=!!$('locationTransitWalk15')?.checked;
  const settled=await Promise.allSettled(probeTimes.map(async time=>{
-   const params=new URLSearchParams({fromPlace:Number(lat)+','+Number(lon),toPlace:'50.0755,14.4378',time:asIso(dateForSearch,time),arriveBy:'false',timetableView:'true',searchWindow:'3600',directModes:'WALK',preTransitModes:'WALK',postTransitModes:'WALK',maxPreTransitTime:String(allowLongWalk?900:120),maxPostTransitTime:'900',maxMatchingDistance:'250',transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',numItineraries:'8',language:'cs'});
+   const params=new URLSearchParams({fromPlace:Number(lat)+','+Number(lon),toPlace:'50.0755,14.4378',time:asIso(dateForSearch,time),arriveBy:'false',timetableView:'true',searchWindow:'3600',directModes:'WALK',preTransitModes:'WALK',postTransitModes:'WALK',maxPreTransitTime:String(allowLongWalk?900:120),maxPostTransitTime:'900',maxMatchingDistance:'1000',transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',numItineraries:'8',language:'cs'});
    const response=await fetch('https://api.transitous.org/api/v5/plan?'+params,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(18000)});
    if(!response.ok)throw new Error('Jízdní řády vrátily HTTP '+response.status);
    const data=await response.json();
