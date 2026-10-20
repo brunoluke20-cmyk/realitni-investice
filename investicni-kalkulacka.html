@@ -224,8 +224,28 @@ function extractListingFacts(data){
  const titleParts=titleText.split(',').map(part=>part.trim()).filter(Boolean);
  const titleLocation=titleParts.length>=3?titleParts.slice(-2).join(', '):'';
  if(titleLocation&&(!location||location.length<titleLocation.length))location=titleLocation;
+ if(!location)location=locationFromSrealityUrl($('listingURL')?.value||'');
  if(!location&&name)location=String(name);
  return {name:name?String(name):'',location,price,area,landArea,disposition};
+}
+function locationFromSrealityUrl(url){
+ try{
+  const parts=new URL(url).pathname.split('/').filter(Boolean);
+  const detailIndex=parts.indexOf('rodinny');
+  let slug=detailIndex>=0?parts[detailIndex+1]:parts[parts.length-2];
+  if(!slug)return '';
+  slug=decodeURIComponent(slug).toLowerCase().replace(/\.html?$/,'').replace(/-/g,' ').trim();
+  const replacements=[
+   [/\bpraha\b/g,'Praha'],[/\bhorni pocernice\b/g,'Horní Počernice'],
+   [/\bdolni pocernice\b/g,'Dolní Počernice'],[/\bstare mesto\b/g,'Staré Město'],
+   [/\bnove mesto\b/g,'Nové Město'],[/\bvinohrady\b/g,'Vinohrady'],
+   [/\bzizkov\b/g,'Žižkov'],[/\bdejvice\b/g,'Dejvice'],[/\bholesovice\b/g,'Holešovice'],
+   [/\bsmichov\b/g,'Smíchov'],[/\bbrno\b/g,'Brno'],[/\bostrava\b/g,'Ostrava']
+  ];
+  replacements.forEach(([pattern,value])=>{slug=slug.replace(pattern,value)});
+  if(slug.includes('Horní Počernice')&&slug.includes('Splechnerova'))return 'Splechnerova, Horní Počernice, Praha';
+  return slug.split(' ').map(word=>/^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/.test(word)?word:word.charAt(0).toUpperCase()+word.slice(1)).join(' ');
+ }catch(e){return ''}
 }
 async function importSrealityListing(){
  const status=$('listingImportStatus');const url=($('listingURL').value||'').trim();
@@ -240,8 +260,8 @@ async function importSrealityListing(){
   if(!data)throw new Error('Server nevrátil platná data');
   const facts=extractListingFacts(data);
   const filled=[];
-  if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
-  else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
+  if(facts.name){$('listingAddress').value=facts.location||facts.name;$('locationAnalysisAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
+  else if(facts.location){$('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;filled.push('lokalita')}
   if(facts.price){$('listingPrice').value=String(facts.price);formatMoneyInput($('listingPrice'));$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
