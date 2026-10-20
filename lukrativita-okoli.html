@@ -27,6 +27,7 @@
 <div class="metric"><small>Délka trasy autem</small><strong id="locationCenterDriveDistance">—</strong></div>
 <div class="metric"><small>Veřejnou dopravou na Náměstí Míru</small><strong id="locationCenterTransitTime">Počítám…</strong></div>
 </div>
+<div id="locationCenterTransitDetails" class="muted" style="margin-top:10px">Načítám nalezené spojení…</div>
 <p id="locationCenterRouteNote" class="muted">Cílový bod je Náměstí Míru v Praze; cílová oblast zahrnuje okolí do 1 km. Časy jsou orientační a závisí na dopravě a jízdních řádech.</p>
 <h3 style="margin-top:18px">Co je v okolí a jak daleko</h3>
 <p class="muted">Vzdálenosti jsou přímou vzdáleností od zadané adresy, nikoli délkou pěší trasy.</p>
@@ -209,36 +210,79 @@ async function browserOverpass(lat,lon,address){
  return {address,lat,lon,radius_m:radius,map_source:'OpenStreetMap / přímé načtení ('+winner.host+')',overpass_available:true,counts,score,label,coverage_percent:100,categories,places:places.slice(0,350),limitation:'Vzdálenosti jsou přímou vzdáleností od zadaného bodu, nikoli délkou pěší trasy. Data vycházejí z OpenStreetMap a mohou být neúplná. Jízdní řády a aktuální provoz spojů zde nejsou ověřovány.'};
 }
 async function calculateCenterTransit(lat,lon){
- const output=$('locationCenterTransitTime');
- output.textContent='Počítám…';
- if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';return}
+ const output=$('locationCenterTransitTime'),details=$('locationCenterTransitDetails');
+ output.textContent='Počítám…';if(details)details.textContent='Hledám spojení podle aktuálně dostupných jízdních řádů…';
+ if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';if(details)details.textContent='Chybí souřadnice výchozí adresy.';return}
+ const formatTime=value=>{
+  if(!value)return '';
+  const d=new Date(value);
+  return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Prague'});
+ };
+ const placeName=p=>p?.name||p?.stop?.name||p?.place?.name||'';
+ const modeName=mode=>({WALK:'pěšky',FOOT:'pěšky',BUS:'autobus',TRAM:'tramvaj',SUBWAY:'metro',RAIL:'vlak',SUBURBAN:'příměstský vlak',FERRY:'loď'}[String(mode||'').toUpperCase()]||String(mode||'doprava').toLowerCase());
  try{
   const params=new URLSearchParams({
    fromPlace:Number(lat)+','+Number(lon),
    toPlace:'50.0755,14.4378',
    timetableView:'false',
    directModes:'WALK',
-   transitModes:'BUS,TRAM,SUBWAY,RAIL',
+   transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',
+   numItineraries:'5',
    language:'cs'
   });
-  const response=await fetch('https://api.transitous.org/api/v5/plan?'+params.toString(),{
-   headers:{'Accept':'application/json'},
-   signal:AbortSignal.timeout(15000)
-  });
+  const response=await fetch('https://api.transitous.org/api/v5/plan?'+params.toString(),{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw new Error('Služba vrátila HTTP '+response.status);
   const data=await response.json();
   const itineraries=Array.isArray(data.itineraries)?data.itineraries:(Array.isArray(data.plan?.itineraries)?data.plan.itineraries:[]);
-  const durations=itineraries.map(it=>{
-   if(Number.isFinite(Number(it.duration))&&Number(it.duration)>0)return Number(it.duration);
-   const start=Number(it.startTime),end=Number(it.endTime);
-   if(Number.isFinite(start)&&Number.isFinite(end)&&end>start)return (end-start)/1000;
-   const startDate=Date.parse(it.startTime||''),endDate=Date.parse(it.endTime||'');
-   return Number.isFinite(startDate)&&Number.isFinite(endDate)&&endDate>startDate?(endDate-startDate)/1000:NaN;
-  }).filter(v=>Number.isFinite(v)&&v>0);
-  if(!durations.length)throw new Error('Nebyl nalezen vhodný spoj');
-  output.textContent=Math.round(Math.min(...durations)/60)+' min';
+  const normalized=itineraries.map(it=>{
+   const start=it.startTime||it.start_time||it.departureTime;
+   const end=it.endTime||it.end_time||it.arrivalTime;
+   let duration=Number(it.duration);
+   if(!Number.isFinite(duration)||duration<=0){
+    const a=Date.parse(start||''),b=Date.parse(end||'');
+    duration=Number.isFinite(a)&&Number.isFinite(b)&&b>a?(b-a)/1000:NaN;
+   }
+   return {...it,_start:start,_end:end,_duration:duration,_legs:Array.isArray(it.legs)?it.legs:[]};
+  }).filter(it=>Number.isFinite(it._duration)&&it._duration>0);
+  if(!normalized.length)throw new Error('Nebyl nalezen vhodný spoj');
+  // Prefer the fastest itinerary that actually uses public transport, not a direct walk.
+  const withTransit=normalized.filter(it=>it._legs.some(leg=>!['WALK','FOOT'].includes(String(leg.mode||'').toUpperCase())));
+  const candidates=withTransit.length?withTransit:normalized;
+  candidates.sort((a,b)=>a._duration-b._duration);
+  const best=candidates[0];
+  output.textContent=Math.round(best._duration/60)+' min';
+  if(details){
+   details.replaceChildren();
+   const summary=document.createElement('p');
+   summary.style.margin='0 0 6px';
+   const departure=formatTime(best._start),arrival=formatTime(best._end);
+   const transfers=Number(best.transfers??best.numberOfTransfers);
+   summary.textContent='Nalezené spojení'+(departure&&arrival?' ('+departure+'–'+arrival+')':'')+(Number.isFinite(transfers)?' · '+transfers+' přestupů':'')+':';
+   details.appendChild(summary);
+   const list=document.createElement('ol');list.style.margin='0 0 8px';list.style.paddingLeft='22px';
+   best._legs.forEach(leg=>{
+    const li=document.createElement('li');
+    const mode=String(leg.mode||'').toUpperCase();
+    const route=leg.routeShortName||leg.route_short_name||leg.route?.shortName||leg.displayName||leg.routeLongName||leg.route_long_name;
+    const from=placeName(leg.from),to=placeName(leg.to);
+    const a=formatTime(leg.startTime||leg.start_time),b=formatTime(leg.endTime||leg.end_time);
+    const duration=Number(leg.duration);
+    const bits=[modeName(mode)];
+    if(route&& !['WALK','FOOT'].includes(mode))bits.push('linka '+route);
+    if(from||to)bits.push([from,to].filter(Boolean).join(' → '));
+    if(a&&b)bits.push(a+'–'+b);
+    if(Number.isFinite(duration)&&duration>0)bits.push(Math.round(duration/60)+' min');
+    li.textContent=bits.join(' · ');
+    list.appendChild(li);
+   });
+   if(best._legs.length)details.appendChild(list);
+   const method=document.createElement('p');method.style.margin='0';
+   method.textContent='Výpočet: Transitous hledá trasu ze souřadnic zadané adresy na Náměstí Míru (50.0755, 14.4378). Započítává chůzi na zastávky, jízdu a přestupy podle dostupných jízdních řádů. Čas odjezdu není zadán, proto služba hledá spojení pro aktuální čas; nabídka a přesnost závisí na dostupnosti dat.';
+   details.appendChild(method);
+  }
  }catch(error){
   output.textContent='Nelze spočítat';
+  if(details)details.textContent='Spojení se nepodařilo načíst. Výpočet používá službu Transitous a její dostupné jízdní řády; zkus to prosím později.';
  }
 }
 async function calculateCenterRoute(lat,lon){
