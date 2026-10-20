@@ -235,6 +235,7 @@ suggestions.addEventListener('keydown',e=>{
  if(e.key==='Escape'){closeAddressSuggestions();addressInput.focus()}
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.address-wrap'))closeAddressSuggestions()});
+try{const shared=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'null');if(shared&&!addressInput.value)addressInput.value=shared.address||shared.location||shared.name||'';}catch(e){}
 $('analyzeLocation').addEventListener('click',analyzeLocation);
 addressInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&suggestions.hidden){e.preventDefault();analyzeLocation()}});
 </script></body></html>
