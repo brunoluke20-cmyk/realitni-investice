@@ -224,7 +224,8 @@ function extractListingFacts(data){
  const titleParts=titleText.split(',').map(part=>part.trim()).filter(Boolean);
  const titleLocation=titleParts.length>=3?titleParts.slice(-2).join(', '):'';
  if(titleLocation&&(!location||location.length<titleLocation.length))location=titleLocation;
- if(!location)location=locationFromSrealityUrl($('listingURL')?.value||'');
+ const urlLocation=locationFromSrealityUrl($('listingURL')?.value||'');
+ if(urlLocation&&(!location||urlLocation.length>location.length))location=urlLocation;
  if(!location&&name)location=String(name);
  return {name:name?String(name):'',location,price,area,landArea,disposition};
 }
