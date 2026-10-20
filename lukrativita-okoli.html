@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#13243a"><title>Analýza lukrativnosti okolí</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17212b;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:#13243a;color:white;padding:24px 16px}main{max-width:950px;margin:22px auto;padding:0 14px}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:18px;margin:12px 0}h1{font-size:clamp(26px,5vw,36px);margin:5px 0}h2{font-size:20px;margin:0 0 12px}.muted{color:#647180;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field label{display:block;color:#586777;font-size:13px;margin-bottom:5px}.field input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.metric{background:#f5f7fa;border:1px solid #e0e6ed;border-radius:10px;padding:12px}.metric small{display:block;color:#586777}.metric strong{display:block;font-size:clamp(20px,4vw,27px);overflow-wrap:anywhere}.quick-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.btn{padding:11px 14px;border-radius:9px;border:1px solid #ccd5df;background:white;font:inherit;font-weight:650;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}a{color:#2457d6}.notice{background:#fff8e6;padding:12px;border-radius:10px;font-size:13px}.toplink{color:white}@media(max-width:520px){.card{padding:14px}}
+*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17212b;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:#13243a;color:white;padding:24px 16px}main{max-width:950px;margin:22px auto;padding:0 14px}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:18px;margin:12px 0}h1{font-size:clamp(26px,5vw,36px);margin:5px 0}h2{font-size:20px;margin:0 0 12px}.muted{color:#647180;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field label{display:block;color:#586777;font-size:13px;margin-bottom:5px}.field input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.address-wrap{position:relative}.suggestions{position:absolute;z-index:10;top:100%;left:0;right:0;background:#fff;border:1px solid #cbd5df;border-radius:9px;box-shadow:0 8px 24px #17212b20;max-height:280px;overflow:auto;margin:4px 0 0;padding:4px;list-style:none}.suggestions[hidden]{display:none}.suggestions button{display:block;width:100%;text-align:left;border:0;background:white;padding:10px;border-radius:6px;font:inherit;cursor:pointer}.suggestions button:hover,.suggestions button:focus{background:#eef3ff;outline:2px solid #2457d6}.suggestion-main{display:block;font-weight:650}.suggestion-detail{display:block;color:#647180;font-size:12px}.metric{background:#f5f7fa;border:1px solid #e0e6ed;border-radius:10px;padding:12px}.metric small{display:block;color:#586777}.metric strong{display:block;font-size:clamp(20px,4vw,27px);overflow-wrap:anywhere}.quick-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.btn{padding:11px 14px;border-radius:9px;border:1px solid #ccd5df;background:white;font:inherit;font-weight:650;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}a{color:#2457d6}.notice{background:#fff8e6;padding:12px;border-radius:10px;font-size:13px}.toplink{color:white}@media(max-width:520px){.card{padding:14px}}
 </style></head><body>
 <header><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
 <main>
@@ -10,7 +10,7 @@
 <h2>Analýza lukrativnosti okolí</h2>
 <p class="muted">Zadej adresu nemovitosti. Aplikace ji najde na mapě a zkusí automaticky vyhodnotit evidovanou dopravu, obchody, služby, školy, zdravotnictví, pracovní a rekreační body v okruhu 1,5 km. Výsledek je orientační analýza okolí, nikoli garantovaný investiční výnos.</p>
 <div class="grid">
-<div class="field" style="grid-column:1/-1"><label for="locationAnalysisAddress">Adresa nemovitosti</label><input id="locationAnalysisAddress" autocomplete="street-address" placeholder="Např. Doubravínova 1765, Praha-Řepy"></div>
+<div class="field address-wrap" style="grid-column:1/-1"><label for="locationAnalysisAddress">Adresa nemovitosti</label><input id="locationAnalysisAddress" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="locationAddressSuggestions" placeholder="Začni psát ulici, číslo a město…"><ul id="locationAddressSuggestions" class="suggestions" role="listbox" hidden></ul><small class="muted">Začni psát adresu a vyber správné místo z automaticky dohledaných návrhů.</small></div>
 <div class="field" style="grid-column:1/-1"><button class="btn primary" type="button" id="analyzeLocation">Analyzovat okolí</button> <span id="locationAnalysisStatus" class="muted" role="status" aria-live="polite">Zatím nebyla provedena analýza.</span></div>
 </div>
 <div id="locationAnalysisResults" hidden>
@@ -37,6 +37,46 @@
 <div class="card"><h2>Jak výsledek číst</h2><p class="muted">Skóre se počítá jen z faktorů, pro které se podařilo získat údaje. Bezpečnost, skutečné nájemné, výnosnost a budoucí rozvoj se bez spolehlivých dat neodhadují. Chybějící mapový záznam neznamená, že daná služba v okolí neexistuje.</p><p class="muted">Zdroj mapových údajů: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p></div>
 </main><script>
 const $=id=>document.getElementById(id);
+const addressInput=$('locationAnalysisAddress'),suggestions=$('locationAddressSuggestions');
+let suggestionTimer=null,suggestionAbort=null,suggestionItems=[],activeSuggestion=-1;
+function closeAddressSuggestions(){suggestions.hidden=true;addressInput.setAttribute('aria-expanded','false');activeSuggestion=-1}
+function chooseAddress(item){
+ addressInput.value=item.label;
+ closeAddressSuggestions();
+ addressInput.focus();
+}
+function renderAddressSuggestions(items){
+ suggestionItems=items;suggestions.replaceChildren();activeSuggestion=-1;
+ if(!items.length){closeAddressSuggestions();return}
+ items.forEach((item,index)=>{
+  const li=document.createElement('li');li.setAttribute('role','option');li.id='locationAddressOption'+index;
+  const btn=document.createElement('button');btn.type='button';btn.tabIndex=-1;
+  const main=document.createElement('span');main.className='suggestion-main';main.textContent=item.main;
+  const detail=document.createElement('span');detail.className='suggestion-detail';detail.textContent=item.detail;
+  btn.append(main,detail);
+  btn.addEventListener('mousedown',e=>e.preventDefault());
+  btn.addEventListener('click',()=>chooseAddress(item));
+  li.append(btn);suggestions.append(li);
+ });
+ suggestions.hidden=false;addressInput.setAttribute('aria-expanded','true');
+}
+async function findAddressSuggestions(query){
+ if(suggestionAbort)suggestionAbort.abort();
+ suggestionAbort=new AbortController();
+ try{
+  const url='https://photon.komoot.io/api/?limit=6&lang=cs&q='+encodeURIComponent(query);
+  const response=await fetch(url,{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const data=await response.json();
+  const seen=new Set();
+  const items=(data.features||[]).map(feature=>{
+   const p=feature.properties||{},parts=[p.name,p.housenumber,p.street,p.postcode,p.city||p.town||p.village,p.state,p.country].filter(Boolean);
+   const label=[p.name,p.housenumber,p.street,p.postcode,p.city||p.town||p.village,p.country].filter(Boolean).join(', ');
+   return {label:label||parts.join(', '),main:[p.name,p.housenumber,p.street].filter(Boolean).join(' ' )||label,detail:[p.postcode,p.city||p.town||p.village,p.state,p.country].filter(Boolean).join(', '),coordinates:feature.geometry&&feature.geometry.coordinates};
+  }).filter(item=>item.label&&!seen.has(item.label)&&seen.add(item.label));
+  if(addressInput.value.trim()===query)renderAddressSuggestions(items);
+ }catch(err){if(err.name!=='AbortError')closeAddressSuggestions()}
+}
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation');
  const address=(input.value||'').trim();
@@ -75,6 +115,23 @@ async function analyzeLocation(){
  }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')+'. Zkus doplnit přesnou adresu nebo analýzu opakovat.'}
  finally{button.disabled=false;button.textContent='Analyzovat lukrativnost lokality'}
 }
+addressInput.addEventListener('input',()=>{
+ const query=addressInput.value.trim();
+ if(suggestionTimer)clearTimeout(suggestionTimer);
+ if(query.length<3){if(suggestionAbort)suggestionAbort.abort();closeAddressSuggestions();return}
+ suggestionTimer=setTimeout(()=>findAddressSuggestions(query),300);
+});
+addressInput.addEventListener('keydown',e=>{
+ if(suggestions.hidden)return;
+ if(e.key==='ArrowDown'){e.preventDefault();activeSuggestion=Math.min(activeSuggestion+1,suggestionItems.length-1);const option=suggestions.children[activeSuggestion];if(option){[...suggestions.children].forEach((el,i)=>el.setAttribute('aria-selected',String(i===activeSuggestion)));option.querySelector('button').focus()} }
+ else if(e.key==='Escape'){closeAddressSuggestions()}
+ else if(e.key==='Enter'&&activeSuggestion>=0){e.preventDefault();chooseAddress(suggestionItems[activeSuggestion])}
+});
+suggestions.addEventListener('keydown',e=>{
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const delta=e.key==='ArrowDown'?1:-1;activeSuggestion=(activeSuggestion+delta+suggestionItems.length)%suggestionItems.length;const option=suggestions.children[activeSuggestion];if(option)option.querySelector('button').focus()}
+ if(e.key==='Escape'){closeAddressSuggestions();addressInput.focus()}
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.address-wrap'))closeAddressSuggestions()});
 $('analyzeLocation').addEventListener('click',analyzeLocation);
 $('locationAnalysisAddress').value=($('listingAddress')&&$('listingAddress').value)||$('marketLocation').value||'';
 $('locationAnalysisAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();analyzeLocation()}});
