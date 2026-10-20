@@ -178,15 +178,27 @@ async function nearbyAdministrativePlaces(lat: number, lon: number) {
 
 async function verifyAllowedUser(req: Request): Promise<{ok:boolean,status:number,email?:string,error?:string}> {
   const authorization = req.headers.get("authorization") || "";
-  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
   if (!match) return {ok:false,status:401,error:"Pro přístup se přihlas."};
+  const token = match[1];
   const projectUrl = Deno.env.get("SUPABASE_URL") || "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   if (!projectUrl || !anonKey || !serviceKey) return {ok:false,status:503,error:"Ověření přístupu není nakonfigurované."};
   try {
+    const tokenHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token))), b => b.toString(16).padStart(2, "0")).join("");
+    const sessionResponse = await fetch(projectUrl + "/rest/v1/app_login_sessions?token_hash=eq." + tokenHash + "&expires_at=gt." + encodeURIComponent(new Date().toISOString()) + "&select=username&limit=1", {
+      headers: {"apikey":serviceKey,"Authorization":"Bearer "+serviceKey,"Accept":"application/json"},
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!sessionResponse.ok) return {ok:false,status:503,error:"Ověření přihlášení není dostupné."};
+    const sessions = await sessionResponse.json();
+    if (Array.isArray(sessions) && sessions.length > 0 && sessions[0].username === "zajemce") {
+      return {ok:true,status:200,email:"zajemce"};
+    }
+    // Keep support for previously issued Supabase email sessions.
     const userResponse = await fetch(projectUrl + "/auth/v1/user", {
-      headers: {"apikey":anonKey,"Authorization":"Bearer "+match[1],"Accept":"application/json"},
+      headers: {"apikey":anonKey,"Authorization":"Bearer "+token,"Accept":"application/json"},
       signal: AbortSignal.timeout(7000)
     });
     if (!userResponse.ok) return {ok:false,status:401,error:"Přihlášení vypršelo. Přihlas se znovu."};
