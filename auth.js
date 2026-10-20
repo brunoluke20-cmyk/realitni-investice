@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const SUPABASE_URL = 'https://zikhzhgxrjpjrkivmwrf.supabase.co';
-  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg3MTY5ODg1LCJleHAiOjIxMDI3NDU4ODV9.placeholder';
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6Inppa2h6aGd4cmpwanJraXZtd3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNjk4ODUsImV4cCI6MjEwMjc0NTg4NX0.-IesVNl4JTozOtPIGhDieJRUN0vcsm0FTNwEyouZzZ8';
   // Keep the same session key and authentication endpoints as the location-analysis tool.
   const TOKEN_KEY = 'realitni-investice-session';
   const LOGIN_API = SUPABASE_URL + '/functions/v1/auth-login';
