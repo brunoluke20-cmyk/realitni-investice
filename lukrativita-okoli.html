@@ -211,11 +211,16 @@ async function browserOverpass(lat,lon,address){
 }
 async function calculateCenterTransit(lat,lon){
  const output=$('locationCenterTransitTime'),details=$('locationCenterTransitDetails');
- output.textContent='Počítám…';if(details)details.textContent='Hledám spojení podle aktuálně dostupných jízdních řádů…';
+ output.textContent='Počítám…';if(details)details.textContent='Hledám nejbližší spoje podle jízdních řádů…';
  if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';if(details)details.textContent='Chybí souřadnice výchozí adresy.';return}
+ const pragueParts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Prague',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const searchedDate=pragueParts.year+'-'+pragueParts.month+'-'+pragueParts.day;
+ const searchedTime=pragueParts.hour+':'+pragueParts.minute;
  const formatTime=value=>{
-  if(!value)return '';
-  const d=new Date(value);
+  if(value===null||value===undefined||value==='')return '';
+  let d;
+  if(typeof value==='number'||/^\\d{10,13}$/.test(String(value))){const n=Number(value);d=new Date(n<1e12?n*1000:n)}
+  else d=new Date(value);
   return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Prague'});
  };
  const placeName=p=>p?.name||p?.stop?.name||p?.place?.name||'';
@@ -224,6 +229,9 @@ async function calculateCenterTransit(lat,lon){
   const params=new URLSearchParams({
    fromPlace:Number(lat)+','+Number(lon),
    toPlace:'50.0755,14.4378',
+   date:searchedDate,
+   time:searchedTime,
+   arriveBy:'false',
    timetableView:'false',
    directModes:'WALK',
    transitModes:'BUS,TRAM,SUBWAY,RAIL,SUBURBAN',
@@ -243,46 +251,57 @@ async function calculateCenterTransit(lat,lon){
     duration=Number.isFinite(a)&&Number.isFinite(b)&&b>a?(b-a)/1000:NaN;
    }
    return {...it,_start:start,_end:end,_duration:duration,_legs:Array.isArray(it.legs)?it.legs:[]};
-  }).filter(it=>Number.isFinite(it._duration)&&it._duration>0);
+  }).filter(it=>Number.isFinite(it._duration)&&it._duration>0&&it._legs.some(leg=>!['WALK','FOOT'].includes(String(leg.mode||'').toUpperCase())));
   if(!normalized.length)throw new Error('Nebyl nalezen vhodný spoj');
-  // Prefer the fastest itinerary that actually uses public transport, not a direct walk.
-  const withTransit=normalized.filter(it=>it._legs.some(leg=>!['WALK','FOOT'].includes(String(leg.mode||'').toUpperCase())));
-  const candidates=withTransit.length?withTransit:normalized;
-  candidates.sort((a,b)=>a._duration-b._duration);
-  const best=candidates[0];
+  normalized.sort((a,b)=>{
+   const at=Date.parse(a._start||''),bt=Date.parse(b._start||'');
+   return (Number.isFinite(at)?at:0)-(Number.isFinite(bt)?bt:0);
+  });
+  const best=[...normalized].sort((a,b)=>a._duration-b._duration)[0];
   output.textContent=Math.round(best._duration/60)+' min';
   if(details){
    details.replaceChildren();
-   const summary=document.createElement('p');
-   summary.style.margin='0 0 6px';
-   const departure=formatTime(best._start),arrival=formatTime(best._end);
-   const transfers=Number(best.transfers??best.numberOfTransfers);
-   summary.textContent='Nalezené spojení'+(departure&&arrival?' ('+departure+'–'+arrival+')':'')+(Number.isFinite(transfers)?' · '+transfers+' přestupů':'')+':';
-   details.appendChild(summary);
-   const list=document.createElement('ol');list.style.margin='0 0 8px';list.style.paddingLeft='22px';
-   best._legs.forEach(leg=>{
-    const li=document.createElement('li');
-    const mode=String(leg.mode||'').toUpperCase();
-    const route=leg.routeShortName||leg.route_short_name||leg.route?.shortName||leg.displayName||leg.routeLongName||leg.route_long_name;
-    const from=placeName(leg.from),to=placeName(leg.to);
-    const a=formatTime(leg.startTime||leg.start_time),b=formatTime(leg.endTime||leg.end_time);
-    const duration=Number(leg.duration);
-    const bits=[modeName(mode)];
-    if(route&& !['WALK','FOOT'].includes(mode))bits.push('linka '+route);
-    if(from||to)bits.push([from,to].filter(Boolean).join(' → '));
-    if(a&&b)bits.push(a+'–'+b);
-    if(Number.isFinite(duration)&&duration>0)bits.push(Math.round(duration/60)+' min');
-    li.textContent=bits.join(' · ');
-    list.appendChild(li);
+   const intro=document.createElement('p');intro.style.margin='0 0 8px';
+   intro.textContent='Spoje vyhledané pro odjezd od '+searchedTime+' ('+searchedDate+'), čas Praha. Nejrychlejší nalezená cesta: '+Math.round(best._duration/60)+' min.';
+   details.appendChild(intro);
+   normalized.slice(0,3).forEach((it,index)=>{
+    const card=document.createElement('div');
+    card.style.cssText='border:1px solid var(--border-color, #ddd);border-radius:8px;padding:8px 10px;margin:0 0 8px';
+    const departure=formatTime(it._start),arrival=formatTime(it._end);
+    const transfers=Number(it.transfers??it.numberOfTransfers);
+    const heading=document.createElement('p');heading.style.margin='0 0 5px';heading.style.fontWeight='600';
+    heading.textContent=(index===0?'Nejbližší spoj':'Další možnost')+(departure&&arrival?' · '+departure+'–'+arrival:'')+' · '+Math.round(it._duration/60)+' min'+(Number.isFinite(transfers)?' · '+transfers+' přestupů':'');
+    card.appendChild(heading);
+    const list=document.createElement('ol');list.style.margin='0';list.style.paddingLeft='22px';
+    it._legs.forEach(leg=>{
+     const li=document.createElement('li');
+     const mode=String(leg.mode||'').toUpperCase();
+     const route=leg.routeShortName||leg.route_short_name||leg.route?.shortName||leg.displayName||leg.routeLongName||leg.route_long_name;
+     const from=placeName(leg.from),to=placeName(leg.to);
+     const a=formatTime(leg.startTime||leg.start_time),b=formatTime(leg.endTime||leg.end_time);
+     let duration=Number(leg.duration);
+     if(!Number.isFinite(duration)||duration<=0){
+      const da=Date.parse(leg.startTime||leg.start_time||''),db=Date.parse(leg.endTime||leg.end_time||'');
+      duration=Number.isFinite(da)&&Number.isFinite(db)&&db>da?(db-da)/1000:NaN;
+     }
+     const bits=[modeName(mode)];
+     if(route&&!['WALK','FOOT'].includes(mode))bits.push('linka '+route);
+     if(from||to)bits.push([from,to].filter(Boolean).join(' → '));
+     if(a&&b)bits.push(a+'–'+b);
+     if(Number.isFinite(duration)&&duration>0)bits.push(Math.round(duration/60)+' min');
+     li.textContent=bits.join(' · ');
+     list.appendChild(li);
+    });
+    if(it._legs.length)card.appendChild(list);
+    details.appendChild(card);
    });
-   if(best._legs.length)details.appendChild(list);
-   const method=document.createElement('p');method.style.margin='0';
-   method.textContent='Výpočet: Transitous hledá trasu ze souřadnic zadané adresy na Náměstí Míru (50.0755, 14.4378). Započítává chůzi na zastávky, jízdu a přestupy podle dostupných jízdních řádů. Čas odjezdu není zadán, proto služba hledá spojení pro aktuální čas; nabídka a přesnost závisí na dostupnosti dat.';
+   const method=document.createElement('p');method.style.margin='4px 0 0';
+   method.textContent='Vyhledáno '+searchedDate+' v '+searchedTime (Europe/Prague). Zobrazené časy vycházejí z dostupných jízdních řádů; případná zpoždění nebo výluky nemusí být zahrnuty. Doba cesty zahrnuje úseky uvedené u spojení.';
    details.appendChild(method);
   }
  }catch(error){
   output.textContent='Nelze spočítat';
-  if(details)details.textContent='Spojení se nepodařilo načíst. Výpočet používá službu Transitous a její dostupné jízdní řády; zkus to prosím později.';
+  if(details)details.textContent='Spojení pro '+searchedTime+' se nepodařilo načíst. Zkus analýzu znovu později; aplikace nezobrazuje neověřené časy jako nalezené spoje.';
  }
 }
 async function calculateCenterRoute(lat,lon){
