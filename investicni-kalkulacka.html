@@ -146,6 +146,7 @@ function saveActiveProject(){
 function applyProject(p){
  if(!p)return;projectSwitching=true;
  projectFields().forEach(el=>{if(Object.prototype.hasOwnProperty.call(p.values||{},el.id))el.value=p.values[el.id]});
+ moneyInputIds.forEach(id=>{const el=$(id);if(el)formatMoneyInput(el)});
  activeProjectId=p.id;
  projectSwitching=false;
  updateListingPriceM2();updateQuick(false);calc();updateInvestment();renderProjectTabs();
@@ -164,7 +165,7 @@ function createProject(title,values){
  applyProject(p);
 }
 function updateListingPriceM2(){
- const price=Number($('listingPrice').value)||0,area=Number($('listingArea').value)||0;
+ const price=parseNumericInput($('listingPrice').value),area=Number($('listingArea').value)||0;
  $('listingPriceM2').value=price>0&&area>0?new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(price/area)+' Kč/m²':'—';
 }
 function openListingURL(){
@@ -236,7 +237,7 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(Number($('purchase').value)<100000)$('purchase').value=''; }
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
