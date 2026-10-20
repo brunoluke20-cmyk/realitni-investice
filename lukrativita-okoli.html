@@ -58,13 +58,22 @@ function renderAddressSuggestions(items){
  });
  suggestions.hidden=false;addressInput.setAttribute('aria-expanded','true');
 }
+function showSuggestionMessage(message){
+ suggestions.replaceChildren();
+ const li=document.createElement('li');li.style.cssText='padding:10px;color:#647180;font-size:13px';li.textContent=message;
+ suggestions.append(li);suggestions.hidden=false;addressInput.setAttribute('aria-expanded','true');
+}
 async function findAddressSuggestions(query){
  if(suggestionAbort)suggestionAbort.abort();suggestionAbort=new AbortController();
+ showSuggestionMessage('Vyhledávám adresy…');
  try{
   const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
   const data=await response.json();if(!response.ok)throw new Error(data.error||'Vyhledávání adres není dostupné');
-  if(addressInput.value.trim()===query)renderAddressSuggestions(data.results||[]);
- }catch(err){if(err.name!=='AbortError')closeAddressSuggestions()}
+  if(addressInput.value.trim()===query){
+   if((data.results||[]).length)renderAddressSuggestions(data.results);
+   else showSuggestionMessage(data.error||'Adresa nenalezena. Zkus doplnit číslo domu a město.');
+  }
+ }catch(err){if(err.name!=='AbortError'&&addressInput.value.trim()===query)showSuggestionMessage('Návrhy se nepodařilo načíst. Můžeš zkusit zadat celou adresu a spustit analýzu.')}
 }
 function makePlaceLink(place){
  const a=document.createElement('a');a.href='https://www.openstreetmap.org/'+encodeURIComponent(place.osm_type||'node')+'/'+encodeURIComponent(place.osm_id);a.target='_blank';a.rel='noopener';a.textContent='Mapa';return a;
