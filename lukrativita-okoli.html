@@ -93,6 +93,69 @@ function renderPlaces(data){
  });
  if(!(data.categories||[]).length)root.textContent='Mapa nevrátila žádná místa v okolí.';
 }
+function browserDistance(lat1,lon1,lat2,lon2){
+ const rad=Math.PI/180,dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad;
+ const a=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+ return 6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function browserCategory(t){
+ if(t.public_transport||t.highway==='bus_stop'||['station','halt','tram_stop','subway_entrance','stop'].includes(t.railway))return 'Doprava a MHD';
+ if(['school','university','college'].includes(t.amenity))return 'Školy';
+ if(t.amenity==='kindergarten'||t.amenity==='childcare')return 'Školky a péče o děti';
+ if(['pharmacy','hospital','clinic','doctors','dentist'].includes(t.amenity))return 'Zdravotnictví';
+ if(t.shop||t.amenity==='supermarket'||t.amenity==='marketplace')return 'Obchody';
+ if(['cafe','restaurant','fast_food','pub','bar'].includes(t.amenity))return 'Restaurace a kavárny';
+ if(['bank','atm','post_office','library','community_centre'].includes(t.amenity))return 'Služby';
+ if(t.leisure)return 'Sport a zeleň';
+ return 'Ostatní služby';
+}
+function browserLabel(t){
+ if(t.name)return String(t.name);
+ if(t.amenity==='kindergarten')return 'Mateřská škola';
+ if(t.amenity==='school')return 'Škola';
+ if(t.highway==='bus_stop')return 'Autobusová zastávka';
+ if(t.railway==='tram_stop')return 'Tramvajová zastávka';
+ if(t.railway==='station')return 'Stanice';
+ if(t.shop)return 'Obchod ('+String(t.shop).replaceAll('_',' ')+')';
+ return String(t.amenity||t.public_transport||t.railway||t.leisure||t.office||'Místo').replaceAll('_',' ');
+}
+async function browserOverpass(lat,lon,address){
+ const radius=1500;
+ const query='[out:json][timeout:12];('+
+  'node(around:'+radius+','+lat+','+lon+')["public_transport"];'+
+  'node(around:'+radius+','+lat+','+lon+')["railway"~"station|halt|tram_stop|subway_entrance|stop"];'+
+  'node(around:'+radius+','+lat+','+lon+')["highway"="bus_stop"];'+
+  'nwr(around:'+radius+','+lat+','+lon+')["amenity"~"school|kindergarten|childcare|hospital|clinic|doctors|dentist|pharmacy|marketplace|library|bank|atm|post_office|restaurant|cafe|fast_food|supermarket"];'+
+  'nwr(around:'+radius+','+lat+','+lon+')["shop"];'+
+  'nwr(around:'+radius+','+lat+','+lon+')["leisure"~"park|sports_centre|playground|fitness_centre"];'+
+  ');out center tags 300;';
+ const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.osm.ch/api/interpreter'];
+ const attempts=endpoints.map(async endpoint=>{
+  const host=new URL(endpoint).host;
+  const response=await fetch(endpoint+'?data='+encodeURIComponent(query),{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(15000)});
+  if(!response.ok)throw new Error(host+' HTTP '+response.status);
+  const payload=await response.json();
+  if(!Array.isArray(payload.elements)||!payload.elements.length)throw new Error(host+' nevrátil použitelná místa');
+  return {host,elements:payload.elements};
+ });
+ const winner=await Promise.any(attempts),seen=new Set();
+ const places=winner.elements.map(e=>{
+  const t=e.tags||{},plat=Number(e.lat??e.center?.lat),plon=Number(e.lon??e.center?.lon);
+  if(!Number.isFinite(plat)||!Number.isFinite(plon))return null;
+  const key=String(e.type)+':'+String(e.id);if(seen.has(key))return null;seen.add(key);
+  const distance=Math.round(browserDistance(lat,lon,plat,plon));if(distance>radius)return null;
+  return {name:browserLabel(t),category:browserCategory(t),distance_m:distance,lat:plat,lon:plon,tags:{amenity:t.amenity||null,shop:t.shop||null,public_transport:t.public_transport||null,railway:t.railway||null,highway:t.highway||null},osm_type:e.type,osm_id:e.id};
+ }).filter(Boolean).sort((a,b)=>a.distance_m-b.distance_m);
+ const count=cat=>places.filter(p=>p.category===cat).length;
+ const transit=count('Doprava a MHD'),shops=count('Obchody'),schools=count('Školy'),kindergartens=count('Školky a péče o děti');
+ const health=count('Zdravotnictví'),services=count('Služby'),green=count('Sport a zeleň');
+ const score=Math.min(100,Math.round(Math.min(transit,20)*1.5+Math.min(shops,25)*1.4+Math.min(schools+kindergartens,10)*2+Math.min(health,10)*1.5+Math.min(services,15)*0.8+Math.min(green,10)*0.8));
+ const label=score>=75?'Velmi dobrá vybavenost':score>=50?'Dobrá vybavenost':score>=25?'Základní vybavenost':'Málo evidovaných míst';
+ const counts={transit,shops,schools,kindergartens,education:schools+kindergartens,health,services,green,mapped_objects:places.length};
+ const names=['Doprava a MHD','Školy','Školky a péče o děti','Obchody','Zdravotnictví','Restaurace a kavárny','Služby','Sport a zeleň','Ostatní služby'];
+ const categories=names.map(name=>{const rows=places.filter(p=>p.category===name);return {name,count:rows.length,places:rows.slice(0,80)}});
+ return {address,lat,lon,radius_m:radius,map_source:'OpenStreetMap / přímé načtení ('+winner.host+')',overpass_available:true,counts,score,label,coverage_percent:100,categories,places:places.slice(0,350),limitation:'Vzdálenosti jsou přímou vzdáleností od zadaného bodu, nikoli délkou pěší trasy. Data vycházejí z OpenStreetMap a mohou být neúplná. Jízdní řády a aktuální provoz spojů zde nejsou ověřovány.'};
+}
 async function analyzeLocation(){
  const input=$('locationAnalysisAddress'),status=$('locationAnalysisStatus'),button=$('analyzeLocation'),address=input.value.trim();
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
@@ -100,7 +163,15 @@ async function analyzeLocation(){
  try{
   const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:{'Accept':'application/json'}});
   const data=await response.json().catch(()=>null);
-  if(!response.ok||!data)throw new Error((data&&data.error||'Služba vrátila HTTP '+response.status)+(data&&data.detail?' ('+data.detail+')':''));
+  if(!response.ok||!data){
+   if(response.status===503&&data&&Number.isFinite(Number(data.lat))&&Number.isFinite(Number(data.lon))){
+    status.textContent='Server nedodal mapová data, zkouším je načíst přímo z mapových serverů…';
+    try{data=await browserOverpass(Number(data.lat),Number(data.lon),data.address||address)}
+    catch(fallbackError){throw new Error((data.error||'Mapová data nejsou dostupná')+' Přímé načtení také selhalo: '+(fallbackError&&fallbackError.message?fallbackError.message:'zdroje neodpovídají'))}
+   }else{
+    throw new Error((data&&data.error||'Služba vrátila HTTP '+response.status)+(data&&data.detail?' ('+data.detail+')':''));
+   }
+  }
   if(typeof data.score!=='number')throw new Error(data.error||'Server nevrátil výsledek analýzy.');
   $('locationAnalysisResults').hidden=false;$('locationAnalysisScore').textContent=data.score+' / 100';$('locationAnalysisLabel').textContent=data.label||'Orientační výsledek';
   $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';$('locationAnalysisCount').textContent=String(data.counts?.mapped_objects??0);
