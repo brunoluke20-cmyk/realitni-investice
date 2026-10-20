@@ -28,6 +28,8 @@
 </div>
 </section>
 
+<section class="card" id="projectToolsNav"><h2>Další nástroje pro tento projekt</h2><p class="muted">Po načtení inzerátu se název, adresa, cena a plocha sdílí mezi nástroji v tomto prohlížeči. Před přechodem se aktuální údaje uloží.</p><div class="actions"><a class="btn primary" id="openValuation" href="odhad-zastavni-hodnoty.html">Odhad zástavní hodnoty →</a><a class="btn" id="openManager" href="spravce-projektu.html">Správce projektu / prohlídky →</a><a class="btn" id="openLocation" href="lukrativni-okoli.html">Lukrativita okolí →</a></div></section>
+
 <section class="card" id="quickCalculator"><h2>Investiční kalkulačka</h2><p class="muted">Uprav předpoklady a zjisti, jak se mění celkový rozpočet. Jde o pracovní model, ne o odhad ceny rekonstrukce či budoucí tržní hodnoty.</p>
 <div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="8" max="30" step="0.1" value="22.9"><div class="range-hints"><span>8 mil.</span><span>19 mil.</span><span>30 mil.</span></div></div>
 <div class="quick-slider"><label for="quickWorks">Rekonstrukce (mil. Kč)</label><output id="quickWorksOut" for="quickWorks">5,0</output><input id="quickWorks" type="range" min="1" max="12" step="0.1" value="5"><div class="range-hints"><span>1</span><span>6</span><span>12</span></div></div>
@@ -136,13 +138,14 @@ let projects=[],activeProjectId=null,projectSwitching=false;
 function makeId(){return 'listing-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
 function currentProject(){return projects.find(p=>p.id===activeProjectId)}
 function readProjectValues(){const values={};projectFields().forEach(el=>{if(el.id)values[el.id]=el.value});return values}
+function syncSharedProject(){try{const p=currentProject(),v=p&&p.values?p.values:readProjectValues();const price=parseNumericInput(v.listingPrice||v.purchase||'')||'';localStorage.setItem('rei-shared-project-v1',JSON.stringify({projectId:p&&p.id||'',name:v.name||v.listingAddress||p&&p.title||'',title:p&&p.title||v.name||'',address:v.locationAnalysisAddress||v.listingAddress||v.name||'',location:v.locationAnalysisAddress||v.listingAddress||'',url:v.listingURL||v.url||'',listingURL:v.listingURL||v.url||'',price:String(price),listingPrice:String(price),area:v.listingArea||'',listingArea:v.listingArea||'',updatedAt:new Date().toISOString()}))}catch(e){}}
 function saveActiveProject(){
  if(projectSwitching||!activeProjectId)return;
  const p=currentProject();if(!p)return;
  p.values=readProjectValues();
  p.title=($('name').value||$('listingAddress').value||p.title||'Nový inzerát').trim();
  try{localStorage.setItem(projectKey,JSON.stringify(projects))}catch(e){}
- renderProjectTabs();
+ syncSharedProject();renderProjectTabs();
 }
 function applyProject(p){
  if(!p)return;projectSwitching=true;
@@ -251,7 +254,7 @@ async function importSrealityListing(){
   // Ostatní ID nikdy nedostanou tyto hodnoty; u nich zůstává bezpečné chybové hlášení.
   if(id==='2475683916'){
    const facts={name:'Prodej vícegeneračního domu 240 m², pozemek 197 m², Nad Kundratkou, Praha - Prosek',location:'Nad Kundratkou, Praha - Prosek',price:19999999,area:240,landArea:197};
-   $('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;$('name').value=facts.name;$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);$('listingArea').value=String(facts.area);$('listingLandArea').value=String(facts.landArea);$('url').value=url;
+   $('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;$('name').value=facts.name;$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);$('listingArea').value=String(facts.area);$('listingLandArea').value=String(facts.landArea);$('url').value=url;
    updateListingPriceM2();updateQuick(false);calc();updateInvestment();
    const p=currentProject();if(p){p.title=facts.name;p.values=readProjectValues();saveActiveProject()}
    status.textContent='Načteno z ověřené zálohy tohoto inzerátu (Sreality blokuje automatický přístup). Cena, užitná plocha a pozemek byly ověřeny proti veřejné stránce; před rozhodnutím zkontroluj původní inzerát.';status.dataset.loadedUrl=url;
@@ -565,6 +568,7 @@ projectFields().forEach(el=>{if(!['listingPriceM2'].includes(el.id)){el.addEvent
 if(!$('listingURL').value&&$('url').value)$('listingURL').value=$('url').value;
 updateListingPriceM2();
 
+syncSharedProject();$('openValuation').addEventListener('click',syncSharedProject);$('openManager').addEventListener('click',syncSharedProject);$('openLocation').addEventListener('click',syncSharedProject);
 updateQuick(true);updateInvestment();window.addEventListener('resize',()=>chart([{name:'Pesimistický',value:parseFloat(($('low').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Základní',value:parseFloat(($('base').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Optimistický',value:parseFloat(($('high').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0}]));
 
 </script></body></html>
