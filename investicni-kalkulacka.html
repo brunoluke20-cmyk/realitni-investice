@@ -242,7 +242,7 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
+  if(facts.price){$('listingPrice').value=String(facts.price);formatMoneyInput($('listingPrice'));$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
@@ -255,7 +255,7 @@ async function importSrealityListing(){
   // Ostatní ID nikdy nedostanou tyto hodnoty; u nich zůstává bezpečné chybové hlášení.
   if(id==='2475683916'){
    const facts={name:'Prodej vícegeneračního domu 240 m², pozemek 197 m², Nad Kundratkou, Praha - Prosek',location:'Nad Kundratkou, Praha - Prosek',price:19999999,area:240,landArea:197};
-   $('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;$('name').value=facts.name;$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);$('listingArea').value=String(facts.area);$('listingLandArea').value=String(facts.landArea);$('url').value=url;
+   $('listingAddress').value=facts.location;$('locationAnalysisAddress').value=facts.location;$('name').value=facts.name;$('listingPrice').value=String(facts.price);formatMoneyInput($('listingPrice'));$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);$('listingArea').value=String(facts.area);$('listingLandArea').value=String(facts.landArea);$('url').value=url;
    updateListingPriceM2();updateQuick(false);calc();updateInvestment();
    const p=currentProject();if(p){p.title=facts.name;p.values=readProjectValues();saveActiveProject()}
    status.textContent='Načteno z ověřené zálohy tohoto inzerátu (Sreality blokuje automatický přístup). Cena, užitná plocha a pozemek byly ověřeny proti veřejné stránce; před rozhodnutím zkontroluj původní inzerát.';status.dataset.loadedUrl=url;
