@@ -189,7 +189,7 @@ function findByKey(obj,keys,depth=0){
  return null;
 }
 function extractListingFacts(data){
- const name=findByKey(data,['name','advert_name','title']);
+ const name=findByKey(data,['title'])||findByKey(data,['advert_name'])||findByKey(data,['name']);
  const locality=findByKey(data,['locality','locality_name','address']);
  let price=findByKey(data,['price_czk']);
  if(price===null||price===undefined||price==='')price=findByKey(data,['price_czk_value_raw']);
@@ -202,8 +202,9 @@ function extractListingFacts(data){
  let area=null,landArea=null,disposition=null;
  const texts=collectStrings(data,[]);
  const allText=[String(name||''),...texts].join(' | ');
- const areaKeys=['usable_area','floor_area','surface','area','usable_surface'];
- const areaCandidate=findByKey(data,areaKeys);
+ const areaKeys=['usable_area','floor_area','surface','usable_surface'];
+ let areaCandidate=findByKey(data,areaKeys);
+ if(areaCandidate===null)areaCandidate=findByKey(data,['area']);
  if(areaCandidate!==null){const num=Number(String(areaCandidate).replace(',','.').replace(/[^0-9.]/g,''));if(Number.isFinite(num)&&num>0&&num<100000)area=num}
  if(!area){const match=allText.match(/(?:užitná plocha|podlahová plocha|plocha bytu|plocha|area)[^0-9]{0,20}(\d+(?:[,.]\d+)?)\s*(?:m²|m2|m\^2)?/i)||allText.match(/(\d+(?:[,.]\d+)?)\s*m(?:²|2|\^2)/i);if(match){const num=Number(match[1].replace(',','.'));if(Number.isFinite(num)&&num>0&&num<100000)area=num}}
  const landCandidate=findByKey(data,['land_area','landarea','plot_area','plotarea','parcel_area','estate_area','land_size','land_surface']);
