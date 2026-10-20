@@ -28,13 +28,13 @@
 </section>
 
 <section class="card" id="quickCalculator"><h2>Investiční kalkulačka</h2><p class="muted">Uprav předpoklady a zjisti, jak se mění celkový rozpočet. Jde o pracovní model, ne o odhad ceny rekonstrukce či budoucí tržní hodnoty.</p>
-<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="15" max="25" step="0.1" value="22.9"><div class="range-hints"><span>15</span><span>20</span><span>25</span></div></div>
+<div class="quick-slider"><label for="quickPurchase">Kupní cena (mil. Kč)</label><output id="quickPurchaseOut" for="quickPurchase">22,9</output><input id="quickPurchase" type="range" min="8" max="30" step="0.1" value="22.9"><div class="range-hints"><span>8 mil.</span><span>19 mil.</span><span>30 mil.</span></div></div>
 <div class="quick-slider"><label for="quickWorks">Rekonstrukce (mil. Kč)</label><output id="quickWorksOut" for="quickWorks">5,0</output><input id="quickWorks" type="range" min="1" max="12" step="0.1" value="5"><div class="range-hints"><span>1</span><span>6</span><span>12</span></div></div>
 <div class="quick-slider"><label for="quickSoft">Projekt, průzkumy, povolení a ostatní náklady (mil. Kč)</label><output id="quickSoftOut" for="quickSoft">1,0</output><input id="quickSoft" type="range" min="0.2" max="3" step="0.1" value="1"><div class="range-hints"><span>0,2</span><span>1,5</span><span>3</span></div></div>
 <div class="quick-slider"><label for="quickReserve">Rezerva na dodatečné výdaje</label><output id="quickReserveOut" for="quickReserve">15 %</output><input id="quickReserve" type="range" min="5" max="30" step="1" value="15"><div class="range-hints"><span>5 %</span><span>15 %</span><span>30 %</span></div></div>
 <div class="metric" style="margin:18px 0"><small>Z toho rezerva</small><strong id="quickReserveAmount">0,90 mil. Kč</strong></div>
-<h2 style="margin-top:20px">Předpokládaná hodnota po dokončení (mil. Kč)</h2><div class="value-options" role="group" aria-label="Předpokládaná hodnota po dokončení"><button class="value-option" type="button" data-value="30" aria-pressed="false">30 mil.</button><button class="value-option" type="button" data-value="34" aria-pressed="true">34 mil.</button><button class="value-option" type="button" data-value="38" aria-pressed="false">38 mil.</button></div>
-<div class="quick-results"><div class="metric"><small>Modelované celkové náklady</small><strong id="quickTotal">29,80 mil. Kč</strong></div><div class="metric"><small>Rozdíl před dalšími náklady</small><strong id="quickDifference">4,20 mil. Kč</strong></div></div>
+<h2 style="margin-top:20px">Předpokládaná hodnota po dokončení (mil. Kč)</h2><div class="quick-slider"><label for="quickValueRange">Odhadovaná prodejní / tržní hodnota</label><output id="quickValueOut" for="quickValueRange">34,0</output><input id="quickValueRange" type="range" min="15" max="45" step="0.5" value="34"><div class="range-hints"><span>15 mil.</span><span>30 mil.</span><span>45 mil.</span></div></div>
+<div class="quick-results"><div class="metric"><small>Modelované celkové náklady</small><strong id="quickTotal">29,80 mil. Kč</strong></div><div class="metric"><small>Rozdíl před dalšími náklady</small><strong id="quickDifference">4,20 mil. Kč</strong></div><div class="metric"><small>Rozdíl jako podíl hodnoty</small><strong id="quickMargin">12,4 %</strong></div></div>
 <p class="muted">Tento rychlý přehled počítá kupní cenu, rekonstrukci, projektové náklady a rezervu. Nezahrnuje další pořizovací náklady, provoz, prodejní náklady ani úroky z hypotéky; ty lze upravit v podrobné kalkulaci níže.</p></section>
 
 <section class="card" id="cashflowSection">
@@ -237,7 +237,7 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
@@ -339,12 +339,14 @@ function updateQuick(syncMain=true){
  $('quickWorksOut').textContent=works.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
  $('quickSoftOut').textContent=soft.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
  $('quickReserveOut').textContent=reserve+' %';
- const reserveAmount=(works+soft)*reserve/100,total=purchase+works+soft+reserveAmount,difference=quickValue-total;
+ const reserveAmount=(works+soft)*reserve/100,total=purchase+works+soft+reserveAmount,difference=quickValue-total,margin=quickValue!==0?difference/quickValue*100:0;
  $('quickReserveAmount').textContent=quickFmt(reserveAmount);
  $('quickTotal').textContent=quickFmt(total);
  $('quickDifference').textContent=quickFmt(difference);
  $('quickDifference').style.color=difference>=0?'#147a52':'#b42318';
- document.querySelectorAll('.value-option').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.value)===quickValue)));
+ $('quickValueOut').textContent=quickValue.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1});
+ $('quickMargin').textContent=margin.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' %';
+ $('quickMargin').style.color=margin>=0?'#147a52':'#b42318';
  if(syncMain){
   $('purchase').value=Math.round(purchase*1000000);
   $('works').value=Math.round(works*1000000);
@@ -357,7 +359,7 @@ function updateQuick(syncMain=true){
  try{localStorage.setItem('rei-calc-quick-v1',JSON.stringify({purchase,works,soft,reserve,value:quickValue}));}catch(e){}
 }
 ['quickPurchase','quickWorks','quickSoft','quickReserve'].forEach(id=>$(id).addEventListener('input',()=>updateQuick(true)));
-document.querySelectorAll('.value-option').forEach(b=>b.addEventListener('click',()=>{quickValue=Number(b.dataset.value);updateQuick(true);}));
+$('quickValueRange').addEventListener('input',()=>{quickValue=Number($('quickValueRange').value);updateQuick(true);});
 
 
 function parseNumericInput(value){const cleaned=String(value??'').replace(/[\s\u00a0]/g,'').replace(',','.');const parsed=Number(cleaned);return Number.isFinite(parsed)?parsed:0}
