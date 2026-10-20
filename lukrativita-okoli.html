@@ -47,7 +47,7 @@ async function analyzeLocation(){
   const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis?address='+encodeURIComponent(address);
   const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
   const data=await response.json().catch(()=>null);
-  if(!response.ok||!data)throw new Error((data&&data.error)||('Služba vrátila HTTP '+response.status));
+  if(!response.ok||!data){const message=(data&&data.error)||('Služba vrátila HTTP '+response.status);const detail=data&&data.detail?' ('+data.detail+')':'';throw new Error(message+detail)}
   if(typeof data.score!=='number')throw new Error(data.error||'Pro tuto adresu se nepodařilo vypočítat skóre.');
   $('locationAnalysisResults').hidden=false;
   $('locationAnalysisScore').textContent=data.score+' / 100';
