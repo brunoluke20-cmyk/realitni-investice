@@ -2,9 +2,12 @@
 <html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#13243a"><title>Analýza lukrativnosti okolí</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17212b;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:#13243a;color:white;padding:24px 16px}main{max-width:950px;margin:22px auto;padding:0 14px}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:18px;margin:12px 0}h1{font-size:clamp(26px,5vw,36px);margin:5px 0}h2{font-size:20px;margin:0 0 12px}.muted{color:#647180;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field label{display:block;color:#586777;font-size:13px;margin-bottom:5px}.field input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.address-wrap{position:relative}.suggestions{position:absolute;z-index:10;top:100%;left:0;right:0;background:#fff;border:1px solid #cbd5df;border-radius:9px;box-shadow:0 8px 24px #17212b20;max-height:280px;overflow:auto;margin:4px 0 0;padding:4px;list-style:none}.suggestions[hidden]{display:none}.suggestions button{display:block;width:100%;text-align:left;border:0;background:white;padding:10px;border-radius:6px;font:inherit;cursor:pointer}.suggestions button:hover,.suggestions button:focus{background:#eef3ff;outline:2px solid #2457d6}.suggestion-main{display:block;font-weight:650}.suggestion-detail{display:block;color:#647180;font-size:12px}.metric{background:#f5f7fa;border:1px solid #e0e6ed;border-radius:10px;padding:12px}.metric small{display:block;color:#586777}.metric strong{display:block;font-size:clamp(20px,4vw,27px);overflow-wrap:anywhere}.quick-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.btn{padding:11px 14px;border-radius:9px;border:1px solid #ccd5df;background:white;font:inherit;font-weight:650;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}a{color:#2457d6}.notice{background:#fff8e6;padding:12px;border-radius:10px;font-size:13px}.toplink{color:white}@media(max-width:520px){.card{padding:14px}}
+
+.auth-gate{position:fixed;inset:0;z-index:9999;background:#f3f5f8;display:flex;align-items:center;justify-content:center;padding:18px}.auth-gate[hidden]{display:none}.auth-card{width:min(100%,440px);background:#fff;border:1px solid #dfe5eb;border-radius:16px;padding:24px;box-shadow:0 18px 55px #17212b18}.auth-card h1{font-size:25px;margin:0 0 8px}.auth-card label{display:block;margin:16px 0 5px;font-size:13px;color:#586777}.auth-card input{width:100%;padding:12px;border:1px solid #cbd5df;border-radius:9px;font:inherit}.auth-card button{margin-top:12px}.auth-status{min-height:24px;margin-top:12px;font-size:13px;color:#586777}header[hidden],main[hidden]{display:none!important}
 </style></head><body>
-<header><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
-<main>
+<div id="authGate" class="auth-gate"><section class="auth-card"><small>REALITNÍ INVESTICE · SOUKROMÝ PŘÍSTUP</small><h1>Přihlášení do aplikace</h1><p class="muted">Přístup mají pouze e-mailové adresy schválené správcem. Po zadání e-mailu obdržíš jednorázový přihlašovací odkaz.</p><form id="authForm"><label for="authEmail">Povolený e-mail</label><input id="authEmail" type="email" autocomplete="email" required maxlength="254" placeholder="jmeno@example.cz"><button class="btn primary" id="authSubmit" type="submit">Poslat přihlašovací odkaz</button></form><p id="authStatus" class="auth-status" role="status" aria-live="polite">Ověřuji přístup…</p></section></div>
+<header id="appHeader" hidden><small>REALITNÍ INVESTICE / <a class="toplink" href="index.html">VŠECHNY NÁSTROJE</a></small><h1>Analýza lukrativnosti okolí</h1><button class="btn" id="authSignOut" type="button" style="float:right">Odhlásit</button><p>Samostatný nástroj pro orientační posouzení okolí nemovitosti podle dostupných mapových údajů.</p></header>
+<main id="appMain" hidden>
 <p class="muted">Zadej adresu nemovitosti a nástroj vyhledá evidovanou dopravu, obchody, služby, školy, zdravotnictví, provozovny a rekreační body v okruhu 0,5 km. Skóre popisuje pouze nalezené mapové záznamy — nejde o garantovaný výnos ani úplné hodnocení investice.</p>
 <section class="card" id="locationAnalysisSection">
 <h2>Analýza lukrativnosti okolí</h2>
@@ -50,9 +53,67 @@
 </div>
 </section>
 <div class="card"><h2>Jak výsledek číst</h2><p class="muted">Skóre se počítá jen z faktorů, pro které se podařilo získat údaje. Bezpečnost, skutečné nájemné, výnosnost a budoucí rozvoj se bez spolehlivých dat neodhadují. Chybějící mapový záznam neznamená, že daná služba v okolí neexistuje.</p><p class="muted">Zdroj mapových údajů: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p></div>
-</main><script>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.js"></script>
+<script>
 const $=id=>document.getElementById(id);
 const API='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/location-analysis';
+
+const SUPABASE_URL='https://zikhzhgxrjpjrkivmwrf.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppa2h6aGd4cmpwanJraXZtd3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNjk4ODUsImV4cCI6MjEwMjc0NTg4NX0.-IesVNl4JTozOtPIGhDieJRUN0vcsm0FTNwEyouZzZ8';
+const AUTH_API=SUPABASE_URL+'/functions/v1/auth-request';
+const APP_REDIRECT_URL='https://brunoluke20-cmyk.github.io/realitni-investice/lukrativita-okoli.html';
+const supabaseClient=window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+function lockApp(message){
+ $('authGate').hidden=false;$('appHeader').hidden=true;$('appMain').hidden=true;
+ if(message)$('authStatus').textContent=message;
+}
+async function protectedHeaders(){
+ if(!supabaseClient)throw new Error('Nepodařilo se načíst přihlašovací knihovnu. Obnov stránku.');
+ const {data,error}=await supabaseClient.auth.getSession();
+ if(error||!data.session?.access_token)throw new Error('Přihlášení vypršelo. Přihlas se znovu.');
+ return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+data.session.access_token,'Accept':'application/json'};
+}
+let accessCheckInProgress=false;
+async function verifyAndUnlock(session){
+ if(!session?.access_token||accessCheckInProgress)return;
+ accessCheckInProgress=true;
+ try{
+  const response=await fetch(API+'?action=authorize',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+session.access_token,'Accept':'application/json'}});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||!result.authorized){
+   lockApp(result.error||'Tento účet nemá povolený přístup. Požádej správce o přidání e-mailu do seznamu.');
+   if(response.status===401||response.status===403)await supabaseClient.auth.signOut();
+   return;
+  }
+  $('authGate').hidden=true;$('appHeader').hidden=false;$('appMain').hidden=false;
+ }catch(_e){lockApp('Přístup se nepodařilo ověřit. Zkontroluj připojení a obnov stránku.')}
+ finally{accessCheckInProgress=false}
+}
+if(supabaseClient){
+ supabaseClient.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT')lockApp('Byl(a) jsi odhlášen(a).');
+  else if(session&&(event==='INITIAL_SESSION'||event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))Promise.resolve().then(()=>verifyAndUnlock(session));
+ });
+ supabaseClient.auth.getSession().then(({data,error})=>{
+  if(error)lockApp('Přihlášení se nepodařilo načíst.');
+  else if(data.session)verifyAndUnlock(data.session);
+  else lockApp('Zadej e-mail, který správce přidal do seznamu povolených uživatelů.');
+ });
+}else lockApp('Přihlašovací knihovna se nenačetla. Obnov stránku nebo zkontroluj připojení.');
+$('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();const email=$('authEmail').value.trim().toLowerCase(),button=$('authSubmit');
+ if(!email)return;
+ button.disabled=true;button.textContent='Odesílám…';$('authStatus').textContent='Ověřuji e-mail a připravuji odkaz…';
+ try{
+  const response=await fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify({email,redirectTo:APP_REDIRECT_URL})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Odkaz se nepodařilo odeslat.');
+  $('authStatus').textContent=result.message||'Pokud je adresa povolená, přijde na ni přihlašovací odkaz.';
+ }catch(err){$('authStatus').textContent=err.message||'Přihlašovací služba je dočasně nedostupná.'}
+ finally{button.disabled=false;button.textContent='Poslat přihlašovací odkaz'}
+});
+$('authSignOut').addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut();lockApp('Byl(a) jsi odhlášen(a).')});
+
 const addressInput=$('locationAnalysisAddress'),suggestions=$('locationAddressSuggestions');
 let suggestionTimer=null,suggestionAbort=null,suggestionItems=[],activeSuggestion=-1;
 function closeAddressSuggestions(){suggestions.hidden=true;addressInput.setAttribute('aria-expanded','false');activeSuggestion=-1}
@@ -85,7 +146,7 @@ async function findAddressSuggestions(query){
  try{
   let results=[],errors=[];
   try{
-   const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal,headers:{'Accept':'application/json'}});
+   const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal,headers:{'Accept':'application/json','apikey':SUPABASE_ANON_KEY}});
    const data=await response.json();
    if(response.ok)results=normalize(Array.isArray(data.results)?data.results:[]);
    else errors.push(data.error||'Hlavní vyhledávání není dostupné');
@@ -174,7 +235,7 @@ async function loadDevelopmentNotes(data){
  const loading=document.createElement('p');loading.textContent='Zjišťuji obec a kraj a hledám aktuální zprávy o výstavbě a infrastruktuře…';root.append(loading);
  try{
   const params=new URLSearchParams({action:'development-notes',lat:String(data.lat),lon:String(data.lon),address:String(data.address||'')});
-  const response=await fetch(API+'?'+params,{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(18000)});
+  const response=await fetch(API+'?'+params,{headers:{...await protectedHeaders(),'Accept':'application/json'},signal:AbortSignal.timeout(18000)});
   if(!response.ok)throw new Error('Zdroje rozvoje nejsou dostupné');
   const result=await response.json();root.replaceChildren();
   const area=document.createElement('p');area.textContent='Územní příslušnost: '+(result.municipality||data.address||'obec nezjištěna')+(result.region?' · '+result.region:'');root.append(area);
@@ -393,7 +454,7 @@ async function analyzeLocation(){
  if(address.length<4){status.textContent='Zadej alespoň ulici a město a vyber správný návrh.';input.focus();return}
  button.disabled=true;button.textContent='Analyzuji okolí…';status.textContent='Dohledávám adresu a načítám obchody, zastávky, školy, školky a další místa v okruhu 0,5 km…';$('locationAnalysisResults').hidden=true;
  try{
-  const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:{'Accept':'application/json'}});
+  const response=await fetch(API+'?address='+encodeURIComponent(address),{headers:await protectedHeaders()});
   let data=await response.json().catch(()=>null);
   if(!response.ok||!data){
    if(response.status===503&&data&&Number.isFinite(Number(data.lat))&&Number.isFinite(Number(data.lon))){
