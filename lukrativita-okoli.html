@@ -72,15 +72,36 @@ function showSuggestionMessage(message){
 }
 async function findAddressSuggestions(query){
  if(suggestionAbort)suggestionAbort.abort();suggestionAbort=new AbortController();
+ const signal=suggestionAbort.signal;
  showSuggestionMessage('Vyhledávám adresy…');
  try{
-  const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
-  const data=await response.json();if(!response.ok)throw new Error(data.error||'Vyhledávání adres není dostupné');
-  if(addressInput.value.trim()===query){
-   if((data.results||[]).length)renderAddressSuggestions(data.results);
-   else showSuggestionMessage(data.error||'Adresa nenalezena. Zkus doplnit číslo domu a město.');
+  // Původní Supabase vyhledávání zůstává hlavní; Photon je pouze záloha pro prázdnou odpověď nebo výpadek.
+  let results=[],message='';
+  try{
+   const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal,headers:{'Accept':'application/json'}});
+   const data=await response.json();if(!response.ok)throw new Error(data.error||'Vyhledávání adres není dostupné');
+   results=Array.isArray(data.results)?data.results:[];
+   message=data.error||'';
+  }catch(err){if(err.name==='AbortError')throw err;message='Původní vyhledávání je momentálně nedostupné.'}
+  if(!results.length){
+   const response=await fetch('https://photon.komoot.io/api/?limit=7&lang=cs&q='+encodeURIComponent(query+', Czechia'),{signal,headers:{'Accept':'application/json'}});
+   if(!response.ok)throw new Error('Záložní vyhledávání není dostupné');
+   const data=await response.json();
+   results=(Array.isArray(data.features)?data.features:[]).filter(f=>{
+    const cc=String(f.properties?.countrycode||'').toLowerCase();
+    return (!cc||cc==='cz')&&f.geometry?.coordinates?.length>=2;
+   }).map(f=>{
+    const p=f.properties||{},coords=f.geometry.coordinates;
+    const city=p.city||p.town||p.village||p.locality||p.district;
+    const streetLine=[p.street||p.name,p.housenumber].filter(Boolean).join(' ');
+    return {label:[streetLine||p.name,p.postcode,city,p.state,p.country].filter(Boolean).join(', ')||p.name||'Nalezené místo',lat:Number(coords[1]),lon:Number(coords[0]),type:p.type||p.osm_value||'address'};
+   }).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon));
   }
- }catch(err){if(err.name!=='AbortError'&&addressInput.value.trim()===query)showSuggestionMessage('Návrhy se nepodařilo načíst. Můžeš zkusit zadat celou adresu a spustit analýzu.')}
+  if(addressInput.value.trim()===query){
+   if(results.length)renderAddressSuggestions(results);
+   else showSuggestionMessage(message||'Adresa nenalezena. Zkus doplnit číslo domu a město.');
+  }
+ }catch(err){if(err.name!=='AbortError'&&addressInput.value.trim()===query)showSuggestionMessage('Návrhy se nepodařilo načíst. Zkus doplnit číslo domu a město.')}
 }
 function makePlaceLink(place){
  const a=document.createElement('a');a.href='https://www.openstreetmap.org/'+encodeURIComponent(place.osm_type||'node')+'/'+encodeURIComponent(place.osm_id);a.target='_blank';a.rel='noopener';a.textContent='Mapa';return a;
