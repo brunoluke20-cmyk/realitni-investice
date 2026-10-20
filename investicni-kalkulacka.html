@@ -432,6 +432,7 @@ async function calculateCenterTransit(lat,lon,scoreData=null){
   const walkLegs=best._legs.filter(l=>['WALK','FOOT'].includes(String(l.mode||'').toUpperCase()));
   const walkTitle=document.createElement('p');walkTitle.style.margin='10px 0 5px';walkTitle.style.fontWeight='600';walkTitle.textContent='Pěší úseky (nezapočítané do hlavního času)';details.appendChild(walkTitle);
   const walkList=document.createElement('ul');walkList.style.margin='0';walkList.style.paddingLeft='20px';
+  const accessWalk=document.createElement('li');accessWalk.textContent='Adresa → nádraží Hostivice: pěší přístup není v tomto výpočtu zahrnutý a jeho čas není ověřený.';walkList.appendChild(accessWalk);
   if(!walkLegs.length){const note=document.createElement('li');note.textContent='Zdroj pro tuto trasu nevrátil samostatné pěší úseky.';walkList.appendChild(note)}
   walkLegs.forEach(leg=>{const li=document.createElement('li');const from=stopName(leg.from),to=stopName(leg.to),a=fmt(leg.startTime||leg.start_time),b=fmt(leg.endTime||leg.end_time),dur=getLegDuration(leg);const bits=['pěšky'];if(from||to)bits.push([from,to].filter(Boolean).join(' → '));if(a&&b)bits.push(a+'–'+b);if(Number.isFinite(dur))bits.push(Math.round(dur/60)+' min');li.textContent=bits.join(' · ');walkList.appendChild(li)});details.appendChild(walkList);
   const lineMap=new Map();
