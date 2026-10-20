@@ -296,7 +296,7 @@ async function calculateCenterTransit(lat,lon){
     details.appendChild(card);
    });
    const method=document.createElement('p');method.style.margin='4px 0 0';
-   method.textContent='Vyhledáno '+searchedDate+' v '+searchedTime (Europe/Prague). Zobrazené časy vycházejí z dostupných jízdních řádů; případná zpoždění nebo výluky nemusí být zahrnuty. Doba cesty zahrnuje úseky uvedené u spojení.';
+   method.textContent='Vyhledáno '+searchedDate+' v '+searchedTime+' (Europe/Prague). Zobrazené časy vycházejí z dostupných jízdních řádů; případná zpoždění nebo výluky nemusí být zahrnuty. Doba cesty zahrnuje úseky uvedené u spojení.';
    details.appendChild(method);
   }
  }catch(error){
