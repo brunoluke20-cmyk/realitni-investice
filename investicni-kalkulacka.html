@@ -191,23 +191,34 @@ function findByKey(obj,keys,depth=0){
 function extractListingFacts(data){
  const name=findByKey(data,['name','advert_name','title']);
  const locality=findByKey(data,['locality','locality_name','address']);
- let price=findByKey(data,['price_czk','price','price_value','price_czk_value_raw']);
+ let price=findByKey(data,['price_czk']);
+ if(price===null||price===undefined||price==='')price=findByKey(data,['price_czk_value_raw']);
+ if(price===null||price===undefined||price==='')price=findByKey(data,['price_value']);
+ if(price===null||price===undefined||price==='')price=findByKey(data,['price']);
  if(price&&typeof price==='object')price=price.value_raw??price.value??null;
  if(typeof price==='string'){const digits=price.replace(/[^0-9]/g,'');price=digits?Number(digits):null}
- if(typeof price!=='number'||!Number.isFinite(price)||price<=0)price=null;
- let area=null,disposition=null;
+ const isSaleListing=/\/detail\/prodej\//i.test(($('listingURL')?.value||''));
+ if(typeof price!=='number'||!Number.isFinite(price)||price<=0||(isSaleListing&&price<100000))price=null;
+ let area=null,landArea=null,disposition=null;
  const texts=collectStrings(data,[]);
  const allText=[String(name||''),...texts].join(' | ');
  const areaKeys=['usable_area','floor_area','surface','area','usable_surface'];
  const areaCandidate=findByKey(data,areaKeys);
  if(areaCandidate!==null){const num=Number(String(areaCandidate).replace(',','.').replace(/[^0-9.]/g,''));if(Number.isFinite(num)&&num>0&&num<100000)area=num}
  if(!area){const match=allText.match(/(?:užitná plocha|podlahová plocha|plocha bytu|plocha|area)[^0-9]{0,20}(\d+(?:[,.]\d+)?)\s*(?:m²|m2|m\^2)?/i)||allText.match(/(\d+(?:[,.]\d+)?)\s*m(?:²|2|\^2)/i);if(match){const num=Number(match[1].replace(',','.'));if(Number.isFinite(num)&&num>0&&num<100000)area=num}}
+ const landCandidate=findByKey(data,['land_area','landarea','plot_area','plotarea','parcel_area','estate_area','land_size','land_surface']);
+ if(landCandidate!==null){const num=Number(String(landCandidate).replace(',','.').replace(/[^0-9.]/g,''));if(Number.isFinite(num)&&num>0&&num<10000000)landArea=num}
+ if(!landArea){const lm=allText.match(/(?:plocha pozemku|výměra pozemku|pozemní plocha|pozemek)[^0-9]{0,30}(\d+(?:[,.]\d+)?)\s*(?:m²|m2|m\^2)?/i);if(lm){const num=Number(lm[1].replace(',','.'));if(Number.isFinite(num)&&num>0&&num<10000000)landArea=num}}
  const disp=allText.match(/\b([1-6]\s*\+\s*(?:kk|[1-6]))\b/i);if(disp)disposition=disp[1].replace(/\s/g,'').toLowerCase();
  let location='';
  if(typeof locality==='string')location=locality;
- else if(locality&&typeof locality==='object')location=[locality.city,locality.citypart,locality.street,locality.name].filter(Boolean).join(', ');
+ else if(locality&&typeof locality==='object')location=[locality.street,locality.citypart,locality.city,locality.name].filter(Boolean).join(', ');
+ const titleText=String(name||findByKey(data,['title'])||'').replace(/\s*[•|]\s*Sreality\.cz.*$/i,'');
+ const titleParts=titleText.split(',').map(part=>part.trim()).filter(Boolean);
+ const titleLocation=titleParts.length>=3?titleParts.slice(-2).join(', '):'';
+ if(titleLocation&&(!location||location.length<titleLocation.length))location=titleLocation;
  if(!location&&name)location=String(name);
- return {name:name?String(name):'',location,price,area,disposition};
+ return {name:name?String(name):'',location,price,area,landArea,disposition};
 }
 async function importSrealityListing(){
  const status=$('listingImportStatus');const url=($('listingURL').value||'').trim();
@@ -224,7 +235,7 @@ async function importSrealityListing(){
   const filled=[];
   if(facts.name){$('listingAddress').value=facts.location||facts.name;$('name').value=facts.name;filled.push('název')}
   else if(facts.location){$('listingAddress').value=facts.location;filled.push('lokalita')}
-  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}
+  if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(15,Math.min(25,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(Number($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
