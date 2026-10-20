@@ -239,4 +239,5 @@ try{const shared=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'null
 addressInput.addEventListener('change',()=>{try{const old=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'{}');localStorage.setItem('rei-shared-project-v1',JSON.stringify({...old,address:addressInput.value,location:addressInput.value,updatedAt:new Date().toISOString()}))}catch(e){}});
 $('analyzeLocation').addEventListener('click',analyzeLocation);
 addressInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&suggestions.hidden){e.preventDefault();analyzeLocation()}});
-</script></body></html>
+</script><script src="auth.js"></script>
+</body></html>
