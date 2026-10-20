@@ -356,7 +356,7 @@ function updateQuick(syncMain=true){
 document.querySelectorAll('.value-option').forEach(b=>b.addEventListener('click',()=>{quickValue=Number(b.dataset.value);updateQuick(true);}));
 
 
-function parseNumericInput(value){const cleaned=String(value??'').replace(/[\\s\\u00a0]/g,'').replace(',','.');const parsed=Number(cleaned);return Number.isFinite(parsed)?parsed:0}\nfunction getVal(id){return Math.max(0,parseNumericInput($(id).value))}
+function parseNumericInput(value){const cleaned=String(value??'').replace(/[\s\u00a0]/g,'').replace(',','.');const parsed=Number(cleaned);return Number.isFinite(parsed)?parsed:0}\nfunction getVal(id){return Math.max(0,parseNumericInput($(id).value))}
 function signClass(el,val){el.classList.toggle('positive',val>=0);el.classList.toggle('negative',val<0)}
 function updateMarketLinks(){
  const location=($('marketLocation').value||'').trim()||'Praha';
