@@ -25,7 +25,6 @@
 <div class="quick-results">
 <div class="metric"><small>Autem na Náměstí Míru</small><strong id="locationCenterDriveTime">Počítám…</strong></div>
 <div class="metric"><small>Délka trasy autem</small><strong id="locationCenterDriveDistance">—</strong></div>
-<div class="metric"><small>Veřejná doprava na Náměstí Míru</small><strong id="locationCenterTransitTime">Počítám…</strong></div>
 </div>
 <p id="locationCenterRouteNote" class="muted">Orientační výpočet trasy po silnicích. Nezahrnuje aktuální dopravní zácpy; doba jízdy se může měnit.</p>
 <h3 style="margin-top:18px">Co je v okolí a jak daleko</h3>
@@ -72,36 +71,15 @@ function showSuggestionMessage(message){
 }
 async function findAddressSuggestions(query){
  if(suggestionAbort)suggestionAbort.abort();suggestionAbort=new AbortController();
- const signal=suggestionAbort.signal;
  showSuggestionMessage('Vyhledávám adresy…');
- let lastError=null;
  try{
-  const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal,headers:{'Accept':'application/json'}});
-  const data=await response.json();
-  if(response.ok&&(data.results||[]).length){
-   if(addressInput.value.trim()===query)renderAddressSuggestions(data.results);
-   return;
+  const response=await fetch(API+'?action=autocomplete&q='+encodeURIComponent(query),{signal:suggestionAbort.signal,headers:{'Accept':'application/json'}});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||'Vyhledávání adres není dostupné');
+  if(addressInput.value.trim()===query){
+   if((data.results||[]).length)renderAddressSuggestions(data.results);
+   else showSuggestionMessage(data.error||'Adresa nenalezena. Zkus doplnit číslo domu a město.');
   }
-  lastError=new Error(data.error||'Server nevrátil návrhy adres.');
- }catch(err){if(err.name==='AbortError')return;lastError=err}
- // Záložní vyhledávání přímo přes Photon, pokud backend nebo jeho geokódovací služby neodpovídají.
- try{
-  const response=await fetch('https://photon.komoot.io/api/?limit=7&lang=cs&q='+encodeURIComponent(query+', Czechia'),{signal,headers:{'Accept':'application/json'}});
-  if(!response.ok)throw new Error('Záložní vyhledávání HTTP '+response.status);
-  const data=await response.json();
-  const results=(data.features||[]).map(f=>{
-   const p=f.properties||{},coords=f.geometry?.coordinates||[];
-   const city=p.city||p.town||p.village||p.locality||p.district;
-   const street=[p.street||p.name,p.housenumber].filter(Boolean).join(' ');
-   return {label:[street||p.name,p.postcode,city,p.state,p.country].filter(Boolean).join(', ')||p.name||'Nalezené místo',lat:Number(coords[1]),lon:Number(coords[0]),type:p.type||p.osm_value||'address'};
-  }).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&x.label);
-  if(addressInput.value.trim()!==query)return;
-  if(results.length){renderAddressSuggestions(results);return}
-  showSuggestionMessage('Adresa nenalezena. Zkus doplnit číslo domu a město.');
- }catch(err){
-  if(err.name==='AbortError')return;
-  if(addressInput.value.trim()===query)showSuggestionMessage('Automatické návrhy jsou dočasně nedostupné. Zkus zadat celou adresu a město.');
- }
+ }catch(err){if(err.name!=='AbortError'&&addressInput.value.trim()===query)showSuggestionMessage('Návrhy se nepodařilo načíst. Můžeš zkusit zadat celou adresu a spustit analýzu.')}
 }
 function makePlaceLink(place){
  const a=document.createElement('a');a.href='https://www.openstreetmap.org/'+encodeURIComponent(place.osm_type||'node')+'/'+encodeURIComponent(place.osm_id);a.target='_blank';a.rel='noopener';a.textContent='Mapa';return a;
@@ -208,41 +186,6 @@ async function browserOverpass(lat,lon,address){
  const categories=names.map(name=>{const rows=places.filter(p=>p.category===name);return {name,count:rows.length,places:rows.slice(0,80)}});
  return {address,lat,lon,radius_m:radius,map_source:'OpenStreetMap / přímé načtení ('+winner.host+')',overpass_available:true,counts,score,label,coverage_percent:100,categories,places:places.slice(0,350),limitation:'Vzdálenosti jsou přímou vzdáleností od zadaného bodu, nikoli délkou pěší trasy. Data vycházejí z OpenStreetMap a mohou být neúplná. Jízdní řády a aktuální provoz spojů zde nejsou ověřovány.'};
 }
-async function calculateCenterTransit(lat,lon){
- const output=$('locationCenterTransitTime');
- output.textContent='Počítám…';
- if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon))){output.textContent='Nedostupné';return}
- try{
-  const params=new URLSearchParams({
-   fromPlace:Number(lat)+','+Number(lon),
-   toPlace:'50.0755,14.4378',
-   radius:'1000',
-   maxItineraries:'1',
-   numItineraries:'1',
-   timetableView:'false',
-   directModes:'WALK',
-   transitModes:'TRANSIT',
-   language:'cs'
-  });
-  const response=await fetch('https://api.transitous.org/api/v5/plan?'+params.toString(),{
-   headers:{'Accept':'application/json'},
-   signal:AbortSignal.timeout(15000)
-  });
-  if(!response.ok)throw new Error('Služba vrátila HTTP '+response.status);
-  const data=await response.json();
-  const itineraries=Array.isArray(data.itineraries)?data.itineraries:[];
-  if(!itineraries.length)throw new Error('Nebyl nalezen vhodný spoj');
-  const durations=itineraries.map(it=>{
-   if(Number.isFinite(Number(it.duration))&&Number(it.duration)>0)return Number(it.duration);
-   const start=it.startTime?Date.parse(it.startTime):NaN,end=it.endTime?Date.parse(it.endTime):NaN;
-   return Number.isFinite(start)&&Number.isFinite(end)&&end>start?(end-start)/1000:NaN;
-  }).filter(v=>Number.isFinite(v)&&v>0);
-  if(!durations.length)throw new Error('Odpověď neobsahuje délku cesty');
-  output.textContent=Math.round(Math.min(...durations)/60)+' min';
- }catch(error){
-  output.textContent='Nelze spočítat';
- }
-}
 async function calculateCenterRoute(lat,lon){
  const time=$('locationCenterDriveTime'),distance=$('locationCenterDriveDistance'),note=$('locationCenterRouteNote');
  time.textContent='Počítám…';distance.textContent='—';
@@ -257,7 +200,7 @@ async function calculateCenterRoute(lat,lon){
   const route=result.routes[0],minutes=Math.round(route.duration/60),km=route.distance/1000;
   time.textContent=minutes+' min';
   distance.textContent=km.toLocaleString('cs-CZ',{minimumFractionDigits:1,maximumFractionDigits:1})+' km';
-  note.textContent='Cíl: Náměstí Míru, Praha. Orientační čas jízdy autem vypočtený podle silniční sítě OpenStreetMap; nezahrnuje aktuální zácpy, parkování ani čas hledání parkovacího místa. Čas MHD je orientační podle jízdních řádů komunitní služby Transitous; dostupnost spojů a případné změny ověř před cestou.';
+  note.textContent='Cíl: Náměstí Míru, Praha. Orientační čas jízdy autem vypočtený podle silniční sítě OpenStreetMap; nezahrnuje aktuální zácpy, parkování ani čas hledání parkovacího místa.';
  }catch(error){
   time.textContent='Nelze spočítat';distance.textContent='—';
   note.textContent='Výpočet silniční trasy je momentálně nedostupný. Zkus analýzu znovu později.';
@@ -284,7 +227,6 @@ async function analyzeLocation(){
   $('locationAnalysisCoverage').textContent=(data.coverage_percent||0)+' %';$('locationAnalysisCount').textContent=String(data.counts?.mapped_objects??0);
   $('locationAnalysisResolved').textContent='Nalezená adresa: '+(data.address||address)+' · Okruh '+((data.radius_m||1500)/1000).toLocaleString('cs-CZ')+' km · Zdroj: '+(data.map_source||'OpenStreetMap');
   calculateCenterRoute(Number(data.lat),Number(data.lon));
-  calculateCenterTransit(Number(data.lat),Number(data.lon));
   const counts=data.counts||{};$('locationCountTransit').textContent=String(counts.transit||0);$('locationCountShops').textContent=String(counts.shops||0);
   $('locationCountEducationHealth').textContent=String((counts.education||0)+(counts.health||0));$('locationCountBusinessGreen').textContent=String((counts.services||0)+(counts.green||0));
   $('locationAnalysisLimit').textContent=data.limitation||'Výsledek závisí na úplnosti mapových dat.';renderPlaces(data);
