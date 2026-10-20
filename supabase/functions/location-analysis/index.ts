@@ -85,8 +85,8 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 function classify(t: any) {
-  if (["school", "university", "college"].includes(t.amenity)) return "Školy";
-  if (t.amenity === "kindergarten" || t.amenity === "childcare") return "Školky a péče o děti";
+  if (["school", "university", "college"].includes(t.amenity) || ["school", "college", "university"].includes(t.education) || ["school", "college", "university"].includes(t.building) || t.landuse === "education") return "Školy";
+  if (t.amenity === "kindergarten" || t.amenity === "childcare" || t.education === "kindergarten" || t.education === "preschool" || t.building === "kindergarten") return "Školky a péče o děti";
   if (t.railway === "subway_entrance" || t.station === "subway" || t.subway === "yes") return "Metro";
   if (t.railway === "tram_stop" || ((t.tram === "yes") && ["platform", "stop_position"].includes(t.public_transport))) return "Tramvajové zastávky";
   if (t.highway === "bus_stop" || ((t.bus === "yes") && ["platform", "stop_position"].includes(t.public_transport))) return "Autobusové zastávky";
@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
   try { place = await geocode(address); }
   catch (e) { return json({ error: "Adresu se nepodařilo dohledat. Vyber návrh z automatického doplňování nebo doplň město.", detail: String(e).slice(0, 220) }, 422); }
 
-  const lat = Number(place.lat), lon = Number(place.lon), radius = 500;
+  const lat = Number(place.lat), lon = Number(place.lon), radius = 1000;
   // Reject empty mirror responses so a fast but empty mirror cannot win the race.
   const query = `[out:json][timeout:12];(
     nwr(around:${radius},${lat},${lon})["public_transport"~"platform|stop_position|stop_area"];
@@ -277,10 +277,13 @@ Deno.serve(async (req: Request) => {
     nwr(around:${radius},${lat},${lon})["highway"="bus_stop"];
     nwr(around:${radius},${lat},${lon})["bus"="yes"];
     nwr(around:${radius},${lat},${lon})["tram"="yes"];
-    nwr(around:${radius},${lat},${lon})["amenity"~"school|kindergarten|childcare|hospital|clinic|doctors|dentist|pharmacy|marketplace|library|bank|atm|post_office|restaurant|cafe|fast_food|supermarket"];
+    nwr(around:${radius},${lat},${lon})["amenity"~"school|kindergarten|childcare|hospital|clinic|doctors|dentist|pharmacy|marketplace|library|bank|atm|post_office|restaurant|cafe|fast_food|supermarket|university|college"];
+    nwr(around:${radius},${lat},${lon})["education"~"school|kindergarten|preschool|college|university"];
+    nwr(around:${radius},${lat},${lon})["building"~"school|kindergarten|college|university"];
+    nwr(around:${radius},${lat},${lon})["landuse"="education"];
     nwr(around:${radius},${lat},${lon})["shop"];
     nwr(around:${radius},${lat},${lon})["leisure"~"park|sports_centre|playground|fitness_centre"];
-  );out center tags 300;`;
+  );out center tags 1000;`;
   const endpoints = ["https://overpass-api.de/api/interpreter"];
   let elements: any[] = [], source = "";
   const overpassErrors: string[] = [];
