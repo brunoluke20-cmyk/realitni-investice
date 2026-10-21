@@ -126,7 +126,7 @@ function listingFactsFromSreality(data,url){
 
 function renderKeyPoints(points){
  const list=$('keyPoints');list.replaceChildren();
- const clean=(Array.isArray(points)?points:[]).filter(x=>typeof x==='string'&&x.trim()).slice(0,3);
+ const clean=(Array.isArray(points)?points:[]).filter(x=>typeof x==='string'&&x.trim()&&!/(?:nastavení souhlasu|nastaveni souhlasu|personalizaci|cookie consent|správa souhlasu)/i.test(x)).slice(0,3);
  if(!clean.length){const li=document.createElement('li');li.className='muted';li.textContent='Po načtení se zde zobrazí tři hlavní body inzerátu.';list.appendChild(li);return}
  clean.forEach(point=>{const li=document.createElement('li');li.textContent=point;list.appendChild(li)});
 }
@@ -158,7 +158,12 @@ $('loadContact').addEventListener('click',async()=>{
   renderKeyPoints(points);
   const r=current();if(r)r.keyPoints=points;
   const unique=[...new Set(found)];
-  $('contactStatus').textContent=(unique.length?'Načteno: '+unique.join(', ')+'. ':'Základní pole se nepodařilo vyplnit. ')+
+  const missing=[];
+  if(!$('listingTitle').value.trim())missing.push('název');
+  if(!$('listingAddress').value.trim())missing.push('lokalita');
+  if(!$('listingPrice').value.trim())missing.push('cena');
+  $('contactStatus').textContent=(unique.length?'Načteno: '+unique.join(', ')+'. ':'Nepodařilo se načíst žádné spolehlivé údaje. ')+
+   (missing.length?'Chybí základní údaje: '+missing.join(', ')+'. ':'')+
    (d.phone?'Telefon nalezen — před hovorem ověř, že patří k tomuto inzerátu.':'Telefon není ve veřejných datech dostupný, nebo jej portál skrývá.');
   refreshLinks();capture();
  }catch(e){
