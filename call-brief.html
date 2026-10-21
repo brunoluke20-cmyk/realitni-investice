@@ -11,6 +11,8 @@
 <div class="field"><label for="listingTitle">Název / co kupuješ</label><input id="listingTitle" placeholder="Např. byt 2+kk, Praha 6"></div>
 <div class="field"><label for="listingAddress">Adresa / lokalita</label><input id="listingAddress" placeholder="Ulice, město"></div>
 <div class="field"><label for="listingPrice">Cena z inzerátu (Kč)</label><input id="listingPrice" inputmode="numeric" placeholder="Např. 6 490 000"></div>
+<div class="field"><label for="usableArea">Užitná plocha (m²)</label><input id="usableArea" inputmode="decimal" placeholder="Např. 278"></div>
+<div class="field"><label for="landArea">Plocha pozemku (m²)</label><input id="landArea" inputmode="decimal" placeholder="Např. 273"></div>
 </div>
 <div class="actions"><button class="btn" id="loadContact">🔎 Načíst údaje a kontakt z inzerátu</button><button class="btn secondary" id="addListing">＋ Uložit do seznamu úkolů</button><button class="btn secondary" id="importProject">↙ Převzít poslední nemovitost z nástrojů</button></div>
 <div id="contactStatus" class="status" role="status"></div>
@@ -49,7 +51,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const STORE='rei-call-brief-v1';
-const fieldIds=['listingUrl','listingTitle','listingAddress','listingPrice','listingKeyPoints','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'];
+const fieldIds=['listingUrl','listingTitle','listingAddress','listingPrice','usableArea','landArea','listingKeyPoints','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'];
 const questions=[
 {section:'A. Dostupnost a motivace',items:[
 ['Je nemovitost stále k dispozici a kdo je vlastníkem?','Ověř, jestli mluvíš s majitelem nebo zprostředkovatelem a kdo rozhoduje o prodeji.'],
@@ -149,6 +151,8 @@ $('loadContact').addEventListener('click',async()=>{
   if(d.title){$('listingTitle').value=d.title;found.push('název')}
   if(d.address){$('listingAddress').value=d.address;found.push('lokalita')}
   if(d.price){$('listingPrice').value=Number(String(d.price).replace(/[^\d]/g,'')).toLocaleString('cs-CZ');found.push('cena')}
+  if(d.usableArea){$('usableArea').value=Number(String(d.usableArea).replace(',','.')).toLocaleString('cs-CZ');found.push('užitná plocha')}
+  if(d.landArea){$('landArea').value=Number(String(d.landArea).replace(',','.')).toLocaleString('cs-CZ');found.push('plocha pozemku')}
   if(d.contactName){$('contactName').value=d.contactName;found.push('jméno kontaktu')}
   if(d.agency){$('agency').value=d.agency;found.push('realitka')}
   if(d.phone){$('phone').value=d.phone;found.push('telefon')}
