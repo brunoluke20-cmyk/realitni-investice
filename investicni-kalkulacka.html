@@ -139,7 +139,7 @@ let projects=[],activeProjectId=null,projectSwitching=false;
 function makeId(){return 'listing-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
 function currentProject(){return projects.find(p=>p.id===activeProjectId)}
 function readProjectValues(){const values={};projectFields().forEach(el=>{if(el.id)values[el.id]=el.value});return values}
-function syncSharedProject(){try{const p=currentProject(),v=p&&p.values?p.values:readProjectValues();const price=parseNumericInput(v.listingPrice||v.purchase||'')||'';localStorage.setItem('rei-shared-project-v1',JSON.stringify({projectId:p&&p.id||'',name:v.name||v.listingAddress||p&&p.title||'',title:p&&p.title||v.name||'',address:v.locationAnalysisAddress||v.listingAddress||v.name||'',location:v.locationAnalysisAddress||v.listingAddress||'',url:v.listingURL||v.url||'',listingURL:v.listingURL||v.url||'',price:String(price),listingPrice:String(price),area:v.listingArea||'',listingArea:v.listingArea||'',updatedAt:new Date().toISOString()}))}catch(e){}}
+function syncSharedProject(){try{const p=currentProject(),v=p&&p.values?p.values:readProjectValues();const price=parseNumericInput(v.listingPrice||v.purchase||'')||'';localStorage.setItem('rei-shared-project-v1',JSON.stringify({projectId:p&&p.id||'',name:v.name||v.listingAddress||p&&p.title||'',title:p&&p.title||v.name||'',address:v.listingAddress||v.locationAnalysisAddress||'',location:v.listingAddress||v.locationAnalysisAddress||'',url:v.listingURL||v.url||'',listingURL:v.listingURL||v.url||'',price:String(price),listingPrice:String(price),area:v.listingArea||'',listingArea:v.listingArea||'',updatedAt:new Date().toISOString()}))}catch(e){}}
 function saveActiveProject(){
  if(projectSwitching||!activeProjectId)return;
  const p=currentProject();if(!p)return;
@@ -579,9 +579,17 @@ async function analyzeLocation(){
  }catch(err){status.textContent='Analýza se nepodařila: '+(err&&err.message?err.message:'neznámá chyba')+'. Zkus doplnit přesnou adresu nebo analýzu opakovat.'}
  finally{button.disabled=false;button.textContent='Analyzovat lukrativnost lokality'}
 }
-$('analyzeLocation').addEventListener('click',analyzeLocation);
-$('locationAnalysisAddress').value=($('listingAddress')&&$('listingAddress').value)||$('marketLocation').value||'';
-$('locationAnalysisAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();analyzeLocation()}});
+function openDedicatedLocationAnalysis(){
+ const status=$('locationAnalysisStatus');
+ const address=(($('listingAddress')&&$('listingAddress').value)||($('locationAnalysisAddress')&&$('locationAnalysisAddress').value)||'').trim();
+ if(address.length<4){status.textContent='Nejdřív zadej adresu nemovitosti do pole „Název / lokalita z inzerátu“. Potom znovu otevři analýzu okolí.';if($('listingAddress'))$('listingAddress').focus();return}
+ try{const old=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'{}');localStorage.setItem('rei-shared-project-v1',JSON.stringify({...old,address,location:address,name:($('name')&&$('name').value)||old.name||address,title:($('name')&&$('name').value)||old.title||address,url:($('listingURL')&&$('listingURL').value)||old.url||'',listingURL:($('listingURL')&&$('listingURL').value)||old.listingURL||'',price:($('listingPrice')&&$('listingPrice').value)||old.price||'',listingPrice:($('listingPrice')&&$('listingPrice').value)||old.listingPrice||'',area:($('listingArea')&&$('listingArea').value)||old.area||'',listingArea:($('listingArea')&&$('listingArea').value)||old.listingArea||'',updatedAt:new Date().toISOString()}))}catch(e){}
+ location.href='lukrativita-okoli.html';
+}
+$('analyzeLocation').textContent='Otevřít analýzu okolí →';
+$('analyzeLocation').addEventListener('click',openDedicatedLocationAnalysis);
+$('locationAnalysisAddress').value=($('listingAddress')&&$('listingAddress').value)||'';
+$('locationAnalysisAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();openDedicatedLocationAnalysis()}});
 
 function save(){const d={};ids.forEach(id=>d[id]=$(id).value);localStorage.setItem('rei-calc-v1',JSON.stringify(d));calc()}
 ids.forEach(id=>$(id).addEventListener('input',()=>{save();updateInvestment()}));
