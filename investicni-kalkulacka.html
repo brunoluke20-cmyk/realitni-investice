@@ -581,7 +581,7 @@ async function analyzeLocation(){
 }
 function openDedicatedLocationAnalysis(){
  const status=$('locationAnalysisStatus');
- const address=(($('listingAddress')&&$('listingAddress').value)||($('locationAnalysisAddress')&&$('locationAnalysisAddress').value)||'').trim();
+ const address=(($('locationAnalysisAddress')&&$('locationAnalysisAddress').value)||($('listingAddress')&&$('listingAddress').value)||'').trim();
  if(address.length<4){status.textContent='Nejdřív zadej adresu nemovitosti do pole „Název / lokalita z inzerátu“. Potom znovu otevři analýzu okolí.';if($('listingAddress'))$('listingAddress').focus();return}
  try{const old=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'{}');localStorage.setItem('rei-shared-project-v1',JSON.stringify({...old,address,location:address,name:($('name')&&$('name').value)||old.name||address,title:($('name')&&$('name').value)||old.title||address,url:($('listingURL')&&$('listingURL').value)||old.url||'',listingURL:($('listingURL')&&$('listingURL').value)||old.listingURL||'',price:($('listingPrice')&&$('listingPrice').value)||old.price||'',listingPrice:($('listingPrice')&&$('listingPrice').value)||old.listingPrice||'',area:($('listingArea')&&$('listingArea').value)||old.area||'',listingArea:($('listingArea')&&$('listingArea').value)||old.listingArea||'',updatedAt:new Date().toISOString()}))}catch(e){}
  location.href='lukrativita-okoli.html';
