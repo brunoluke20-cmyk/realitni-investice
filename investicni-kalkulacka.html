@@ -63,6 +63,17 @@
 <div class="metric"><small>Splátka hypotéky / měsíc</small><strong id="rentMortgage">—</strong></div>
 <div class="metric"><small>Cashflow po nákladech a splátce</small><strong id="cashflow">—</strong></div>
 </div>
+<div class="card" id="cashflowRecommendation" style="margin-top:14px;background:#f8fafc">
+<h3 style="margin:0 0 6px">Doporučený strop kupní ceny podle cashflow</h3>
+<p class="muted" style="margin-top:0">Počítá se z počtu bytů a nájmů výše, rezervy na neobsazenost, provozních nákladů a nastavených parametrů hypotéky. Jde o orientační strop ceny samotné nemovitosti, ne o celkový rozpočet včetně rekonstrukce a poplatků.</p>
+<div class="field" style="max-width:320px;margin-bottom:12px"><label for="targetPositiveCashflow">Cílové kladné cashflow (Kč / měsíc)</label><input id="targetPositiveCashflow" type="number" min="0" step="500" value="5000"></div>
+<div class="quick-results">
+<div class="metric"><small>Max. kupní cena pro neutrální cashflow (0 Kč/měs.)</small><strong id="neutralPrice">—</strong></div>
+<div class="metric"><small>Max. kupní cena pro cílové kladné cashflow</small><strong id="positivePrice">—</strong></div>
+<div class="metric"><small>Čistý nájem po rezervách a provozu</small><strong id="netRentForRecommendation">—</strong></div>
+</div>
+<p id="cashflowRecommendationNote" class="muted" style="margin-bottom:0">Výsledek je orientační a závisí na uvedených nájmech, nákladech a podmínkách úvěru.</p>
+</div>
 <p class="muted">Cashflow je před zdaněním a nezahrnuje automaticky všechny poplatky, pojištění, správu, mimořádné opravy ani změny úrokové sazby. Zkontroluj, které služby platí nájemník a které majitel.</p>
 </section>
 
@@ -427,6 +438,29 @@ function updateInvestment(){
  const principal=getVal('purchase')*Math.min(100,getVal('ltv'))/100;
  const loan=mortgage(principal,getVal('rate'),Math.max(1,getVal('term')),getVal('months'));
  const cf=gross-costs-loan.payment;
+ // Doporučená kupní cena podle požadovaného měsíčního cashflow.
+ const netRent=gross-costs;
+ const ltvRatio=Math.min(100,getVal('ltv'))/100;
+ const annualRate=getVal('rate'),termYears=Math.max(1,getVal('term'));
+ const targetPositive=Math.max(0,getVal('targetPositiveCashflow'));
+ const neutralEl=$('neutralPrice'),positiveEl=$('positivePrice'),netRentEl=$('netRentForRecommendation'),noteEl=$('cashflowRecommendationNote');
+ if(netRentEl)netRentEl.textContent=fmt(netRent);
+ const priceForTarget=target=>{
+  const paymentCapacity=netRent-target;
+  if(paymentCapacity<0)return null;
+  if(ltvRatio<=0)return Infinity;
+  const paymentPerCurrencyUnit=mortgage(1,annualRate,termYears,0).payment;
+  return paymentPerCurrencyUnit>0?paymentCapacity/(paymentPerCurrencyUnit*ltvRatio):Infinity;
+ };
+ const neutralPrice=priceForTarget(0),positivePrice=priceForTarget(targetPositive);
+ const showPrice=value=>value===null?'Nedosažitelné při tomto nájmu':value===Infinity?'Bez hypotéky nelze stanovit strop z cashflow':fmt(Math.max(0,value));
+ if(neutralEl)neutralEl.textContent=showPrice(neutralPrice);
+ if(positiveEl)positiveEl.textContent=showPrice(positivePrice);
+ if(noteEl){
+  if(units<=0)noteEl.textContent='Zadej alespoň jeden byt a odhad jeho měsíčního nájmu.';
+  else if(netRent<0)noteEl.textContent='Odhadované provozní náklady a rezerva převyšují nájemné. Uprav vstupy; samotná kupní cena tento provozní deficit nevyřeší.';
+  else noteEl.textContent='Strop se počítá při LTV '+Math.round(ltvRatio*100)+' %, úroku '+annualRate.toLocaleString('cs-CZ')+' % p. a. a splatnosti '+termYears+' let. Kladný scénář cílí na '+fmt(targetPositive)+' měsíčně. Nezahrnuje daně, mimořádné opravy ani další náklady, které nejsou ve vstupních procentech.';
+ }
  const years=Math.max(1,Number($('projectionYears').value)||5);
  const rate=Number($('appreciation').value)||0;
  const future=currentValue*Math.pow(1+rate/100,years);
@@ -444,7 +478,7 @@ function updateInvestment(){
  pairs.forEach(([id,val])=>{const el=$(id);el.textContent=val});
  signClass($('cashflow'),cf);signClass($('annualCashflow'),annual);signClass($('appreciationGain'),gain);signClass($('yearOneGain'),yearOne);signClass($('yearOneTotal'),allYear);
 }
-['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
+['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears','ltv','rate','term','targetPositiveCashflow'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
 
 
 
