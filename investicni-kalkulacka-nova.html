@@ -180,6 +180,16 @@ function updateListingPriceM2(){
  const price=parseNumericInput($('listingPrice').value),area=Number($('listingArea').value)||0;
  $('listingPriceM2').value=price>0&&area>0?new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(price/area)+' Kč/m²':'—';
 }
+function applyDispositionToRentMix(disposition){
+ const text=String(disposition||'').toLowerCase().replace(/\s/g,'').replace(/pokojovýbyt|byt/gi,'');
+ const match=text.match(/([1-4])\s*\+\s*(kk|1|kuchyn[iě])/i);
+ if(!match)return false;
+ const rooms=Number(match[1]);
+ const target=rooms>=4?4:rooms;
+ [1,2,3,4].forEach(i=>{if($('count'+i))$('count'+i).value=i===target?'1':'0'});
+ updateInvestment();
+ return true;
+}
 function openListingURL(){
  const url=($('listingURL').value||$('url').value||'').trim();
  if(/^https?:\/\//i.test(url))window.open(url,'_blank','noopener');
@@ -252,7 +262,7 @@ async function importSrealityListing(){
   if(facts.price){$('listingPrice').value=String(facts.price);$('purchase').value=String(facts.price);$('quickPurchase').value=Math.max(8,Math.min(30,facts.price/1000000)).toFixed(1);filled.push('cena')}else if(/\/detail\/prodej\//i.test(url)){ $('listingPrice').value=''; $('listingPriceM2').value='—'; if(parseNumericInput($('purchase').value)<100000)$('purchase').value=''; }
   if(facts.area){$('listingArea').value=String(facts.area);filled.push('užitná plocha')}
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
-  if(facts.disposition){$('listingDisposition').value=facts.disposition;filled.push('dispozice')}
+  if(facts.disposition){$('listingDisposition').value=facts.disposition;applyDispositionToRentMix(facts.disposition);filled.push('dispozice')}
   $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
   const p=currentProject();if(p){p.title=facts.name||facts.location||p.title;p.values=readProjectValues();saveActiveProject()}
   if(filled.length){status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';status.dataset.loadedUrl=url}
