@@ -16,6 +16,7 @@
 <div id="contactStatus" class="status" role="status"></div>
 <div class="source-note">Zkusím načíst veřejné údaje z běžných realitních portálů a realitek. Telefon se doplní, pokud je dostupný ve stránce nebo jejích veřejných datech. Pokud ho portál zobrazí až po kliknutí na „Zobrazit telefon“ nebo po přihlášení, otevři původní inzerát a číslo doplň ručně.</div>
 </div>
+<section class="card" id="listingSummary"><h2>Rychlý přehled inzerátu</h2><p class="muted">Tři hlavní body vytažené z veřejného popisu nebo strukturovaných dat inzerátu.</p><ol id="keyPoints" style="padding-left:22px"><li class="muted">Po načtení se zde zobrazí tři hlavní body inzerátu.</li></ol><input id="listingKeyPoints" type="hidden" value="[]"></section>
 <div class="grid">
 <section class="card"><div class="section-title"><h2>2. Kontakty a stav hovoru</h2><span class="pill" id="currentStatus">Nový úkol</span></div>
 <div class="grid">
@@ -48,7 +49,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const STORE='rei-call-brief-v1';
-const fieldIds=['listingUrl','listingTitle','listingAddress','listingPrice','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'];
+const fieldIds=['listingUrl','listingTitle','listingAddress','listingPrice','listingKeyPoints','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'];
 const questions=[
 {section:'A. Dostupnost a motivace',items:[
 ['Je nemovitost stále k dispozici a kdo je vlastníkem?','Ověř, jestli mluvíš s majitelem nebo zprostředkovatelem a kdo rozhoduje o prodeji.'],
@@ -85,7 +86,7 @@ function scheduleSave(){if(loadingRecord)return;if(saveTimer)clearTimeout(saveTi
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderQuestions(r){$('questions').innerHTML=questions.map((group,gi)=>'<h3 style="margin-top:18px">'+esc(group.section)+'</h3>'+group.items.map((q,qi)=>{const key=gi+'-'+qi;return '<div class="question"><label><input type="checkbox" data-qcheck="'+key+'" '+(r.checks?.[key]?'checked':'')+'><span>'+esc(q[0])+'</span></label><div class="muted small">'+esc(q[1])+'</div><textarea class="answer" data-answer="'+key+'" placeholder="Odpověď / poznámka…">'+esc(r.answers?.[key]||'')+'</textarea></div>'}).join('')).join('')}
 function renderTodos(r){const list=[['call','Zavolat na tento inzerát'],['verify','Prověřit odpovědi a právní stav'],['docs','Vyžádat slíbené dokumenty'],['visit','Domluvit / absolvovat prohlídku']];$('todoList').innerHTML=list.map(([key,label])=>'<label class="todo"><input type="checkbox" data-todo="'+key+'" '+(r.todos?.[key]?'checked':'')+'><span>'+label+'</span></label>').join('')}
-function loadRecord(r){if(!r)return;loadingRecord=true;currentId=r.id;fieldIds.forEach(k=>{if($(k))$(k).value=r[k]||''});renderQuestions(r);renderTodos(r);$('currentStatus').textContent=({todo:'Chci zavolat',called:'Voláno',followup:'Další krok',visit:'Prohlídka',done:'Vyřízeno',skip:'Nezájem'})[r.callState||'todo']||'Nový úkol';refreshLinks();loadingRecord=false;renderList()}
+function loadRecord(r){if(!r)return;loadingRecord=true;currentId=r.id;fieldIds.forEach(k=>{if($(k))$(k).value=r[k]||''});renderQuestions(r);renderTodos(r);$('currentStatus').textContent=({todo:'Chci zavolat',called:'Voláno',followup:'Další krok',visit:'Prohlídka',done:'Vyřízeno',skip:'Nezájem'})[r.callState||'todo']||'Nový úkol';refreshLinks();try{renderKeyPoints(JSON.parse(r.listingKeyPoints||'[]'))}catch(_){renderKeyPoints([])}loadingRecord=false;renderList()}
 function refreshLinks(){const u=$('listingUrl').value.trim();const link=$('openListing');link.href=/^https?:\/\//i.test(u)?u:'#';link.style.opacity=link.href.endsWith('#')?'.5':'1';const phone=$('phone').value.trim().replace(/[^\d+]/g,'');const canCall=/^\+?\d{7,15}$/.test(phone);$('callLink').href=canCall?'tel:'+phone:'#';$('callLink').style.opacity=canCall?'1':'.5';$('callLink').textContent=canCall?'📞 Zavolat '+$('phone').value.trim():'📞 Zavolat';$('callLink').setAttribute('aria-label',canCall?'Zavolat '+phone:'Telefon zatím není doplněný');$('callLink').title=canCall?'Zahájit hovor na '+$('phone').value.trim():'Nejdřív načti nebo doplň telefonní číslo'}
 function renderList(){const box=$('savedListings');if(!records.length){box.innerHTML='<p class="muted">Zatím tu nejsou uložené žádné inzeráty.</p>';$('todoCount').textContent='0 otevřených úkolů';return}const open=records.filter(r=>!['done','skip'].includes(r.callState||'todo')).length;$('todoCount').textContent=open+' otevřených úkolů';box.innerHTML=records.slice().sort((a,b)=>String(b.updatedAt||b.createdAt).localeCompare(String(a.updatedAt||a.createdAt))).map(r=>'<div class="listing-row"><div><strong>'+esc(r.listingTitle||r.listingAddress||r.listingUrl||'Nový inzerát')+'</strong><div class="muted small">'+esc(r.listingAddress||'Lokalita neuvedena')+(r.listingPrice?' · '+esc(r.listingPrice)+' Kč':'')+'</div><span class="pill">'+esc(({todo:'Chci zavolat',called:'Voláno',followup:'Další krok',visit:'Prohlídka',done:'Vyřízeno',skip:'Nezájem'})[r.callState||'todo'])+'</span>'+(r.phone?'<div class="small">☎ '+esc(r.phone)+'</div>':'')+'</div><button class="btn secondary" data-open="'+esc(r.id)+'">Otevřít</button></div>').join('');box.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>loadRecord(records.find(r=>r.id===b.dataset.open))))}
 function addRecord(){capture();let r=current();if(r&&!(r.listingUrl||r.listingTitle||r.listingAddress)){fieldIds.forEach(k=>{if($(k))r[k]=$(k).value});r.callState=r.callState||'todo'}else{r=blank();fieldIds.forEach(k=>{if($(k))r[k]=$(k).value});records.unshift(r)}if(!r.listingUrl&&!r.listingTitle&&!r.listingAddress){$('contactStatus').textContent='Zadej alespoň odkaz, název nebo lokalitu inzerátu.';return}persist();loadRecord(r);$('contactStatus').textContent='Inzerát uložen v seznamu úkolů.'}
@@ -123,29 +124,46 @@ function listingFactsFromSreality(data,url){
  return {title,address:listingAddressFromData(data,url),price:digits&&Number(digits)>=100000?Number(digits):null};
 }
 
+function renderKeyPoints(points){
+ const list=$('keyPoints');list.replaceChildren();
+ const clean=(Array.isArray(points)?points:[]).filter(x=>typeof x==='string'&&x.trim()).slice(0,3);
+ if(!clean.length){const li=document.createElement('li');li.className='muted';li.textContent='Po načtení se zde zobrazí tři hlavní body inzerátu.';list.appendChild(li);return}
+ clean.forEach(point=>{const li=document.createElement('li');li.textContent=point;list.appendChild(li)});
+}
 $('loadContact').addEventListener('click',async()=>{
- const url=$('listingUrl').value.trim();if(!url){$('contactStatus').textContent='Nejdřív vlož odkaz na inzerát.';return}
+ const url=$('listingUrl').value.trim();
+ if(!url){$('contactStatus').textContent='Nejdřív vlož odkaz na inzerát.';return}
  if(!/^https?:\/\//i.test(url)){$('contactStatus').textContent='Odkaz musí začínat https:// nebo http://.';return}
- const b=$('loadContact');b.disabled=true;b.textContent='Načítám veřejné údaje…';$('contactStatus').textContent='Načítám základní údaje stejným zdrojem jako investiční kalkulačka…';
+ const b=$('loadContact');b.disabled=true;b.textContent='Prohledávám data inzerátu…';
+ $('contactStatus').textContent='Načítám zdroj stránky a hledám cenu, lokalitu, kontakt a hlavní body…';
  const found=[];
  try{
-  const host=new URL(url).hostname.toLowerCase();
-  if(host==='sreality.cz'||host.endsWith('.sreality.cz')){
-   const m=new URL(url).pathname.match(/\/(\d{6,})(?:\/)?$/);if(!m)throw new Error('V odkazu Sreality chybí ID inzerátu.');
-   const pr=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(m[1])+'&url='+encodeURIComponent(url),{headers:{Accept:'application/json'},cache:'no-store'});
-   const pd=await pr.json().catch(()=>null);
-   if(pr.ok&&pd){const f=listingFactsFromSreality(pd,url);if(f.title){$('listingTitle').value=f.title;found.push('název')}if(f.address){$('listingAddress').value=f.address;found.push('adresa')}if(f.price){$('listingPrice').value=Number(f.price).toLocaleString('cs-CZ');found.push('cena')}}
-   else $('contactStatus').textContent='První zdroj nevrátil údaje, zkouším druhý zdroj…';
+  const res=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/call-brief?url='+encodeURIComponent(url),{
+   headers:{Accept:'application/json'},cache:'no-store'
+  });
+  const d=await res.json().catch(()=>null);
+  if(!res.ok||!d||!d.ok){
+   const diag=d&&d.error?d.error:'Zdroj nevrátil čitelné údaje.';
+   throw new Error(diag+' Otevři původní inzerát a ověř, že je veřejně dostupný.');
   }
-  try{
-   const res=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/call-brief?url='+encodeURIComponent(url),{headers:{Accept:'application/json'},cache:'no-store'}),d=await res.json().catch(()=>null);
-   if(res.ok&&d&&d.ok){if(d.title&&!$('listingTitle').value){$('listingTitle').value=d.title;found.push('název')}if(d.address&&!$('listingAddress').value){$('listingAddress').value=d.address;found.push('adresa')}if(d.price&&!$('listingPrice').value){$('listingPrice').value=Number(d.price).toLocaleString('cs-CZ');found.push('cena')}if(d.contactName){$('contactName').value=d.contactName;found.push('jméno prodávajícího')}if(d.agency){$('agency').value=d.agency;found.push('realitka')}if(d.phone){$('phone').value=d.phone;found.push('telefon')}if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}}
-  }catch(_){}
-  const unique=[...new Set(found)];if(!unique.length)throw new Error('Žádný zdroj nevrátil rozpoznatelné údaje. Portál může blokovat automatické načítání.');
-  $('contactStatus').textContent='Načteno: '+unique.join(', ')+'.'+(found.includes('telefon')?' Ověř číslo před voláním.':' Telefon se doplní jen tehdy, pokud ho portál zpřístupňuje veřejně.');
+  if(d.title){$('listingTitle').value=d.title;found.push('název')}
+  if(d.address){$('listingAddress').value=d.address;found.push('lokalita')}
+  if(d.price){$('listingPrice').value=Number(String(d.price).replace(/[^\d]/g,'')).toLocaleString('cs-CZ');found.push('cena')}
+  if(d.contactName){$('contactName').value=d.contactName;found.push('jméno kontaktu')}
+  if(d.agency){$('agency').value=d.agency;found.push('realitka')}
+  if(d.phone){$('phone').value=d.phone;found.push('telefon')}
+  if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}
+  const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
+  $('listingKeyPoints').value=JSON.stringify(points);
+  renderKeyPoints(points);
+  const r=current();if(r)r.keyPoints=points;
+  const unique=[...new Set(found)];
+  $('contactStatus').textContent=(unique.length?'Načteno: '+unique.join(', ')+'. ':'Základní pole se nepodařilo vyplnit. ')+
+   (d.phone?'Telefon nalezen — před hovorem ověř, že patří k tomuto inzerátu.':'Telefon není ve veřejných datech dostupný, nebo jej portál skrývá.');
   refreshLinks();capture();
- }catch(e){$('contactStatus').textContent=(e.message||'Načtení se nezdařilo.')+' Zkontroluj odkaz na veřejný detail inzerátu.'}
- finally{b.disabled=false;b.textContent='🔎 Načíst údaje a kontakt z inzerátu'}
+ }catch(e){
+  $('contactStatus').textContent=(e.message||'Načítání se nezdařilo.')+' Zkus veřejný odkaz na detail inzerátu, ne stránku výsledků vyhledávání.';
+ }finally{b.disabled=false;b.textContent='🔎 Načíst údaje a kontakt z inzerátu'}
 });
 document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')){refreshLinks();scheduleSave()}});
 document.addEventListener('change',e=>{if(e.target.matches('input,textarea,select')){if(e.target.id==='callState')$('currentStatus').textContent=e.target.options[e.target.selectedIndex].text;refreshLinks();scheduleSave()}});
