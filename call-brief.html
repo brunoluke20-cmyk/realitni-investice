@@ -98,7 +98,55 @@ $('deleteCurrent').addEventListener('click',()=>{if(!current())return;if(!confir
 function download(name,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('exportOne').addEventListener('click',()=>{capture();if(current())download('call-brief-'+current().id+'.json',current())});
 $('exportAll').addEventListener('click',()=>{capture();download('realitni-call-brief-zaloha.json',records)});
-$('loadContact').addEventListener('click',async()=>{const url=$('listingUrl').value.trim();if(!url){$('contactStatus').textContent='Nejdřív vlož odkaz na inzerát.';return}if(!/^https?:\/\//i.test(url)){ $('contactStatus').textContent='Odkaz musí začínat https:// nebo http://.';return}const b=$('loadContact');b.disabled=true;b.textContent='Načítám veřejné údaje…';$('contactStatus').textContent='Zkouším načíst údaje z veřejné stránky a jejích strukturovaných dat…';try{const res=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/call-brief?url='+encodeURIComponent(url),{headers:{Accept:'application/json'},cache:'no-store'});const d=await res.json().catch(()=>null);if(!res.ok||!d||!d.ok)throw new Error(d?.error||'Údaje se nepodařilo načíst.');if(d.title)$('listingTitle').value=d.title;if(d.address)$('listingAddress').value=d.address;if(d.price)$('listingPrice').value=Number(d.price).toLocaleString('cs-CZ');if(d.contactName)$('contactName').value=d.contactName;if(d.agency)$('agency').value=d.agency;if(d.phone)$('phone').value=d.phone;if(d.email)$('contactEmail').value=d.email;$('contactStatus').textContent='Načteno: '+((d.fieldsFound||[]).map(k=>({title:'název',address:'adresa',price:'cena',contactName:'jméno',agency:'realitka',phone:'telefon',email:'e-mail'}[k]||k)).join(', ')||'bez rozpoznaných údajů')+'. '+(d.note||'');refreshLinks();capture()}catch(e){$('contactStatus').textContent=(e.message||'Načtení se nezdařilo.')+' Otevři původní inzerát a kontakt případně doplň ručně.'}finally{b.disabled=false;b.textContent='🔎 Načíst údaje a kontakt z inzerátu'}});
+
+function findNestedListingValue(obj,keys,depth=0){
+ if(!obj||typeof obj!=='object'||depth>9)return null;
+ for(const [k,v] of Object.entries(obj)){
+  if(keys.includes(k.toLowerCase())){
+   if(typeof v==='string'||typeof v==='number')return v;
+   if(v&&typeof v==='object')for(const sub of ['value_raw','value','name','title','text'])if(v[sub]!=null&&(typeof v[sub]==='string'||typeof v[sub]==='number'))return v[sub];
+  }
+ }
+ for(const v of Object.values(obj)){const x=findNestedListingValue(v,keys,depth+1);if(x!==null&&x!==undefined&&x!=='')return x}
+ return null;
+}
+function listingAddressFromData(data,url){
+ const loc=findNestedListingValue(data,['locality','locality_name','address','formatted_address','street_address']);
+ if(typeof loc==='string'&&loc.trim())return loc.trim();
+ try{const p=new URL(url).pathname.split('/').filter(Boolean),i=p.findIndex(x=>['rodinny','byt','dum','pozemek','komercni'].includes(x)),slug=i>=0?p[i+1]:'';if(!slug)return '';const words=slug.split('-'),ci=words.findIndex(w=>['praha','brno','ostrava'].includes(w));if(ci>=0){const city=words[ci]==='praha'?'Praha':words[ci]==='brno'?'Brno':'Ostrava';const before=words.slice(0,ci).join(' '),after=words.slice(ci+1).join(' ');return [before,city+(after?' - '+after:'')].filter(Boolean).map(s=>s.replace(/\b\p{L}/gu,x=>x.toLocaleUpperCase('cs-CZ'))).join(', ')}return words.join(' ').replace(/\b\p{L}/gu,x=>x.toLocaleUpperCase('cs-CZ'))}catch(_){return ''}
+}
+function listingFactsFromSreality(data,url){
+ let title=findNestedListingValue(data,['title','advert_name','name','seo_name'])||'';
+ title=String(title).replace(/\s*[•|]\s*Sreality\.cz.*$/i,'').trim();
+ const raw=findNestedListingValue(data,['price_czk','price_czk_value_raw','price_value','price','price_raw']);
+ const digits=raw==null?'':String(raw).replace(/[^\d]/g,'');
+ return {title,address:listingAddressFromData(data,url),price:digits&&Number(digits)>=100000?Number(digits):null};
+}
+
+$('loadContact').addEventListener('click',async()=>{
+ const url=$('listingUrl').value.trim();if(!url){$('contactStatus').textContent='Nejdřív vlož odkaz na inzerát.';return}
+ if(!/^https?:\/\//i.test(url)){$('contactStatus').textContent='Odkaz musí začínat https:// nebo http://.';return}
+ const b=$('loadContact');b.disabled=true;b.textContent='Načítám veřejné údaje…';$('contactStatus').textContent='Načítám základní údaje stejným zdrojem jako investiční kalkulačka…';
+ const found=[];
+ try{
+  const host=new URL(url).hostname.toLowerCase();
+  if(host==='sreality.cz'||host.endsWith('.sreality.cz')){
+   const m=new URL(url).pathname.match(/\/(\d{6,})(?:\/)?$/);if(!m)throw new Error('V odkazu Sreality chybí ID inzerátu.');
+   const pr=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(m[1])+'&url='+encodeURIComponent(url),{headers:{Accept:'application/json'},cache:'no-store'});
+   const pd=await pr.json().catch(()=>null);
+   if(pr.ok&&pd){const f=listingFactsFromSreality(pd,url);if(f.title){$('listingTitle').value=f.title;found.push('název')}if(f.address){$('listingAddress').value=f.address;found.push('adresa')}if(f.price){$('listingPrice').value=Number(f.price).toLocaleString('cs-CZ');found.push('cena')}}
+   else $('contactStatus').textContent='První zdroj nevrátil údaje, zkouším druhý zdroj…';
+  }
+  try{
+   const res=await fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/call-brief?url='+encodeURIComponent(url),{headers:{Accept:'application/json'},cache:'no-store'}),d=await res.json().catch(()=>null);
+   if(res.ok&&d&&d.ok){if(d.title&&!$('listingTitle').value){$('listingTitle').value=d.title;found.push('název')}if(d.address&&!$('listingAddress').value){$('listingAddress').value=d.address;found.push('adresa')}if(d.price&&!$('listingPrice').value){$('listingPrice').value=Number(d.price).toLocaleString('cs-CZ');found.push('cena')}if(d.contactName){$('contactName').value=d.contactName;found.push('jméno prodávajícího')}if(d.agency){$('agency').value=d.agency;found.push('realitka')}if(d.phone){$('phone').value=d.phone;found.push('telefon')}if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}}
+  }catch(_){}
+  const unique=[...new Set(found)];if(!unique.length)throw new Error('Žádný zdroj nevrátil rozpoznatelné údaje. Portál může blokovat automatické načítání.');
+  $('contactStatus').textContent='Načteno: '+unique.join(', ')+'.'+(found.includes('telefon')?' Ověř číslo před voláním.':' Telefon se doplní jen tehdy, pokud ho portál zpřístupňuje veřejně.');
+  refreshLinks();capture();
+ }catch(e){$('contactStatus').textContent=(e.message||'Načtení se nezdařilo.')+' Zkontroluj odkaz na veřejný detail inzerátu.'}
+ finally{b.disabled=false;b.textContent='🔎 Načíst údaje a kontakt z inzerátu'}
+});
 document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')){refreshLinks();scheduleSave()}});
 document.addEventListener('change',e=>{if(e.target.matches('input,textarea,select')){if(e.target.id==='callState')$('currentStatus').textContent=e.target.options[e.target.selectedIndex].text;refreshLinks();scheduleSave()}});
 records=readStore();if(records.length)loadRecord(records[0]);else{const r=blank();records.push(r);loadRecord(r)}renderList();
