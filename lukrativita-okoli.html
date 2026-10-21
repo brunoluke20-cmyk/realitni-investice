@@ -181,11 +181,13 @@ async function findAddressSuggestions(query){
     results=normalize((Array.isArray(data)?data:[]).map(x=>({label:x.display_name,lat:x.lat,lon:x.lon,type:x.type||'address'})));
    }catch(err){if(err.name==='AbortError')return;errors.push('Nominatim není dostupný');}
   }
-  if(!isCurrent())return;
-  if(results.length)renderAddressSuggestions(results);
-  else showSuggestionMessage('Adresu se nepodařilo najít. Doplň číslo domu a město nebo zkus chvíli počkat.'+(errors.length?' Zdroje jsou dočasně nedostupné.':''));
+  if(!isCurrent())return [];
+  if(results.length){renderAddressSuggestions(results);return results;}
+  showSuggestionMessage('Adresu se nepodařilo najít. Doplň číslo domu a město nebo zkus chvíli počkat.'+(errors.length?' Zdroje jsou dočasně nedostupné.':''));
+  return [];
  }catch(err){
   if(err.name!=='AbortError'&&isCurrent())showSuggestionMessage('Automatické vyhledávání je dočasně nedostupné. Zkus doplnit město.');
+  return [];
  }
 }
 function renderLocalScore(data, transitMinutes=null, dailyDepartures=null){
@@ -524,7 +526,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.address-wrap'))clos
 $('analyzeLocation').addEventListener('click',analyzeLocation);
 addressInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&suggestions.hidden){e.preventDefault();analyzeLocation()}});
 let sharedAutoAnalysisStarted=false;
-function loadSharedListingAndAnalyze(){
+async function loadSharedListingAndAnalyze(){
  if(sharedAutoAnalysisStarted||$('appMain').hidden)return;
  let shared;
  try{shared=JSON.parse(localStorage.getItem('rei-shared-project-v1')||'null')}catch(_e){shared=null}
@@ -533,8 +535,21 @@ function loadSharedListingAndAnalyze(){
  if(address.length<4)return;
  sharedAutoAnalysisStarted=true;
  addressInput.value=address;
- $('locationAnalysisStatus').textContent='Načtena adresa ze sdíleného inzerátu. Spouštím analýzu okolí…';
- analyzeLocation();
+ $('locationAnalysisStatus').textContent='Hledám nejbližší odpovídající adresu. Za chvíli ji můžeš potvrdit.';
+ const results=await findAddressSuggestions(address);
+ if(!results.length){
+  $('locationAnalysisStatus').textContent='Adresu se nepodařilo automaticky upřesnit. Vyber návrh z nabídky nebo doplň ulici a město.';
+  return;
+ }
+ const candidate=results[0];
+ if(window.confirm('Našel jsem nejbližší odpovídající adresu:\n\n'+candidate.label+'\n\nJe to správná adresa?\n\nZvol Ano pro okamžitou analýzu, nebo Ne pro výběr jiného návrhu.')){
+  chooseAddress(candidate);
+  $('locationAnalysisStatus').textContent='Adresa potvrzena. Spouštím analýzu okolí…';
+  await analyzeLocation();
+ }else{
+  $('locationAnalysisStatus').textContent='Vyber prosím správnou adresu z nabídky pod polem.';
+  addressInput.focus();
+ }
 }
 document.addEventListener('rei-app-unlocked',loadSharedListingAndAnalyze);
 if(!$('appMain').hidden)loadSharedListingAndAnalyze();
