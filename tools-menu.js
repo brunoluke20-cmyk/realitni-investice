@@ -5,6 +5,7 @@
     ['investicni-kalkulacka.html', '🧮', 'Investiční kalkulačka'],
     ['odhad-zastavni-hodnoty.html', '🏦', 'Odhad zástavní hodnoty'],
     ['spravce-projektu.html', '📋', 'Správce projektu a prohlídky'],
+    ['call-brief.html', '📞', 'Příprava na telefonát'],
     ['lukrativita-okoli.html', '📍', 'Lukrativita okolí']
   ];
   const current = location.pathname.split('/').pop() || 'index.html';
