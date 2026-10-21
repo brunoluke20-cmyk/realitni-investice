@@ -60,7 +60,18 @@
 <div class="metric"><small>Splátka hypotéky / měsíc</small><strong id="rentMortgage">—</strong></div>
 <div class="metric"><small>Cashflow po nákladech a splátce</small><strong id="cashflow">—</strong></div>
 </div>
-<p class="muted">Cashflow je před zdaněním a nezahrnuje automaticky všechny poplatky, pojištění, správu, mimořádné opravy ani změny úrokové sazby. Zkontroluj, které služby platí nájemník a které majitel.</p>
+<div class="card" id="cashflowRecommendation" style="margin-top:14px;background:#f8fafc">
+<h3 style="margin:0 0 6px">Doporučená kupní cena podle dispozic a cashflow</h3>
+<p class="muted" style="margin-top:0">Cena nemovitosti, při které odhadovaný čistý nájem po rezervě na neobsazenost a provozu pokryje hypotéku. Výpočet používá skladbu bytů v tabulce a parametry hypotéky níže.</p>
+<div class="field" style="max-width:320px;margin-bottom:12px"><label for="targetPositiveCashflow">Požadované kladné cashflow (Kč / měsíc)</label><input id="targetPositiveCashflow" type="number" min="0" step="500" value="5000"></div>
+<div class="quick-results">
+<div class="metric"><small>Max. kupní cena – neutrální cashflow</small><strong id="neutralPrice">—</strong></div>
+<div class="metric"><small>Max. kupní cena – cílové kladné cashflow</small><strong id="positivePrice">—</strong></div>
+<div class="metric"><small>Čistý nájem po rezervách a provozu</small><strong id="netRentForRecommendation">—</strong></div>
+</div>
+<p id="cashflowRecommendationNote" class="muted" style="margin-bottom:0">Výsledek je orientační. Ověř skutečné nájemné, náklady a podmínky financování.</p>
+</div>
+<p class="muted">Cashflow je před zdaněním a nezahrnuje automaticky všechny poplatky, pojištění, správu, mimořádné opravy, daně ani změny úrokové sazby. Zkontroluj, které služby platí nájemník a které majitel.</p>
 </section>
 
 <section class="card" id="locationAnalysisSection">
@@ -388,6 +399,28 @@ function updateInvestment(){
  const principal=getVal('purchase')*Math.min(100,getVal('ltv'))/100;
  const loan=mortgage(principal,getVal('rate'),Math.max(1,getVal('term')),getVal('months'));
  const cf=gross-costs-loan.payment;
+ // Doporučená kupní cena při neutrálním a kladném cashflow.
+ const netRent=gross-costs;
+ const ltvRatio=Math.min(100,getVal('ltv'))/100;
+ const annualRate=getVal('rate'),termYears=Math.max(1,getVal('term'));
+ const targetPositive=Math.max(0,getVal('targetPositiveCashflow'));
+ const priceForTarget=target=>{
+  const capacity=netRent-target;
+  if(units<=0||capacity<0)return null;
+  if(ltvRatio<=0)return Infinity;
+  const monthlyPaymentPerKc=mortgage(1,annualRate,termYears,0).payment;
+  return monthlyPaymentPerKc>0?capacity/(monthlyPaymentPerKc*ltvRatio):Infinity;
+ };
+ const neutralPrice=priceForTarget(0),positivePrice=priceForTarget(targetPositive);
+ const showRecommendedPrice=value=>value===null?'Nedosažitelné při tomto nájmu':value===Infinity?'Nelze stanovit bez hypotéky':fmt(Math.max(0,value));
+ if($('neutralPrice'))$('neutralPrice').textContent=showRecommendedPrice(neutralPrice);
+ if($('positivePrice'))$('positivePrice').textContent=showRecommendedPrice(positivePrice);
+ if($('netRentForRecommendation'))$('netRentForRecommendation').textContent=fmt(netRent);
+ if($('cashflowRecommendationNote')){
+  if(units<=0)$('cashflowRecommendationNote').textContent='Zadej alespoň jeden byt v tabulce dispozic.';
+  else if(netRent<0)$('cashflowRecommendationNote').textContent='Rezerva a provozní náklady převyšují nájemné. Uprav vstupy; nižší kupní cena sama nevyřeší provozní deficit.';
+  else $('cashflowRecommendationNote').textContent='Výpočet při LTV '+Math.round(ltvRatio*100)+' %, úroku '+annualRate.toLocaleString('cs-CZ')+' % p. a. a splatnosti '+termYears+' let. Kladný scénář cílí na '+fmt(targetPositive)+' měsíčně. Nezahrnuje daně ani mimořádné opravy.';
+ }
  const years=Math.max(1,Number($('projectionYears').value)||5);
  const rate=Number($('appreciation').value)||0;
  const future=currentValue*Math.pow(1+rate/100,years);
@@ -405,7 +438,7 @@ function updateInvestment(){
  pairs.forEach(([id,val])=>{const el=$(id);el.textContent=val});
  signClass($('cashflow'),cf);signClass($('annualCashflow'),annual);signClass($('appreciationGain'),gain);signClass($('yearOneGain'),yearOne);signClass($('yearOneTotal'),allYear);
 }
-['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
+['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears','ltv','rate','term','targetPositiveCashflow'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
 
 
 
