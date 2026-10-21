@@ -57,6 +57,21 @@
 <tr><td style="padding:7px">3+kk / 3+1</td><td style="padding:7px"><input class="unit-count" id="count3" type="number" min="0" max="50" value="1" style="width:85px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><input class="unit-rent" id="rent3" type="text" inputmode="numeric" min="0" step="500" value="24000" style="width:125px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><input class="unit-value" id="value3" type="text" inputmode="numeric" min="0" step="100000" value="9000000" style="width:135px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><a class="market-link" data-layout="3+kk" href="https://www.google.com/search?q=Praha+6+%C5%98epy+byt+3%2Bkk+prodej+pron%C3%A1jem" target="_blank" rel="noopener">Otevřít nabídky ↗</a></td></tr>
 <tr><td style="padding:7px">4+kk a větší</td><td style="padding:7px"><input class="unit-count" id="count4" type="number" min="0" max="50" value="0" style="width:85px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><input class="unit-rent" id="rent4" type="text" inputmode="numeric" min="0" step="500" value="30000" style="width:125px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><input class="unit-value" id="value4" type="text" inputmode="numeric" min="0" step="100000" value="12000000" style="width:135px;padding:8px;border:1px solid #cbd5df;border-radius:7px"></td><td style="padding:7px"><a class="market-link" data-layout="4+kk" href="https://www.google.com/search?q=Praha+6+%C5%98epy+byt+4%2Bkk+prodej+pron%C3%A1jem" target="_blank" rel="noopener">Otevřít nabídky ↗</a></td></tr>
 </tbody></table></div>
+<div class="card" id="marketComparablesCard" style="margin-top:14px;background:#f8fafc">
+<h3 style="margin:0 0 6px">Automatický odhad budoucí hodnoty po rozdělení na byty</h3>
+<p class="muted" style="margin-top:0">Vyhledá aktuální prodejní inzeráty bytů stejné dispozice v okolí adresy. Průměr počítá z nejbližších dostupných nabídek v nastaveném okruhu; potřebuje alespoň 2 srovnatelné inzeráty pro každou dispozici.</p>
+<div class="grid" style="align-items:end">
+<div class="field"><label for="marketRadius">Poloměr hledání</label><select id="marketRadius"><option value="1" selected>1 km</option><option value="2">2 km</option><option value="3">3 km</option><option value="5">5 km</option></select></div>
+<div class="field"><button class="btn primary" type="button" id="findMarketComparables">Najít srovnatelné prodejní inzeráty</button></div>
+</div>
+<p id="marketCompsStatus" class="muted" role="status" aria-live="polite">Zadej adresu nebo lokalitu a počty plánovaných bytů v tabulce. Odhady se nepřepíšou, pokud nenajdeme alespoň 2 srovnatelné nabídky.</p>
+<div class="quick-results">
+<div class="metric"><small>Odhadovaná hodnota všech jednotek dohromady</small><strong id="marketTotalValue">—</strong></div>
+<div class="metric"><small>Počet nalezených srovnatelných inzerátů</small><strong id="marketCompsCount">—</strong></div>
+</div>
+<div id="marketCompsResults" style="overflow-x:auto;margin-top:12px"></div>
+<p class="muted" style="margin-bottom:0">Jde o nabídkové, nikoli realizované ceny. Cena za dispozici se násobí počtem jednotek, který zadáš. Pokud nejsou alespoň 2 vhodné inzeráty, stávající hodnota dané dispozice zůstane beze změny.</p>
+</div>
 <div class="quick-results" style="margin-top:14px">
 <div class="metric"><small>Celkové měsíční nájemné</small><strong id="rentGross">—</strong></div>
 <div class="metric"><small>Odhad provozu a neobsazenosti</small><strong id="rentCosts">—</strong></div>
@@ -487,6 +502,59 @@ function updateInvestment(){
  pairs.forEach(([id,val])=>{const el=$(id);el.textContent=val});
  signClass($('cashflow'),cf);signClass($('annualCashflow'),annual);signClass($('appreciationGain'),gain);signClass($('yearOneGain'),yearOne);signClass($('yearOneTotal'),allYear);
 }
+function escapeMarketText(value){
+ return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+async function findMarketComparables(){
+ const button=$('findMarketComparables'),status=$('marketCompsStatus'),resultsEl=$('marketCompsResults');
+ const address=($('listingAddress').value||$('marketLocation').value||'').trim();
+ const activeLayouts=[1,2,3,4].filter(i=>getVal('count'+i)>0).map(i=>i+'+kk');
+ if(!address){status.textContent='Nejdřív zadej adresu nebo lokalitu nemovitosti.';return}
+ if(!activeLayouts.length){status.textContent='Zadej alespoň jeden byt v tabulce.';return}
+ button.disabled=true;button.textContent='Hledám inzeráty…';status.textContent='Ověřuji polohu a hledám aktuální prodejní nabídky v okolí…';resultsEl.innerHTML='';
+ try{
+  const endpoint='https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/market-comps?address='+encodeURIComponent(address)+'&radius='+encodeURIComponent($('marketRadius').value||'1')+'&layouts='+encodeURIComponent(activeLayouts.join(','));
+  const response=await fetch(endpoint,{headers:{'Accept':'application/json'}});
+  const data=await response.json().catch(()=>null);
+  if(!response.ok||!data||!data.ok)throw new Error(data&&data.error?data.error:'Srovnávací nabídky se nepodařilo načíst.');
+  let totalComps=0,applied=0;
+  const summaryRows=[];
+  (data.results||[]).forEach(item=>{
+   totalComps+=Number(item.count)||0;
+   const layoutIndex=Number(String(item.layout||'').split('+')[0]);
+   const count=Number($('count'+layoutIndex)?.value)||0;
+   const avg=Number(item.averagePrice)||0;
+   if(count>0&&item.count>=2&&avg>0){
+    $('value'+layoutIndex).value=String(avg);formatMoneyInput($('value'+layoutIndex));applied++;
+   }
+   summaryRows.push('<tr><td style="padding:8px;border-bottom:1px solid #e0e6ed">'+escapeMarketText(item.layout)+'</td><td style="padding:8px;border-bottom:1px solid #e0e6ed">'+(item.count>=2?fmt(avg):'Nedostatek dat')+'</td><td style="padding:8px;border-bottom:1px solid #e0e6ed">'+(item.count||0)+'</td><td style="padding:8px;border-bottom:1px solid #e0e6ed">'+(count>0&&item.count>=2?fmt(avg*count):'—')+'</td></tr>');
+   (item.listings||[]).forEach(listing=>{
+    // listing details are rendered as escaped text and links with a fixed HTTPS Sreality origin
+    const safeUrl=/^https:\/\/www\.sreality\.cz\//.test(listing.url||'')?listing.url:'#';
+    summaryRows.push('<tr><td colspan="4" style="padding:7px 8px 7px 20px;border-bottom:1px solid #edf0f4;font-size:13px"><a href="'+escapeMarketText(safeUrl)+'" target="_blank" rel="noopener">'+escapeMarketText(listing.name)+'</a> · '+fmt(Number(listing.price)||0)+' · '+escapeMarketText(listing.locality||'')+' · '+escapeMarketText(listing.distanceKm)+' km</td></tr>');
+   });
+  });
+  $('marketCompsCount').textContent=String(totalComps);
+  const counts=[1,2,3,4].map(i=>getVal('count'+i)),values=[1,2,3,4].map(i=>getVal('value'+i));
+  const totalValue=counts.reduce((sum,count,i)=>sum+count*values[i],0);
+  $('marketTotalValue').textContent=fmt(totalValue);
+  $('marketCompsResults').innerHTML='<table style="width:100%;border-collapse:collapse;min-width:440px"><thead><tr style="text-align:left;border-bottom:1px solid #dfe5eb"><th style="padding:8px">Dispozice</th><th style="padding:8px">Průměr / byt</th><th style="padding:8px">Inzerátů</th><th style="padding:8px">Hodnota počtu jednotek</th></tr></thead><tbody>'+summaryRows.join('')+'</tbody></table>';
+  // Sync the main post-reconstruction value slider to the calculated unit total.
+  if(totalValue>0){
+   quickValue=totalValue/1000000;
+   const slider=$('quickValueRange');
+   slider.min=String(Math.max(0,Math.floor(quickValue/5)*5-5));
+   slider.max=String(Math.max(45,Math.ceil(quickValue/5)*5+5));
+   slider.step='0.1';slider.value=String(quickValue);
+   updateQuick(true);
+   $('marketTotalValue').textContent=fmt(totalValue);
+  }else updateInvestment();
+  const radius=Number(data.radiusKm)||Number($('marketRadius').value)||1;
+  status.textContent='Lokalita ověřena: '+data.geocodedAddress+'. Okruh '+radius+' km. Z '+totalComps+' nalezených nabídek byly použity průměry pro '+applied+' dispozic. '+(applied<activeLayouts.length?'U dispozic bez alespoň 2 srovnatelných inzerátů zůstala původní hodnota.':'');
+ }catch(error){status.textContent=String(error&&error.message||error);$('marketCompsCount').textContent='—';}
+ finally{button.disabled=false;button.textContent='Najít srovnatelné prodejní inzeráty'}
+}
+$('findMarketComparables').addEventListener('click',findMarketComparables);
 ['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears','ltv','rate','term','targetPositiveCashflow'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
 
 
