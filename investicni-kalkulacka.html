@@ -316,6 +316,7 @@ async function importSrealityListing(){
   if(facts.landArea){$('listingLandArea').value=String(facts.landArea);filled.push('plocha pozemku')}
   if(facts.disposition){$('listingDisposition').value=facts.disposition;applyDispositionToRentMix(facts.disposition);filled.push('dispozice')}
   $('url').value=url;updateListingPriceM2();updateQuick(false);calc();updateInvestment();
+  if(facts.disposition&&resolvedLocation)scheduleMarketComparables();
   const p=currentProject();if(p){p.title=facts.name||facts.location||p.title;p.values=readProjectValues();saveActiveProject()}
   if(filled.length){status.textContent='Načteno z odpovědi portálu: '+filled.join(', ')+'. Zkontroluj údaje proti původnímu inzerátu.';status.dataset.loadedUrl=url}
   else status.textContent='Portál odpověděl, ale cenu, plochu, dispozici ani lokalitu se nepodařilo spolehlivě rozpoznat. Nic jsem nedoplňoval odhadem.';
@@ -555,6 +556,15 @@ async function findMarketComparables(){
  finally{button.disabled=false;button.textContent='Najít srovnatelné prodejní inzeráty'}
 }
 $('findMarketComparables').addEventListener('click',findMarketComparables);
+let marketAutoTimer=null;
+function scheduleMarketComparables(){
+ if(!($('listingAddress')&&$('listingAddress').value.trim()))return;
+ if(marketAutoTimer)clearTimeout(marketAutoTimer);
+ marketAutoTimer=setTimeout(()=>findMarketComparables(),700);
+}
+['count1','count2','count3','count4','marketRadius','listingAddress'].forEach(id=>{
+ if($(id))$(id).addEventListener('change',scheduleMarketComparables);
+});
 ['marketLocation','vacancy','operating','count1','count2','count3','count4','rent1','rent2','rent3','rent4','value1','value2','value3','value4','appreciation','projectionYears','ltv','rate','term','targetPositiveCashflow'].forEach(id=>{if($(id))$(id).addEventListener('input',updateInvestment);if($(id))$(id).addEventListener('change',updateInvestment)});
 
 
