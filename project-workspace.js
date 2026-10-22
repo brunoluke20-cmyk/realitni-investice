@@ -107,11 +107,33 @@ function installUI(){
   const btn=e.target.closest&&e.target.closest('button');if(!btn)return;
   const calculatorAdd=btn.id==='addListing'&&location.pathname.includes('investicni-kalkulacka');
   const managerAdd=btn.id==='newProject'&&location.pathname.includes('spravce-projektu');
-  if(!calculatorAdd&&!managerAdd)return;
+  const callBriefAdd=btn.id==='addListing'&&location.pathname.includes('call-brief');
+  if(!calculatorAdd&&!managerAdd&&!callBriefAdd)return;
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  if(callBriefAdd){
+   const val=k=>{const el=document.getElementById(k);return el?String(el.value||'').trim():''};
+   const url=val('listingUrl'),title=val('listingTitle')||val('listingAddress')||url;
+   let saved=[];try{saved=JSON.parse(nativeGet.call(ls,STORAGE_PREFIX+activeId+'__rei-call-brief-v1')||'[]')}catch(_){}
+   let shared={};try{shared=JSON.parse(nativeGet.call(ls,STORAGE_PREFIX+activeId+'__rei-shared-project-v1')||'{}')}catch(_){}
+   const sharedUrl=shared.url||shared.listingURL||'';
+   const alreadySaved=Array.isArray(saved)&&saved.some(r=>url&&r.listingUrl===url);
+   const needsFolder=!!url&&((sharedUrl&&sharedUrl!==url)||(Array.isArray(saved)&&saved.length>0&&!alreadySaved));
+   if(!needsFolder)return;
+   const record={id:'cb-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),createdAt:new Date().toISOString(),answers:{},checks:{},todos:{call:false,verify:false,docs:false,visit:false}};
+   ['listingUrl','listingTitle','listingAddress','listingPrice','usableArea','landArea','listingKeyPoints','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'].forEach(k=>record[k]=val(k));
+   document.querySelectorAll('[data-answer]').forEach(el=>record.answers[el.dataset.answer]=el.value);
+   document.querySelectorAll('[data-qcheck]').forEach(el=>record.checks[el.dataset.qcheck]=el.checked);
+   document.querySelectorAll('[data-todo]').forEach(el=>record.todos[el.dataset.todo]=el.checked);
+   record.callState=record.callState||'todo';
+   const address=val('listingAddress');
+   registry.projects.push({id,title:(title||'Nový inzerát').slice(0,140),url,address,price:val('listingPrice'),createdAt:new Date().toISOString()});
+   nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-call-brief-v1',JSON.stringify([record]));
+   nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-shared-project-v1',JSON.stringify({projectId:id,name:title||address||'Nový inzerát',title:title||address||'Nový inzerát',address,location:address,url,listingURL:url,price:val('listingPrice'),listingPrice:val('listingPrice'),area:val('usableArea'),listingArea:val('usableArea'),landArea:val('landArea'),listingLandArea:val('landArea'),updatedAt:new Date().toISOString()}));
+   registry.activeId=id;writeRegistry(registry);switchProject(id);return;
+  }
   const name=prompt('Název nové složky / nemovitosti:','Nový inzerát');
   if(name===null)return;
-  const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
   registry.projects.push({id,title:name.trim()||'Nový inzerát',url:'',address:'',createdAt:new Date().toISOString()});
   registry.activeId=id;writeRegistry(registry);switchProject(id);
  },true);
