@@ -76,6 +76,18 @@ function installUI(){
  const header=document.querySelector('header');if(header&&header.parentNode)header.insertAdjacentElement('afterend',root);else document.body.insertBefore(root,document.body.firstChild);
  renderWorkspace();syncInternalLinks();
  document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const href=a.getAttribute('href');if(!href||/^(https?:|mailto:|tel:|javascript:|data:|#)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin===location.origin&&!u.searchParams.has('project')){u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}}catch(_){}},true);
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest&&e.target.closest('button');if(!btn)return;
+  const calculatorAdd=btn.id==='addListing'&&location.pathname.includes('investicni-kalkulacka');
+  const managerAdd=btn.id==='newProject'&&location.pathname.includes('spravce-projektu');
+  if(!calculatorAdd&&!managerAdd)return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  const name=prompt('Název nové složky / nemovitosti:','Nový inzerát');
+  if(name===null)return;
+  const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  registry.projects.push({id,title:name.trim()||'Nový inzerát',url:'',address:'',createdAt:new Date().toISOString()});
+  registry.activeId=id;writeRegistry(registry);switchProject(id);
+ },true);
  document.addEventListener('input',e=>{if(e.target&&['listingTitle','name','listingAddress','address','listingURL','listingUrl','url','listingPrice','price'].includes(e.target.id))updateProjectMeta()});
  document.addEventListener('change',e=>{if(e.target&&['listingTitle','name','listingAddress','address','listingURL','listingUrl','url','listingPrice','price'].includes(e.target.id))updateProjectMeta()});
 }
