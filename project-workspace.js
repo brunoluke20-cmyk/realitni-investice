@@ -11,6 +11,33 @@ const ls=window.localStorage;
 function readRegistry(){try{const x=JSON.parse(nativeGet.call(ls,REGISTRY_KEY)||'null');if(x&&Array.isArray(x.projects))return x}catch(_){}return {projects:[],activeId:''}}
 function writeRegistry(r){try{nativeSet.call(ls,REGISTRY_KEY,JSON.stringify(r))}catch(_){}}
 let registry=readRegistry();
+// One-time conversion of existing calculator tabs into independent property folders.
+const CALC_MIGRATION_KEY='rei-workspace-calc-migrated-v1';
+if(nativeGet.call(ls,CALC_MIGRATION_KEY)!=='yes'){
+ try{
+  const legacyCalc=JSON.parse(nativeGet.call(ls,STORAGE_PREFIX+'property-main__rei-calc-listings-v1')||'null');
+  if(Array.isArray(legacyCalc)&&legacyCalc.length>1&&registry.projects.length===1){
+   const first=legacyCalc[0],fv=first.values||{},base=registry.projects[0];
+   base.title=first.title||fv.listingAddress||base.title;
+   base.url=fv.listingURL||fv.url||base.url||'';
+   base.address=fv.listingAddress||base.address||'';
+   nativeSet.call(ls,STORAGE_PREFIX+'property-main__rei-calc-listings-v1',JSON.stringify([first]));
+   const firstPrice=fv.listingPrice||fv.purchase||'';
+   nativeSet.call(ls,STORAGE_PREFIX+'property-main__rei-shared-project-v1',JSON.stringify({projectId:'property-main',name:base.title,title:base.title,address:base.address,location:base.address,url:base.url,listingURL:base.url,price:String(firstPrice),listingPrice:String(firstPrice),area:fv.listingArea||'',listingArea:fv.listingArea||'',updatedAt:new Date().toISOString()}));
+   legacyCalc.slice(1).forEach(item=>{
+    if(!item||!item.id)return;
+    const v=item.values||{},id='property-'+item.id;
+    const title=item.title||v.listingAddress||'Nový inzerát';
+    const folder={id,title,url:v.listingURL||v.url||'',address:v.listingAddress||'',price:v.listingPrice||'',createdAt:new Date().toISOString(),migratedFromCalculator:true};
+    if(!registry.projects.some(p=>p.id===id))registry.projects.push(folder);
+    nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-calc-listings-v1',JSON.stringify([item]));
+    nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-shared-project-v1',JSON.stringify({projectId:id,name:title,title,address:folder.address,location:folder.address,url:folder.url,listingURL:folder.url,price:String(folder.price||''),listingPrice:String(folder.price||''),area:v.listingArea||'',listingArea:v.listingArea||'',updatedAt:new Date().toISOString()}));
+   });
+  }
+ }catch(_){}
+ nativeSet.call(ls,CALC_MIGRATION_KEY,'yes');
+ writeRegistry(registry);
+}
 const params=new URLSearchParams(location.search);
 let activeId=params.get('project');
 if(!registry.projects.length){
