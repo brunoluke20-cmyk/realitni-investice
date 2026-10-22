@@ -161,6 +161,14 @@ $('loadContact').addEventListener('click',async()=>{
   const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
   $('listingKeyPoints').value=JSON.stringify(points);
   renderKeyPoints(points);
+  // Copy the extracted highlights into the editable call notes without overwriting the user's notes.
+  const notesMarker='--- HLAVNÍ BODY INZERÁTU ---';
+  const existingNotes=$('liveNotes').value||'';
+  const notesWithoutOldHighlights=existingNotes.split(notesMarker)[0].trim();
+  if(points.length){
+   const highlights=notesMarker+'\n'+points.slice(0,3).map((point,index)=>(index+1)+'. '+point).join('\n');
+   $('liveNotes').value=notesWithoutOldHighlights?(notesWithoutOldHighlights+'\n\n'+highlights):highlights;
+  }
   const r=current();if(r)r.keyPoints=points;
   const unique=[...new Set(found)];
   const missing=[];
