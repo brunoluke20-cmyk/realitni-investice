@@ -734,7 +734,7 @@ projectFields().forEach(el=>{if(!['listingPriceM2'].includes(el.id)){el.addEvent
 if(!$('listingURL').value&&$('url').value)$('listingURL').value=$('url').value;
 updateListingPriceM2();
 
-syncSharedProject();$('openCallBrief').addEventListener('click',()=>{syncSharedProject();location.href='call-brief.html?from=calculator'});
+syncSharedProject();$('openCallBrief').addEventListener('click',()=>{syncSharedProject();location.href='call-brief.html?from=calculator&project='+encodeURIComponent(new URLSearchParams(location.search).get('project')||'property-main')});
 $('openValuation').addEventListener('click',syncSharedProject);$('openManager').addEventListener('click',syncSharedProject);$('openLocation').addEventListener('click',syncSharedProject);
 updateQuick(true);updateInvestment();window.addEventListener('resize',()=>chart([{name:'Pesimistický',value:parseFloat(($('low').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Základní',value:parseFloat(($('base').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0},{name:'Optimistický',value:parseFloat(($('high').textContent||'0').replace(/[^\d,-]/g,'').replace(',','.'))||0}]));
 
