@@ -109,7 +109,6 @@ function installUI(){
   const managerAdd=btn.id==='newProject'&&location.pathname.includes('spravce-projektu');
   const callBriefAdd=btn.id==='addListing'&&location.pathname.includes('call-brief');
   if(!calculatorAdd&&!managerAdd&&!callBriefAdd)return;
-  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
   const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
   if(callBriefAdd){
    const val=k=>{const el=document.getElementById(k);return el?String(el.value||'').trim():''};
@@ -120,6 +119,7 @@ function installUI(){
    const alreadySaved=Array.isArray(saved)&&saved.some(r=>url&&r.listingUrl===url);
    const needsFolder=!!url&&((sharedUrl&&sharedUrl!==url)||(Array.isArray(saved)&&saved.length>0&&!alreadySaved));
    if(!needsFolder)return;
+   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
    const record={id:'cb-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),createdAt:new Date().toISOString(),answers:{},checks:{},todos:{call:false,verify:false,docs:false,visit:false}};
    ['listingUrl','listingTitle','listingAddress','listingPrice','usableArea','landArea','listingKeyPoints','contactName','agency','phone','contactEmail','callState','nextStep','callResult','liveNotes','myOffer','docsToGet'].forEach(k=>record[k]=val(k));
    document.querySelectorAll('[data-answer]').forEach(el=>record.answers[el.dataset.answer]=el.value);
@@ -132,6 +132,7 @@ function installUI(){
    nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-shared-project-v1',JSON.stringify({projectId:id,name:title||address||'Nový inzerát',title:title||address||'Nový inzerát',address,location:address,url,listingURL:url,price:val('listingPrice'),listingPrice:val('listingPrice'),area:val('usableArea'),listingArea:val('usableArea'),landArea:val('landArea'),listingLandArea:val('landArea'),updatedAt:new Date().toISOString()}));
    registry.activeId=id;writeRegistry(registry);switchProject(id);return;
   }
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
   const name=prompt('Název nové složky / nemovitosti:','Nový inzerát');
   if(name===null)return;
   registry.projects.push({id,title:name.trim()||'Nový inzerát',url:'',address:'',createdAt:new Date().toISOString()});
