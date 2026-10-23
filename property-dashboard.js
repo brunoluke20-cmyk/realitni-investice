@@ -2,7 +2,7 @@
 const REG='rei-project-workspace-v1',PFX='__rei_project__';
 const $=s=>document.querySelector(s);
 const money=n=>Number.isFinite(n)&&n>0?new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(n):'Cena neuvedena';
-const num=v=>{if(typeof v==='number')return Number.isFinite(v)&&v>0?v:null;const n=Number(String(v??'').replace(/[^0-9,.]/g,'').replace(/\.(?=.*\.)/g,'').replace(',','.'));return Number.isFinite(n)&&n>0?n:null};
+const num=v=>{if(typeof v==='number')return Number.isFinite(v)&&v>0?v:null;const raw=String(v??'').replace(/[^0-9,.]/g,'');const normalized=raw.includes(',')?raw.replace(/\./g,'').replace(',','.'):((raw.match(/\./g)||[]).length>1?raw.replace(/\./g,''):raw);const n=Number(normalized);return Number.isFinite(n)&&n>0?n:null};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function read(k,fallback){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fallback}catch(_){return fallback}}
 function first(...v){return v.find(x=>x!==null&&x!==undefined&&String(x).trim()!=='')}
@@ -15,7 +15,7 @@ function getData(p){
  const mgr=read(base+'rei-manager-v1',{});
  const cv=Array.isArray(calc)&&calc.length?(calc.find(x=>x?.values)||calc[0]).values||{}:{};
  const call=Array.isArray(calls)?calls.find(x=>x&&(x.listingUrl||x.listingTitle||x.listingAddress))||calls[0]||{}:{};
- const title=first(p.title,shared.title,shared.name,cv.name,cv.listingAddress,call.listingTitle,call.listingAddress,'Nová nemovitost');
+ const pTitle=/^(nový inzerát|nová nemovitost|nový projekt|nová nabídka)$/i.test(String(p.title||'').trim())?'':p.title;const title=first(pTitle,shared.title,shared.name,cv.name,cv.listingAddress,call.listingTitle,call.listingAddress,'Nová nemovitost');
  const url=first(p.url,shared.url,shared.listingURL,cv.listingURL,cv.url,call.listingUrl,'');
  const price=num(first(p.price,shared.price,shared.listingPrice,cv.listingPrice,cv.price,call.listingPrice));
  const area=num(first(shared.area,shared.listingArea,cv.listingArea,cv.usableArea,call.usableArea));
