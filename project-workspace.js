@@ -618,6 +618,28 @@ function renderHomeListingCatalog(){
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
  const seenListingUrls=new Set();
+ const chooser=document.createElement('div');chooser.id='reiListingToolChooser';chooser.hidden=true;chooser.setAttribute('role','dialog');chooser.setAttribute('aria-modal','true');chooser.setAttribute('aria-labelledby','reiListingToolChooserTitle');chooser.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.58);display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box';
+ const chooserPanel=document.createElement('div');chooserPanel.style.cssText='width:min(100%,520px);background:#fff;color:#172033;border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.28);max-height:90vh;overflow:auto';
+ const chooserTitle=document.createElement('h2');chooserTitle.id='reiListingToolChooserTitle';chooserTitle.textContent='Co chceš s touto nabídkou udělat?';chooserTitle.style.cssText='font-size:21px;margin:0 0 6px';
+ const chooserName=document.createElement('p');chooserName.style.cssText='font-size:13px;color:#64748b;margin:0 0 16px';
+ const chooserButtons=document.createElement('div');chooserButtons.style.cssText='display:grid;gap:10px';
+ const chooserClose=document.createElement('button');chooserClose.type='button';chooserClose.textContent='Zavřít';chooserClose.style.cssText='margin-top:14px;width:100%;padding:11px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:10px;font-weight:650;cursor:pointer';
+ chooserPanel.append(chooserTitle,chooserName,chooserButtons,chooserClose);chooser.appendChild(chooserPanel);document.body.appendChild(chooser);
+ let chooserRecord=null;
+ function closeListingToolChooser(){chooser.hidden=true;chooser.style.display='none';chooserRecord=null}
+ chooserClose.addEventListener('click',closeListingToolChooser);
+ chooser.addEventListener('click',e=>{if(e.target===chooser)closeListingToolChooser()});
+ document.addEventListener('keydown',e=>{if(!chooser.hidden&&e.key==='Escape')closeListingToolChooser()});
+ function openListingToolChooser(record){chooserRecord=record;chooserName.textContent=record.title||record.address||'Vybraná nemovitost';chooserButtons.replaceChildren();
+  const choices=[
+   {label:'🧮 Investiční kalkulačka',description:'Spočítat náklady, rekonstrukci a možný zisk.',url:'investicni-kalkulacka.html',kind:'calculator'},
+   {label:'📊 Odhad hodnoty nemovitosti',description:'Připravit orientační ocenění a zástavní hodnotu.',url:'odhad-zastavni-hodnoty.html',kind:'valuation'},
+   {label:'📍 Lukrativita okolí',description:'Prověřit lokalitu a dostupné služby v okolí.',url:'lukrativita-okoli.html',kind:'location'}
+  ];
+  choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.style.cssText='text-align:left;padding:13px 14px;border:1px solid #dbe3ec;border-radius:11px;background:#fff;cursor:pointer;display:block;width:100%';const label=document.createElement('div');label.textContent=choice.label;label.style.cssText='font-size:15px;font-weight:750';const description=document.createElement('div');description.textContent=choice.description;description.style.cssText='font-size:12px;color:#64748b;margin-top:4px';button.append(label,description);button.addEventListener('click',()=>{const rec=chooserRecord||record;const address=String(rec.address||rec.location||'').trim();const price=Number(rec.price)>0?String(Number(rec.price)):'';const area=Number(rec.floorArea)>0?String(Number(rec.floorArea)):'';const payload={name:rec.title||address,title:rec.title||address,address,location:address,url:rec.url||'',listingURL:rec.url||'',price,listingPrice:price,area,listingArea:area,landArea:rec.landArea||'',updatedAt:new Date().toISOString()};try{localStorage.setItem('rei-shared-project-v1',JSON.stringify(payload))}catch(_e){}const target=new URL(choice.url,location.href);target.searchParams.set('project',new URLSearchParams(location.search).get('project')||'property-main');if(choice.kind==='calculator'){target.searchParams.set('listingTitle',payload.name);target.searchParams.set('listingAddress',address);target.searchParams.set('listingURL',payload.url);target.searchParams.set('listingPrice',price);target.searchParams.set('listingArea',area);target.searchParams.set('listingLandArea',String(payload.landArea||''))}closeListingToolChooser();location.href=target.pathname+target.search});chooserButtons.appendChild(button)});
+  chooser.hidden=false;chooser.style.display='flex';const first=chooserButtons.querySelector('button');if(first)first.focus();
+ }
+
  const sortedRecords=LISTING_RECORDS.filter(raw=>raw&&raw.url).slice().sort((a,b)=>{const pa=Number(a.price)>0&&Number(a.floorArea)>0?Number(a.price)/Number(a.floorArea):Infinity;const pb=Number(b.price)>0&&Number(b.floorArea)>0?Number(b.price)/Number(b.floorArea):Infinity;return pa-pb});
  const sortNote=document.createElement('p');sortNote.textContent='Řazení: od nejnižší po nejvyšší cenu za m². Nabídky bez ověřené ceny nebo plochy jsou na konci.';sortNote.style.cssText='font-size:12px;color:#617080;margin:0 0 12px';
  sortedRecords.forEach(raw=>{
@@ -631,6 +653,9 @@ function renderHomeListingCatalog(){
    const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít inzerát a fotografie';link.style.cssText='display:inline-block;border:1px solid #cbd5e1;background:#fff;color:#1d4ed8;border-radius:8px;padding:8px 10px;text-decoration:none;font-weight:650';
    photoWrap.appendChild(link)
   }else{photoWrap.textContent='Přímá fotografie ani odkaz na inzerát nejsou k dispozici'}
+  card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','Vybrat nástroj pro nabídku: '+r.title);card.style.cursor='pointer';
+  card.addEventListener('click',e=>{if(e.target.closest('a,button,input,select,textarea'))return;openListingToolChooser(r)});
+  card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();openListingToolChooser(r)}});
   const title=document.createElement('h3');title.textContent=r.title;title.style.cssText='font-size:16px;line-height:1.35;margin:0';
   const price=document.createElement('div');price.textContent=Number(r.price)>0?money(r.price):'Cena neuvedena';price.style.cssText='font-size:19px;font-weight:800;color:#13243a';
   const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
