@@ -44,11 +44,18 @@ if(!registry.projects.length){
  const legacy={};['rei-shared-project-v1','rei-calc-listings-v1','rei-manager-v1','rei-manager-projects-v2','rei-call-brief-v1','rei-location-analysis-v1','rei-location-results-v1'].forEach(k=>{try{legacy[k]=nativeGet.call(ls,k)}catch(_){}});
  const shared=(()=>{try{return JSON.parse(legacy['rei-shared-project-v1']||'{}')}catch(_){return {}}})();
  const id='property-main';
- registry={activeId:id,projects:[{id,title:shared.name||shared.title||'Doubravínova – Praha Řepy',url:shared.url||shared.listingURL||'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-repy-doubravinova/1765052492',address:shared.address||'Doubravínova, Praha–Řepy',createdAt:new Date().toISOString()}]};
+ registry={activeId:id,projects:[{id,title:'Nový projekt',url:'',address:'',createdAt:new Date().toISOString()}]};
  writeRegistry(registry);
  if(!activeId)activeId=id;
  // Migrate pre-workspace data into the initial folder without deleting the original backup.
  Object.entries(legacy).forEach(([k,v])=>{if(v!==null&&v!==undefined&&nativeGet.call(ls,STORAGE_PREFIX+id+'__'+k)===null)try{nativeSet.call(ls,STORAGE_PREFIX+id+'__'+k,v)}catch(_){}});
+}
+const removedDefaultProjects=registry.projects.filter(p=>/doubrav[ií]nova/i.test([p.title,p.address,p.url].filter(Boolean).join(' ')));
+if(removedDefaultProjects.length){
+ registry.projects=registry.projects.filter(p=>!removedDefaultProjects.includes(p));
+ if(!registry.projects.length){const freshId='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);registry.projects.push({id:freshId,title:'Nový projekt',url:'',address:'',createdAt:new Date().toISOString()});}
+ if(removedDefaultProjects.some(p=>p.id===activeId))activeId=registry.projects[0].id;
+ writeRegistry(registry);
 }
 if(!registry.projects.some(p=>p.id===activeId)){
  activeId=registry.projects[0].id;
