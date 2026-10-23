@@ -210,7 +210,7 @@ try{
     r.listingKeyPoints=JSON.stringify(points);
     r.liveNotes=[p.notes,p.potential&&('Potenciál: '+p.potential),p.layout&&('Dispozice: '+p.layout),p.floors&&('Podlaží: '+p.floors),p.metro&&('Doprava: '+p.metro)].filter(Boolean).join('\n\n').slice(0,5000);
    }
-   records.unshift(r);loadRecord(r);persist();
+   records.unshift(r);loadRecord(r);persist();if(fromListing&&r.listingUrl){$('contactStatus').textContent='Inzerát převzat. Automaticky načítám jméno, telefon a e-mail z původní nabídky…';$('loadContact').click();}
    $('contactStatus').textContent=fromListing?'Inzerát a dostupné kontakty/poznámky byly přeneseny. Pokud kontakt v uložených datech chybí, otevři původní inzerát.':'Nemovitost přenesena z kalkulačky. Telefon lze zkopírovat tlačítkem níže.';
   }
  }
