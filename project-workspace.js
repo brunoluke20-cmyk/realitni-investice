@@ -608,6 +608,25 @@ function ensureStarterListings(){
 }
 ensureStarterListings();
 
+function assessListingLocation(record){
+ const text=[record.title,record.address,record.location,record.metro].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');
+ const hasMetro=/(metro|stanice|\b[a-zá-ž]+\s+[abc]\b)/i.test(String(record.metro||''));
+ const hints=String(record.metro||'').toLocaleLowerCase('cs-CZ');
+ let score=4,stop='zastávka a vzdálenost neověřeny',commute='nutno ověřit v PID Lítačce',basis='Předběžný odhad podle popisu inzerátu a čtvrti; přesná pěší trasa ani aktuální jízdní řád nejsou v datech ověřeny.';
+ if(/zličín/.test(text)){score=7;stop='metro Zličín – inzerát uvádí cca 200 m';commute='cca 25–35 min (orientační odhad)';basis='Zličín má metro B; celkový čas závisí na pěší trase, čekání a přestupu.'}
+ else if(/rajská zahrada/.test(text)){score=7;stop='metro Rajská zahrada – dle popisu cca 8 min pěšky';commute='cca 25–35 min (orientační odhad)';basis='Odhad podle uvedené stanice; přesný čas ověřit pro konkrétní adresu a dobu odjezdu.'}
+ else if(/prosek/.test(text)){score=7;stop='metro Prosek – vzdálenost od domu neověřena';commute='cca 20–30 min (orientační odhad)';basis='Čtvrť má přístup k lince C, ale čas chůze ke stanici není potvrzen.'}
+ else if(/kobylisy/.test(text)){score=8;stop='metro Kobylisy – u jedné nabídky uváděno cca 5 min pěšky';commute='cca 20–30 min (orientační odhad)';basis='Dobré napojení na linku C; čas chůze je potřeba potvrdit podle přesné adresy.'}
+ else if(/veleslavín/.test(text)){score=8;stop='metro A Nádraží Veleslavín – vzdálenost neověřena';commute='cca 15–25 min (orientační odhad)';basis='Linka A vede přímo přes Náměstí Míru; čas zahrnuje chůzi a čekání.'}
+ else if(/liboc/.test(text)){score=7;stop='metro Petřiny / Nádraží Veleslavín; inzerát uvádí autobus';commute='cca 20–35 min (orientační odhad)';basis='Přestup a docházka závisí na konkrétní trase; údaj o autobusu není nezávisle ověřen.'}
+ else if(/břevnov/.test(text)){score=7;stop='tramvajové spojení; metro pěšky neověřeno';commute='cca 20–35 min (orientační odhad)';basis='Břevnov má tramvajové spojení, ale dostupnost metra se výrazně liší podle ulice.'}
+ else if(/ďáblice/.test(text)){score=6;stop='autobus na metro Ládví; pěší vzdálenost neověřena';commute='cca 25–40 min (orientační odhad)';basis='Přestup na metro je nutný; limit 10 minut k metru není u adresy potvrzen.'}
+ else if(/středo|záběhlice|kunratice|braník|hostivař|horní počernice|kolovraty|křeslice|pitkovice|kbely|kamýk|točná|slivenec|dolní chabry/.test(text)){score=4;stop='MHD / metro do 10 min není potvrzeno';commute='cca 25–45+ min; nutno ověřit';basis='Předběžně nižší skóre, protože přímá dostupnost metra do 10 minut není v údajích doložena.'}
+ else if(/smíchov|střešovice|michle|krč|stodůlky/.test(text)){score=6;stop='MHD dostupná; nejbližší stanice a chůze neověřeny';commute='cca 15–35 min (orientační odhad)';basis='Skóre je předběžné podle širší lokality, nikoli výpočtu trasy od domu.'}
+ if(/do 10 min|5 minut pěšky|cca 200 m|8 min pěšky/.test(hints))score=Math.min(10,score+1);
+ if(/nepotvrzeno|neověřeno|nutno ověřit|budoucí metro/.test(hints)){basis+=' Pozor: popis výslovně upozorňuje, že údaj o metru není ověřen.'}
+ return {score,stop,commute,basis};
+}
 function renderHomeListingCatalog(){
  if(!location.pathname.endsWith('index.html'))return;
  const main=document.querySelector('main'),tools=main&&main.querySelector('.cards');
@@ -659,12 +678,19 @@ function renderHomeListingCatalog(){
   const title=document.createElement('h3');title.textContent=r.title;title.style.cssText='font-size:16px;line-height:1.35;margin:0';
   const price=document.createElement('div');price.textContent=Number(r.price)>0?money(r.price):'Cena neuvedena';price.style.cssText='font-size:19px;font-weight:800;color:#13243a';
   const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
-  const unit=document.createElement('div');unit.textContent=Number(r.price)>0&&Number(r.floorArea)>0?('Cena za m²: '+money(Math.round(Number(r.price)/Number(r.floorArea)))+'/m²'):'Cena za m² nelze spočítat';unit.style.cssText='font-size:14px;font-weight:750;color:#2457d6';
+  const unitPrice=Number(r.price)>0&&Number(r.floorArea)>0?Number(r.price)/Number(r.floorArea):NaN;
+  const unit=document.createElement('div');unit.textContent=Number.isFinite(unitPrice)?('Cena za m²: '+money(Math.round(unitPrice))+'/m²'):'Cena za m² nelze spočítat';
+  unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<90000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<90000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
+  if(Number.isFinite(unitPrice)&&unitPrice<90000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Pod 90 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
+  const locationAssessment=assessListingLocation(r);
+  const locationScore=document.createElement('div');locationScore.textContent='Hodnocení lokality: '+locationAssessment.score+'/10';locationScore.style.cssText='font-size:14px;font-weight:800;color:'+(locationAssessment.score>=8?'#15803d':locationAssessment.score>=6?'#a16207':'#b45309')+';margin-top:3px';
+  const transitDetails=document.createElement('div');transitDetails.textContent='MHD: '+locationAssessment.stop+' · cesta na Náměstí Míru: '+locationAssessment.commute;transitDetails.style.cssText='font-size:12px;color:#475569;line-height:1.45';
+  const locationBasis=document.createElement('div');locationBasis.textContent=locationAssessment.basis;locationBasis.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
   const land=document.createElement('div');land.textContent=r.landArea?('Pozemek: '+r.landArea+' m²'):'Pozemek neuveden';land.style.cssText='font-size:12px;color:#617080';
   const address=document.createElement('div');address.textContent=r.address||'Lokalita neověřena';address.style.cssText='font-size:13px';
   const metro=document.createElement('div');metro.textContent='Metro: '+(r.metro||'neověřeno');metro.style.cssText='font-size:12px;color:#617080';
   const status=document.createElement('div');status.textContent=r.verificationStatus||'Údaje k ověření';status.style.cssText='font-size:11px;color:#8a4b08;background:#fff7ed;padding:6px 8px;border-radius:7px';
-  card.append(photoWrap,title,price,area,unit,land,address,metro,status);
+  card.append(photoWrap,title,price,area,unit,locationScore,transitDetails,locationBasis,land,address,metro,status);
   if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
   grid.appendChild(card);
