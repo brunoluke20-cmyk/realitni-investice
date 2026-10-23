@@ -316,7 +316,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes Sreality",
     "potential": "Pozemek téměř 2 000 m² může mít vlastní rozvojovou hodnotu; prověřit územní plán.",
     "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
-    "notes": "Velký pozemek může nést hodnotu nezávisle na domě. Poloha v Pitkovicích ale neodpovídá přísnému filtru rychlého metra."
+    "notes": "Velký pozemek může nést hodnotu nezávisle na domě. Poloha v Pitkovicích ale neodpovídá přísnému filtru rychlého metra.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_C/nOdL4BtPEyDrQHrC7AHzhnBc/b6fe.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Vícegenerační dům – Divišova, Praha-Kbely",
@@ -331,7 +332,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes Sreality",
     "potential": "Cihlový dům v dobrém stavu; rozdělení na jednotky ověřit podle dispozice a kolaudace.",
     "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
-    "notes": "Cena za m² může být zajímavá, ale Kbely nejsou v docházkové vzdálenosti metra. Záložní tip mimo hlavní filtr."
+    "notes": "Cena za m² může být zajímavá, ale Kbely nejsou v docházkové vzdálenosti metra. Záložní tip mimo hlavní filtr.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_E/nCR9NVflLCnfP0F6QH6i6AM/9626.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Vícepatrový dům – Dolnojirčanská, Praha-Kamýk",
@@ -346,7 +348,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes Sreality",
     "potential": "Variabilní objekt pro bydlení a podnikání; změnu užívání nutno povolit.",
     "verificationStatus": "Cena neuvedena; dostupnost potvrdit",
-    "notes": "Bez ceny nelze spočítat cenu za m². Kamýk je pouze záložní tip, protože budoucí metro D zatím nefunguje."
+    "notes": "Bez ceny nelze spočítat cenu za m². Kamýk je pouze záložní tip, protože budoucí metro D zatím nefunguje.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_E/kcKfrMAkFnIwlGqKH6fvp1/031a.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Vícegenerační dům – Žďárská, Praha-Dolní Chabry",
@@ -377,7 +380,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes Sreality",
     "potential": "Velká plocha a pozemek; počet legálních jednotek ověřit v dokumentaci.",
     "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
-    "notes": "Zelená rezidenční lokalita, ale vysoká cena a nejistá dostupnost metra snižují shodu s investičním filtrem."
+    "notes": "Zelená rezidenční lokalita, ale vysoká cena a nejistá dostupnost metra snižují shodu s investičním filtrem.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qD_F/kO7lxrd9zlOWhOGHwHW3lnu/d379.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Vícegenerační dům – U olšiček, Praha-Točná",
@@ -392,7 +396,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes Sreality",
     "potential": "Rozsáhlý pozemek a velký dům; potenciál může být hlavně v pozemku, ale lokalita je mimo dopravní filtr.",
     "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
-    "notes": "Zařazeno pouze jako cenové srovnání velkého domu, ne jako hlavní investiční kandidát."
+    "notes": "Zařazeno pouze jako cenové srovnání velkého domu, ne jako hlavní investiční kandidát.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_B/nOdL4BtPEyD4lWfEnKHu73ly/16cf.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Rodinný dům – Bříšťanská, Praha-Horní Počernice",
@@ -407,7 +412,8 @@ const STARTER_LISTINGS=[
     "contact": "Kontakt přes výsledky Sreality",
     "potential": "Plocha přes 200 m² umožňuje prověřit vícegenerační dispozici; bez detailu zatím nelze potvrdit oddělené jednotky.",
     "verificationStatus": "Výsledek hledání aktuální; přímý inzerát a dostupnost nutno ověřit",
-    "notes": "Tato položka odkazuje na vyhledávání, ne přímo na konkrétní inzerát; před investičním rozhodnutím nahradit přímým odkazem."
+    "notes": "Tato položka odkazuje na vyhledávání, ne přímo na konkrétní inzerát; před investičním rozhodnutím nahradit přímým odkazem.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qG_A/nCR9NVflLCnfP0LuOH7NC1F/e7a4.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
   },
   {
     "title": "Rodinný dům – Ďáblická, Praha-Ďáblice (3 zkolaudované byty)",
