@@ -254,7 +254,8 @@ const STARTER_LISTINGS=[
     "contact": "Bidli – kontakt přes DigiReality",
     "potential": "Třípodlažní dům v zelené Liboci; modernizace možná, ale samostatné byty nejsou potvrzeny.",
     "verificationStatus": "Aktualizováno 16. 9. 2026; dostupnost potvrdit",
-    "notes": "Obora Hvězda a Divoká Šárka jsou silnou lokalitní výhodou. Elektrické vytápění může ovlivnit provozní náklady."
+    "notes": "Obora Hvězda a Divoká Šárka jsou silnou lokalitní výhodou. Elektrické vytápění může ovlivnit provozní náklady.",
+    "imageUrl": "https://www.bidli.cz/globaldata/nemovitosti_fotky/g2h_feca03babc7b4198474be08138b3bba7.jpg"
   },
   {
     "title": "Dvougenerační dům – Horní Počernice, 267 m²",
@@ -269,7 +270,8 @@ const STARTER_LISTINGS=[
     "contact": "Bidli – kontakt přes DigiReality",
     "potential": "Projekt na rozdělení na 3 byty je uveden v inzerátu; ověřit povolení, parkování a dopravní dostupnost.",
     "verificationStatus": "Inzerát dohledán; dostupnost potvrdit",
-    "notes": "Dvě existující jednotky a studie třetího bytu jsou zajímavé. Dopravní podmínka metra do 10 minut ale není potvrzena, takže jde o záložní tip."
+    "notes": "Dvě existující jednotky a studie třetího bytu jsou zajímavé. Dopravní podmínka metra do 10 minut ale není potvrzena, takže jde o záložní tip.",
+    "imageUrl": "https://www.bidli.cz/globaldata/nemovitosti_fotky/g2h_ba2906eb41fa966d20262ee558dd7a17.jpg"
   },
   {
     "title": "Vícegenerační dům – Potoční, Praha 6 – Veleslavín",
@@ -513,6 +515,8 @@ const STARTER_LISTINGS=[
 ]
 ];
 const LISTING_RECORDS=STARTER_LISTINGS.flat(Infinity);
+const LISTING_PHOTOS_BY_URL=new Map(LISTING_RECORDS.filter(r=>r&&r.url&&r.imageUrl).map(r=>[r.url,r.imageUrl]));
+LISTING_RECORDS.forEach(r=>{if(r&&r.url&&!r.imageUrl&&LISTING_PHOTOS_BY_URL.has(r.url))r.imageUrl=LISTING_PHOTOS_BY_URL.get(r.url)});
 function normalizeImportedRecord(item){
  const r=item&&typeof item==='object'?item:{};
  const title=String(r.title||r.name||r.address||r.location||'Nový inzerát').trim().slice(0,140)||'Nový inzerát';
