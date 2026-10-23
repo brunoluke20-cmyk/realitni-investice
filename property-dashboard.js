@@ -1,5 +1,6 @@
 (()=>{'use strict';
 const REG='rei-project-workspace-v1',PFX='__rei_project__';
+const attemptedListingLoads=new Set();
 const $=s=>document.querySelector(s);
 const money=n=>Number.isFinite(n)&&n>0?new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(n):'Cena neuvedena';
 const num=v=>{if(typeof v==='number')return Number.isFinite(v)&&v>0?v:null;const raw=String(v??'').replace(/[^0-9,.]/g,'');const normalized=raw.includes(',')?raw.replace(/\./g,'').replace(',','.'):((raw.match(/\./g)||[]).length>1?raw.replace(/\./g,''):raw);const n=Number(normalized);return Number.isFinite(n)&&n>0?n:null};
@@ -110,7 +111,52 @@ function render(){
  const metrics='<div class="prop-metrics"><div><small>Skóre rozdělení na byty</small><strong><span class="location-score '+(us.total>=8?'score-high':'')+'">'+us.total+'/10</span></strong><small class="score-sub">Dispozice '+us.layout+'/5 · investoři '+us.investor+'/5</small></div><div><small>Cena</small><strong>'+esc(priceText)+'</strong></div><div class="'+(cheap?'metric-cheap':'')+'"><small>Cena za m²</small><strong>'+esc(ppmText)+(cheap?' <span class="deal-tag">POD 85 TIS.</span>':'')+'</strong></div><div class="'+(high?'metric-high':'')+'"><small>Hodnocení lokality</small><strong>'+(ts.score!==null?'<span class="location-score '+(high?'score-high':'')+'">'+ts.score.toLocaleString('cs-CZ')+'/10</span>':'Zatím nelze odhadnout')+'</strong><small class="score-sub">'+(ts.total!==null?'MHD '+ts.access+'/50 · cesta '+ts.journey+'/50':'Chybí údaje o lokalitě')+'</small></div><div><small>Užitná plocha</small><strong>'+(d.area?esc(d.area.toLocaleString('cs-CZ')+' m²'):'—')+'</strong></div></div><div class="transport-detail">'+esc(us.reason)+' '+(us.additional>0?'Odhad: '+us.additional+' byt(y) navíc; každý musí mít min. 35 m² a vlastní WC+koupelnu, případně proveditelné řešení přes centrální schodiště. ':'')+(us.investor?'Bonus +5: inzerát zmiňuje investory/investiční využití. ':'')+(ts.total!==null?'Orientační odhad: asi '+ts.walk+' min pěšky k MHD a '+ts.mins+' min MHD na Náměstí Míru. ':'')+'Skóre rozdělení je předběžný screening: plocha se přepočítává orientačně na kapacitu s rezervou pro společné prostory; 2+ bytů navíc = 5/5 za dispozici, 1 navíc = 3/5, zmínka o investičním využití = +5. Údaj o koupelnách/WC a schodišti snižuje nejistotu, ale nenahrazuje projektové posouzení. Jistota odhadu: '+us.confidence+'. Skóre lokality z 100 bodů: dostupnost MHD (50) + odhad cesty na Náměstí Míru (50). Není to živý výpočet trasy; ověř konkrétní adresu v PID Lítačce.</div>';
  return '<article class="property-card '+(cheap?'deal-card':'')+'" data-project-card="'+esc(d.id)+'"><div class="prop-top"><span class="rank">'+(i+1)+'.</span><div class="prop-title"><h3>'+esc(d.title)+'</h3><p class="muted">'+esc(d.address||'Lokalita neuvedena')+'</p></div></div><div class="prop-layout"><div class="prop-photo-wrap">'+(d.image?'<img class="prop-photo" loading="lazy" src="'+esc(d.image)+'" alt="Fotografie nemovitosti" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'">':'')+'<div class="prop-photo-placeholder" '+(d.image?'style="display:none"':'')+'>Foto z inzerátu<br><small>načítám dostupný náhled…</small></div>'+(d.url?'<a class="photo-link" href="'+esc(d.url)+'" target="_blank" rel="noopener">Původní inzerát ↗</a>':'')+'</div><div class="prop-detail">'+metrics+'<div class="prop-columns"><section><h4>Co inzerát uvádí</h4><ul>'+points.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section><section><h4>Možné výhody</h4><ul class="good">'+pc.pros.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section><section><h4>Rizika / nevýhody k prověření</h4><ul class="risk">'+pc.cons.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section></div>'+(d.notes?'<div class="saved-notes"><h4>Moje poznámky</h4><p>'+esc(d.notes)+'</p></div>':'')+'<div class="prop-actions"><a class="btn" href="investicni-kalkulacka.html?project='+encodeURIComponent(d.id)+'">Otevřít složku a kalkulaci →</a>'+(d.url?'<a class="btn btn-light" href="'+esc(d.url)+'" target="_blank" rel="noopener">Původní inzerát ↗</a>':'')+'</div></div></div></article>';
  }).join('')+'</div><p class="muted dash-foot">Cena za m² = nabídková cena ÷ uvedená užitná plocha. Nejde o znalecké ocenění. Právní možnost rozdělení, skutečné náklady a tržní cenu ověř před rozhodnutím.</p></section>';
- for(const d of projects){if(d.image||!d.url||!/sreality\.cz/i.test(d.url))continue;let id=(d.url.match(/\/(\d{6,})\/?(?:[?#].*)?$/)||[])[1];if(!id)continue;const card=root.querySelector('[data-project-card="'+CSS.escape(d.id)+'"]');if(!card)continue;const img=card.querySelector('.prop-photo');if(img)continue;fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id)+'&url='+encodeURIComponent(d.url)).then(r=>r.ok?r.json():null).then(data=>{if(!data)return;const image=data.image_url||data.imageUrl||data.photo_url;if(image){const wrap=card.querySelector('.prop-photo-wrap'),ph=wrap.querySelector('.prop-photo-placeholder');const el=document.createElement('img');el.className='prop-photo';el.loading='lazy';el.alt='Fotografie nemovitosti';el.src=image;el.onerror=()=>{el.remove();if(ph)ph.style.display='grid'};wrap.insertBefore(el,ph);if(ph)ph.style.display='none'}const updates={};if(image)updates.image=image;if(data.title||data.name)updates.title=data.title||data.name;if(data.locality||data.address)updates.address=data.locality||data.address;if(data.price_czk)updates.price=data.price_czk;if(data.usable_area)updates.area=data.usable_area;if(data.land_area)updates.land=data.land_area;if(data.keyPoints||data.description)updates.points=parsePoints(data.keyPoints||data.description);if(Object.keys(updates).length){const project=registry.projects.find(p=>p.id===d.id);if(project){Object.assign(project,updates);localStorage.setItem(REG,JSON.stringify(registry));render()}}}).catch(()=>{});}
+ for(const d of projects){
+ if(d.image||!d.url||!/sreality\\.cz/i.test(d.url))continue;
+ let id=(d.url.match(/\\/(\\d{6,})\\/?(?:[?#].*)?$/)||[])[1];
+ if(!id)continue;
+ const loadKey=String(d.id)+'|'+id;
+ if(attemptedListingLoads.has(loadKey))continue;
+ const card=root.querySelector('[data-project-card="'+CSS.escape(d.id)+'"]');
+ if(!card||card.querySelector('.prop-photo'))continue;
+ // Mark before fetch: render() can run while this request is still in flight.
+ attemptedListingLoads.add(loadKey);
+ fetch('https://zikhzhgxrjpjrkivmwrf.supabase.co/functions/v1/sreality-proxy?id='+encodeURIComponent(id)+'&url='+encodeURIComponent(d.url))
+  .then(r=>r.ok?r.json():null)
+  .then(data=>{
+   if(!data||typeof data!=='object')return;
+   const image=data.image_url||data.imageUrl||data.photo_url;
+   const liveCard=root.querySelector('[data-project-card="'+CSS.escape(d.id)+'"]');
+   if(image&&liveCard&&!liveCard.querySelector('.prop-photo')){
+    const wrap=liveCard.querySelector('.prop-photo-wrap'),ph=wrap&&wrap.querySelector('.prop-photo-placeholder');
+    if(wrap){
+     const el=document.createElement('img');el.className='prop-photo';el.loading='lazy';el.alt='Fotografie nemovitosti';el.src=image;
+     el.onerror=()=>{el.remove();if(ph)ph.style.display='grid'};
+     wrap.insertBefore(el,ph||null);if(ph)ph.style.display='none';
+    }
+   }
+   const updates={};
+   if(image)updates.image=image;
+   if(data.title||data.name)updates.title=data.title||data.name;
+   if(data.locality||data.address)updates.address=data.locality||data.address;
+   if(data.price_czk)updates.price=data.price_czk;
+   if(data.usable_area)updates.area=data.usable_area;
+   if(data.land_area)updates.land=data.land_area;
+   if(data.keyPoints||data.description)updates.points=parsePoints(data.keyPoints||data.description);
+   const currentRegistry=read(REG,{projects:[]});
+   const project=(currentRegistry.projects||[]).find(p=>p.id===d.id);
+   if(!project)return;
+   let changed=false;
+   for(const [key,value] of Object.entries(updates)){
+    if(JSON.stringify(project[key]??null)!==JSON.stringify(value??null)){project[key]=value;changed=true;}
+   }
+   if(changed){
+    try{localStorage.setItem(REG,JSON.stringify(currentRegistry));}catch(_){}
+    render();
+   }
+  })
+  .catch(()=>{ /* Listing metadata is optional; never block the dashboard on a failed request. */ });
+}
 }
 function addStyles(){const style=document.createElement('style');style.textContent=`
 @media(min-width:800px){.property-card.deal-card{border:2px solid #16803b;background:#f5fff7}.metric-cheap{background:#d8f7df!important;border:2px solid #16803b}.metric-cheap strong{color:#11632d}.deal-tag{display:inline-block;background:#16803b;color:#fff;border-radius:5px;padding:3px 5px;font-size:10px;white-space:nowrap}.metric-high{background:#d8f7df!important;border:2px solid #16803b}.location-score{display:inline-block;font-size:22px;font-weight:900;color:#334155}.score-high{color:#11632d}.score-sub{display:block;font-size:11px!important;margin-top:3px}.transport-detail{font-size:12px;color:#596777;margin-top:8px;padding:8px 10px;background:#f6f8fa;border-radius:8px}main{max-width:1240px}.property-list{display:flex;flex-direction:column;gap:18px}.property-card{background:#fff;border:1px solid #dfe5eb;border-radius:16px;padding:20px;box-shadow:0 4px 16px #17212b08}.prop-layout{display:grid;grid-template-columns:minmax(250px,32%) minmax(0,1fr);gap:22px}.prop-photo-wrap{position:relative;align-self:start}.prop-photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:#eef2f6}.prop-photo-placeholder{display:grid;place-content:center;text-align:center;aspect-ratio:4/3;border-radius:12px;background:#eef2f6;color:#637184;font-weight:700}.photo-link{display:block;margin-top:8px;font-size:13px}.prop-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.prop-metrics>div{padding:10px;background:#f5f7fa;border-radius:9px;min-width:0}.prop-metrics small{display:block;color:#617080;font-size:12px}.prop-metrics strong{display:block;font-size:15px;overflow-wrap:anywhere}.prop-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}.prop-columns section{background:#fbfcfe;border:1px solid #e8edf2;border-radius:10px;padding:12px}.prop-columns h4,.saved-notes h4{margin:0 0 8px;font-size:14px}.prop-columns ul{margin:0;padding-left:19px;font-size:13px}.prop-columns li{margin:0 0 7px}.prop-columns .good li::marker{color:#198754}.prop-columns .risk li::marker{color:#bd5a30}.prop-top{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}.rank{display:grid;place-items:center;min-width:34px;height:34px;background:#e8eefb;color:#244aa3;border-radius:9px;font-weight:800}.prop-title h3{font-size:19px;margin:0}.prop-title p{margin:3px 0 0}.prop-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.prop-actions .btn{margin:0}.btn-light{background:#eef2f6;color:#17212b}.saved-notes{margin-top:14px;padding:12px;background:#fff8e6;border-radius:10px}.saved-notes p{white-space:pre-wrap;margin:0;font-size:13px}.dash-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:14px}.dash-heading h2{font-size:25px;margin:8px 0 2px}.dash-heading p{margin:0;max-width:820px}.dash-count{background:#e8eefb;border-radius:99px;padding:7px 11px;font-weight:700;white-space:nowrap}.dash-foot{margin-top:16px;font-size:12px}}
