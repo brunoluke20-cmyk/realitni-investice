@@ -97,7 +97,9 @@ function renderWorkspace(){
  if(p&&p.record){
   const details=document.createElement('details');details.style.cssText='margin-top:10px;border-top:1px solid #e2e8f0;padding-top:9px';
   const summary=document.createElement('summary');summary.textContent='Karta nemovitosti · '+(p.record.verificationStatus||'údaje k ověření');summary.style.cssText='cursor:pointer;font-weight:700;color:#334155';details.appendChild(summary);
-  const photo=document.createElement('img');photo.alt='Náhled fotografie z inzerátu: '+(p.record.title||p.title||'Nemovitost');photo.loading='lazy';photo.decoding='async';photo.style.cssText='display:block;width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-top:10px;background:#eef2f7';photo.src=p.record.imageUrl||(p.url?'https://image.thum.io/get/width/1000/crop/600/noanimate/'+p.url:'');if(!photo.src){photo.style.display='none'}else photo.onerror=()=>{photo.style.display='none'};details.appendChild(photo);
+  const photoWrap=document.createElement('div');photoWrap.style.cssText='width:100%;min-height:120px;max-height:320px;border-radius:10px;margin-top:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#64748b;font-size:13px;text-align:center;padding:12px;box-sizing:border-box';
+  if(p.record.imageUrl){const photo=document.createElement('img');photo.alt='Fotografie nemovitosti: '+(p.record.title||p.title||'Nemovitost');photo.loading='lazy';photo.decoding='async';photo.style.cssText='display:block;width:100%;max-height:320px;object-fit:cover;border-radius:10px';photo.src=p.record.imageUrl;photo.onerror=()=>{photo.remove();photoWrap.textContent='Fotografie není dostupná'};photoWrap.appendChild(photo)}else{photoWrap.textContent='Úvodní fotografie z inzerátu není zatím ověřená. Otevři původní inzerát níže.'}
+  details.appendChild(photoWrap);
   const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:10px';
   const entries=[['Cena',p.record.price?Number(p.record.price).toLocaleString('cs-CZ')+' Kč':'Neuvedena'],['Podlahová plocha',p.record.floorArea? p.record.floorArea+' m²':'Neuvedena'],['Pozemek',p.record.landArea?p.record.landArea+' m²':'Neuveden'],['Podlaží',p.record.floors||'Neuvedena'],['Dispozice',p.record.layout||'Neuvedena'],['Adresa / lokalita',p.record.address||p.address||'Neuvedena'],['Metro',p.record.metro||'Neověřeno'],['Kontakt',p.record.contact||'V inzerátu / neověřeno'],['Potenciál',p.record.potential||'Prověřit stavebně a právně'],['Stav ověření',p.record.verificationStatus||'K ověření']];
   entries.forEach(([k,v])=>{const cell=document.createElement('div');cell.style.cssText='padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc';const key=document.createElement('div');key.style.cssText='font-size:11px;color:#64748b;font-weight:700';key.textContent=k;const value=document.createElement('div');value.style.cssText='overflow-wrap:anywhere';value.textContent=String(v);cell.append(key,value);grid.appendChild(cell)});
@@ -247,11 +249,8 @@ function renderHomeListingCatalog(){
   if(raw.url)seenListingUrls.add(raw.url);
   const r=normalizeImportedRecord(raw),card=document.createElement('article');
   card.style.cssText='border:1px solid #dfe5eb;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:7px;min-width:0';
-  const photo=document.createElement('img');
-  photo.alt='Náhled fotografie z inzerátu: '+r.title;photo.loading='lazy';photo.decoding='async';
-  photo.style.cssText='display:block;width:100%;height:190px;object-fit:cover;border-radius:8px;background:#eef2f7';
-  photo.src=r.imageUrl||(r.url?'https://image.thum.io/get/width/800/crop/420/noanimate/'+r.url:'');
-  if(!photo.src){photo.style.display='none'}else{photo.onerror=()=>{photo.style.display='none'};photo.title=r.imageUrl?'Úvodní fotografie nabídky':'Náhled stránky původního inzerátu';}
+  const photoWrap=document.createElement('div');photoWrap.style.cssText='width:100%;height:190px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:12px;color:#64748b;text-align:center;padding:12px;box-sizing:border-box';
+  if(r.imageUrl){const photo=document.createElement('img');photo.alt='Fotografie nemovitosti: '+r.title;photo.loading='lazy';photo.decoding='async';photo.style.cssText='display:block;width:100%;height:190px;object-fit:cover';photo.src=r.imageUrl;photo.onerror=()=>{photo.remove();photoWrap.textContent='Fotografie není dostupná'};photoWrap.appendChild(photo)}else{photoWrap.textContent='Úvodní fotografie z inzerátu není zatím ověřená'}
   const title=document.createElement('h3');title.textContent=r.title;title.style.cssText='font-size:16px;line-height:1.35;margin:0';
   const price=document.createElement('div');price.textContent=Number(r.price)>0?money(r.price):'Cena neuvedena';price.style.cssText='font-size:19px;font-weight:800;color:#13243a';
   const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
@@ -260,7 +259,7 @@ function renderHomeListingCatalog(){
   const address=document.createElement('div');address.textContent=r.address||'Lokalita neověřena';address.style.cssText='font-size:13px';
   const metro=document.createElement('div');metro.textContent='Metro: '+(r.metro||'neověřeno');metro.style.cssText='font-size:12px;color:#617080';
   const status=document.createElement('div');status.textContent=r.verificationStatus||'Údaje k ověření';status.style.cssText='font-size:11px;color:#8a4b08;background:#fff7ed;padding:6px 8px;border-radius:7px';
-  card.append(photo,title,price,area,unit,land,address,metro,status);
+  card.append(photoWrap,title,price,area,unit,land,address,metro,status);
   if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
   grid.appendChild(card);
