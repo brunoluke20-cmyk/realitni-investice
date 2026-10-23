@@ -156,7 +156,15 @@ $('loadContact').addEventListener('click',async()=>{
   if(d.landArea){$('landArea').value=Number(String(d.landArea).replace(',','.')).toLocaleString('cs-CZ');found.push('plocha pozemku')}
   if(d.contactName){$('contactName').value=d.contactName;found.push('jméno kontaktu')}
   if(d.agency){$('agency').value=d.agency;found.push('realitka')}
-  if(d.phone){$('phone').value=d.phone;found.push('telefon')}
+  // Contact providers sometimes return the revealed number under a nested or alternate field.
+  const contactPayload=[d.phone,d.contactPhone,d.contact_phone,d.telephone,d.mobile,d.mobile_phone,d.contact,d.seller,d.agent].map(v=>{
+   if(typeof v==='string'||typeof v==='number')return String(v);
+   if(v&&typeof v==='object')return [v.phone,v.telephone,v.mobile,v.gsm,v.number,v.phone_number].find(x=>typeof x==='string'||typeof x==='number')||'';
+   return '';
+  }).find(v=>String(v).trim())||'';
+  const phoneMatch=String(contactPayload).match(/(?:\\+420|00420|(?<!\\d)420)?[\\s().\\-\\u00a0]*\\d(?:[\\s().\\-\\u00a0]*\\d){8,14}/);
+  const phoneCandidate=phoneMatch?phoneMatch[0].trim():String(contactPayload).trim();
+  if(phoneCandidate && phoneCandidate.replace(/\\D/g,'').length>=9 && phoneCandidate.replace(/\\D/g,'').length<=15){$('phone').value=phoneCandidate;found.push('telefon')}
   if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}
   const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
   $('listingKeyPoints').value=JSON.stringify(points);
