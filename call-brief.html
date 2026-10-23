@@ -186,6 +186,35 @@ $('loadContact').addEventListener('click',async()=>{
 document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')){refreshLinks();scheduleSave()}});
 document.addEventListener('change',e=>{if(e.target.matches('input,textarea,select')){if(e.target.id==='callState')$('currentStatus').textContent=e.target.options[e.target.selectedIndex].text;refreshLinks();scheduleSave()}});
 records=readStore();if(records.length)loadRecord(records[0]);else{const r=blank();records.push(r);loadRecord(r)}renderList();
-try{const params=new URLSearchParams(location.search);if(['calculator','listing'].includes(params.get('from'))){const p=params.get('from')==='listing'?{url:params.get('listingURL')||'',name:params.get('listingTitle')||'',address:params.get('listingAddress')||'',price:params.get('listingPrice')||'',area:params.get('listingArea')||'',landArea:params.get('listingLandArea')||''}:getShared();if(p.url||p.listingURL||p.address||p.name){const r=blank();r.listingUrl=p.url||p.listingURL||'';r.listingTitle=p.name||p.title||'';r.listingAddress=p.address||p.location||'';r.listingPrice=p.price||p.listingPrice||'';r.usableArea=p.area||p.listingArea||'';r.landArea=p.landArea||p.listingLandArea||'';records.unshift(r);loadRecord(r);persist();$('contactStatus').textContent=params.get('from')==='listing'?'Inzerát přenesen z vyhledávání. Brief na telefonát je předvyplněný; doplň kontakt a připrav si otázky.':'Nemovitost přenesena z kalkulačky. Telefon lze zkopírovat tlačítkem níže.'}}}catch(_){} 
+try{
+ const params=new URLSearchParams(location.search);
+ if(['calculator','listing'].includes(params.get('from'))){
+  const fromListing=params.get('from')==='listing';
+  const p=fromListing?{url:params.get('listingURL')||'',name:params.get('listingTitle')||'',address:params.get('listingAddress')||'',price:params.get('listingPrice')||'',area:params.get('listingArea')||'',landArea:params.get('listingLandArea')||'',contact:params.get('listingContact')||'',notes:params.get('listingNotes')||'',potential:params.get('listingPotential')||'',layout:params.get('listingLayout')||'',floors:params.get('listingFloors')||'',metro:params.get('listingMetro')||''}:getShared();
+  if(p.url||p.listingURL||p.address||p.name){
+   const r=blank();
+   r.listingUrl=p.url||p.listingURL||'';r.listingTitle=p.name||p.title||'';r.listingAddress=p.address||p.location||'';
+   r.listingPrice=p.price||p.listingPrice||'';r.usableArea=p.area||p.listingArea||'';r.landArea=p.landArea||p.listingLandArea||'';
+   if(fromListing){
+    const contact=String(p.contact||'');
+    const phoneMatch=contact.match(/(?:\+?420[\s().-]*)?(?:\d[\s().-]*){9,}/);
+    const emailMatch=contact.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    const generic=/kontakt přes|kontakt přes výsledky|neověřen|otevřít původní inzerát|přímý inzerát/i.test(contact);
+    const namePart=contact.split(/[·|]/)[0].trim();
+    if(!generic&&namePart&&!/^kontakt/i.test(namePart))r.contactName=namePart.slice(0,140);
+    if(phoneMatch)r.phone=phoneMatch[0].trim();
+    if(emailMatch)r.contactEmail=emailMatch[0];
+    const agencyMatch=contact.match(/(?:\/|—)\s*([^·]+?)(?:\s*[·]|$)/);
+    if(agencyMatch&&/reality|real estate|qara|housevip|justo|sekyragroup|hvb/i.test(agencyMatch[1]))r.agency=agencyMatch[1].trim();
+    const points=[p.layout&&('Dispozice: '+p.layout),p.floors&&('Podlaží: '+p.floors),p.metro&&('MHD: '+p.metro),p.potential&&('Investiční potenciál: '+p.potential)].filter(Boolean).slice(0,3);
+    r.listingKeyPoints=JSON.stringify(points);
+    r.liveNotes=[p.notes,p.potential&&('Potenciál: '+p.potential),p.layout&&('Dispozice: '+p.layout),p.floors&&('Podlaží: '+p.floors),p.metro&&('Doprava: '+p.metro)].filter(Boolean).join('\n\n').slice(0,5000);
+   }
+   records.unshift(r);loadRecord(r);persist();
+   $('contactStatus').textContent=fromListing?'Inzerát a dostupné kontakty/poznámky byly přeneseny. Pokud kontakt v uložených datech chybí, otevři původní inzerát.':'Nemovitost přenesena z kalkulačky. Telefon lze zkopírovat tlačítkem níže.';
+  }
+ }
+}catch(_){}
+
 })();
 </script></body></html>
