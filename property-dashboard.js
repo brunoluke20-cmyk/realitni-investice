@@ -18,10 +18,10 @@ function getData(p){
  const pTitle=/^(nový inzerát|nová nemovitost|nový projekt|nová nabídka)$/i.test(String(p.title||'').trim())?'':p.title;const title=first(pTitle,shared.title,shared.name,cv.name,cv.listingAddress,call.listingTitle,call.listingAddress,'Nová nemovitost');
  const url=first(p.url,shared.url,shared.listingURL,cv.listingURL,cv.url,call.listingUrl,'');
  const price=num(first(p.price,shared.price,shared.listingPrice,cv.listingPrice,cv.price,call.listingPrice));
- const area=num(first(shared.area,shared.listingArea,cv.listingArea,cv.usableArea,call.usableArea));
- const land=num(first(shared.landArea,shared.listingLandArea,cv.landArea,call.landArea));
+ const area=num(first(p.area,shared.area,shared.listingArea,cv.listingArea,cv.usableArea,call.usableArea));
+ const land=num(first(p.land,shared.landArea,shared.listingLandArea,cv.landArea,call.landArea));
  const address=first(p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress,'');
- const points=parsePoints(first(call.listingKeyPoints,shared.keyPoints,shared.description,cv.description,''));
+ const points=parsePoints(first(p.points,call.listingKeyPoints,shared.keyPoints,shared.description,cv.description,''));
  const notes=first(call.liveNotes,call.callResult,call.notes,shared.notes,'');
  const image=first(p.image,shared.image_url,shared.imageUrl,shared.image,call.image_url,call.imageUrl,'');
  return {id:p.id,title,url,address,price,area,land,ppm:price&&area?price/area:null,points,notes,image,call,cv,shared};
