@@ -210,15 +210,18 @@ function ensureStarterListings(){
  let added=0,updated=0;
  STARTER_LISTINGS.forEach(raw=>{
   const record=normalizeImportedRecord(raw);
-  let existing=registry.projects.find(p=>record.url&&p.url===record.url);
-  if(!existing)existing=registry.projects.find(p=>p.title===record.title);
-  if(!existing)existing=registry.projects.find(p=>p.title&&p.title.startsWith('Tip k prověření –')&&p.address===record.address);
+  const street=String(record.address||'').split(',')[0].trim().toLocaleLowerCase('cs-CZ');
+  let existing=registry.projects.find(p=>p.title&&p.title.startsWith('Tip k prověření –')&&String(p.address||'').split(',')[0].trim().toLocaleLowerCase('cs-CZ')===street);
   if(existing){
-   if(existing.title!==record.title||existing.url!==record.url||String(existing.price??'')!==String(record.price??'')){
-    updateExistingImportedFolder(existing,record);updated++;
-   }
+   const duplicate=registry.projects.some(p=>p!==existing&&record.url&&p.url===record.url);
+   updateExistingImportedFolder(existing,record);
+   if(duplicate){existing.title=record.title+' (doplněná původní složka)';existing.record.title=existing.title;}
+   updated++;
    return;
   }
+  existing=registry.projects.find(p=>record.url&&p.url===record.url);
+  if(!existing)existing=registry.projects.find(p=>p.title===record.title);
+  if(existing)return;
   saveImportedProperty(record);added++;
  });
  if(added||updated||nativeGet.call(ls,STARTER_IMPORT_KEY)!=='yes'){
@@ -237,7 +240,10 @@ function renderHomeListingCatalog(){
  const intro=document.createElement('p');intro.textContent='Cena za m² = cena domu ÷ užitná/podlahová plocha. Neověřené tipy a dostupnost metra jsou jasně označené.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
+ const seenListingUrls=new Set();
  STARTER_LISTINGS.forEach(raw=>{
+  if(raw.url&&seenListingUrls.has(raw.url))return;
+  if(raw.url)seenListingUrls.add(raw.url);
   const r=normalizeImportedRecord(raw),card=document.createElement('article');
   card.style.cssText='border:1px solid #dfe5eb;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:7px;min-width:0';
   const title=document.createElement('h3');title.textContent=r.title;title.style.cssText='font-size:16px;line-height:1.35;margin:0';
