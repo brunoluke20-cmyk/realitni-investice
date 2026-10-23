@@ -157,7 +157,7 @@ $('loadContact').addEventListener('click',async()=>{
   if(d.contactName){$('contactName').value=d.contactName;found.push('jméno kontaktu')}
   if(d.agency){$('agency').value=d.agency;found.push('realitka')}
   // Contact providers sometimes return the revealed number under a nested or alternate field.
-  const phonePattern=/(?:\\+420|00420|(?<!\\d)420)?[\\s().\\-\\u00a0]*\\d(?:[\\s().\\-\\u00a0]*\\d){8,14}/;
+  const phonePattern=/(?:\+420|00420|(?<!\d)420)?[\s().\-\u00a0]*\d(?:[\s().\-\u00a0]*\d){8,14}/;
   const contactPayloads=[d.phone,d.contactPhone,d.contact_phone,d.telephone,d.mobile,d.mobile_phone,d.contact,d.seller,d.agent]
    .flatMap(v=>{
     if(typeof v==='string'||typeof v==='number')return [String(v)];
@@ -165,7 +165,7 @@ $('loadContact').addEventListener('click',async()=>{
     return [];
    });
   const phoneCandidate=contactPayloads.map(v=>v.match(phonePattern)?.[0]?.trim()||'')
-   .find(v=>v&&v.replace(/\\D/g,'').length>=9&&v.replace(/\\D/g,'').length<=15)||'';
+   .find(v=>v&&v.replace(/\D/g,'').length>=9&&v.replace(/\D/g,'').length<=15)||'';
   if(phoneCandidate){$('phone').value=phoneCandidate;found.push('telefon') }
   if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}
   const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
