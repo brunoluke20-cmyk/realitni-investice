@@ -183,7 +183,7 @@ function openBulkImport(){
  const makeButton=(label,primary,handler)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='border:1px solid '+(primary?'#2457d6':'#cbd5df')+';background:'+(primary?'#2457d6':'white')+';color:'+(primary?'white':'#17212b')+';padding:10px 13px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer';b.addEventListener('click',handler);return b};
  const status=document.createElement('p');status.setAttribute('role','status');status.style.cssText='font-size:13px;color:#475569';
  actions.append(
-  makeButton('Přidat 11 položek z předchozího seznamu',true,()=>{if(!confirm('Vytvořit 11 samostatných složek? Záznamy budou označené jako neověřené.'))return;let count=0;STARTER_LISTINGS.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Vytvořeno '+count+' nových složek. Záznamy jsou označené jako neověřené; otevři každou kartu a ověř původní zdroj.';}),
+  makeButton('Přidat '+STARTER_LISTINGS.length+' položek z předchozího seznamu',true,()=>{if(!confirm('Vytvořit '+STARTER_LISTINGS.length+' samostatných složek? Záznamy budou označené jako neověřené.'))return;let count=0;STARTER_LISTINGS.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Vytvořeno '+count+' nových složek. Záznamy jsou označené jako neověřené; otevři každou kartu a ověř původní zdroj.';}),
   makeButton('Importovat JSON',true,()=>{let parsed;try{parsed=JSON.parse(textarea.value)}catch(err){status.textContent='JSON není platný: '+err.message;return}const rows=Array.isArray(parsed)?parsed:(parsed&&Array.isArray(parsed.properties)?parsed.properties:null);if(!rows){status.textContent='Vlož JSON pole objektů nebo objekt s polem properties.';return}let count=0;rows.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Import dokončen: přidáno '+count+' složek. Duplicitní URL nebo názvy bez odkazu byly přeskočeny.';}),
   makeButton('Zavřít',false,()=>overlay.remove())
  );
@@ -210,6 +210,33 @@ function ensureStarterListings(){
 }
 ensureStarterListings();
 
+function renderHomeListingCatalog(){
+ if(!location.pathname.endsWith('index.html'))return;
+ const main=document.querySelector('main'),tools=main&&main.querySelector('.cards');
+ if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
+ const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
+ const h=document.createElement('h2');h.textContent='Všechny nalezené domy ('+STARTER_LISTINGS.length+')';h.style.cssText='font-size:23px;margin:0 0 6px';
+ const intro=document.createElement('p');intro.textContent='Cena za m² = cena domu ÷ užitná/podlahová plocha. Neověřené tipy a dostupnost metra jsou jasně označené.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
+ const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
+ const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
+ STARTER_LISTINGS.forEach(raw=>{
+  const r=normalizeImportedRecord(raw),card=document.createElement('article');
+  card.style.cssText='border:1px solid #dfe5eb;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:7px;min-width:0';
+  const title=document.createElement('h3');title.textContent=r.title;title.style.cssText='font-size:16px;line-height:1.35;margin:0';
+  const price=document.createElement('div');price.textContent=Number(r.price)>0?money(r.price):'Cena neuvedena';price.style.cssText='font-size:19px;font-weight:800;color:#13243a';
+  const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
+  const unit=document.createElement('div');unit.textContent=Number(r.price)>0&&Number(r.floorArea)>0?('Cena za m²: '+money(Math.round(Number(r.price)/Number(r.floorArea)))+'/m²'):'Cena za m² nelze spočítat';unit.style.cssText='font-size:14px;font-weight:750;color:#2457d6';
+  const land=document.createElement('div');land.textContent=r.landArea?('Pozemek: '+r.landArea+' m²'):'Pozemek neuveden';land.style.cssText='font-size:12px;color:#617080';
+  const address=document.createElement('div');address.textContent=r.address||'Lokalita neověřena';address.style.cssText='font-size:13px';
+  const metro=document.createElement('div');metro.textContent='Metro: '+(r.metro||'neověřeno');metro.style.cssText='font-size:12px;color:#617080';
+  const status=document.createElement('div');status.textContent=r.verificationStatus||'Údaje k ověření';status.style.cssText='font-size:11px;color:#8a4b08;background:#fff7ed;padding:6px 8px;border-radius:7px';
+  card.append(title,price,area,unit,land,address,metro,status);
+  if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
+  else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
+  grid.appendChild(card);
+ });
+ section.append(h,intro,grid);main.insertBefore(section,tools);
+}
 function syncInternalLinks(){
  document.querySelectorAll('a[href]').forEach(a=>{const href=a.getAttribute('href');if(!href||href.startsWith('#')||/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin!==location.origin)return;u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}catch(_){}});
 }
@@ -217,7 +244,7 @@ function installUI(){
  if(document.getElementById('reiProjectWorkspace'))return;
  const root=document.createElement('section');root.id='reiProjectWorkspace';root.style.cssText='position:relative;z-index:1000;max-width:1080px;margin:12px auto;padding:12px 14px;background:#fff;border:1px solid #dfe5eb;border-radius:12px;box-shadow:0 3px 12px #17212b0a;font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif';
  const header=document.querySelector('header');if(header&&header.parentNode)header.insertAdjacentElement('afterend',root);else document.body.insertBefore(root,document.body.firstChild);
- renderWorkspace();syncInternalLinks();
+ renderWorkspace();syncInternalLinks();renderHomeListingCatalog();
  document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const href=a.getAttribute('href');if(!href||/^(https?:|mailto:|tel:|javascript:|data:|#)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin===location.origin&&!u.searchParams.has('project')){u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}}catch(_){}},true);
  document.addEventListener('click',e=>{
   const btn=e.target.closest&&e.target.closest('button');if(!btn)return;
