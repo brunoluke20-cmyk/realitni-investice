@@ -466,31 +466,38 @@ function updateInvestment(){
  const gross=counts.reduce((sum,count,i)=>sum+count*rents[i],0);
  const currentValue=counts.reduce((sum,count,i)=>sum+count*values[i],0);
  const costs=gross*(Math.min(100,getVal('vacancy'))+Math.min(100,getVal('operating')))/100;
- const principal=getVal('purchase')*Math.min(100,getVal('ltv'))/100;
- const loan=mortgage(principal,getVal('rate'),Math.max(1,getVal('term')),getVal('months'));
- const cf=gross-costs-loan.payment;
- // Doporučená kupní cena podle požadovaného měsíčního cashflow.
- const netRent=gross-costs;
+ // Use the same modeled financing base as the main investment calculator: purchase + acquisition costs + renovation + project costs + contingency reserve.
+ const purchasePrice=getVal('purchase');
+ const acquisitionCosts=getVal('buyCost'),renovationCosts=getVal('works'),projectCosts=getVal('soft');
+ const contingencyCosts=(renovationCosts+projectCosts)*Math.min(100,getVal('reserve'))/100;
+ const financedNonPurchaseCosts=acquisitionCosts+renovationCosts+projectCosts+contingencyCosts;
+ const modeledProjectCost=purchasePrice+financedNonPurchaseCosts;
  const ltvRatio=Math.min(100,getVal('ltv'))/100;
  const annualRate=getVal('rate'),termYears=Math.max(1,getVal('term'));
+ const principal=modeledProjectCost*ltvRatio;
+ const loan=mortgage(principal,annualRate,termYears,getVal('months'));
+ const cf=gross-costs-loan.payment;
+ // Recommended purchase-price ceilings solve for the maximum purchase price after all modeled financed project costs.
+ const netRent=gross-costs;
  const targetPositive=Math.max(0,getVal('targetPositiveCashflow'));
  const neutralEl=$('neutralPrice'),positiveEl=$('positivePrice'),netRentEl=$('netRentForRecommendation'),noteEl=$('cashflowRecommendationNote');
  if(netRentEl)netRentEl.textContent=fmt(netRent);
+ const paymentPerCurrencyUnit=mortgage(1,annualRate,termYears,0).payment;
  const priceForTarget=target=>{
   const paymentCapacity=netRent-target;
   if(paymentCapacity<0)return null;
   if(ltvRatio<=0)return Infinity;
-  const paymentPerCurrencyUnit=mortgage(1,annualRate,termYears,0).payment;
-  return paymentPerCurrencyUnit>0?paymentCapacity/(paymentPerCurrencyUnit*ltvRatio):Infinity;
+  if(paymentPerCurrencyUnit<=0)return Infinity;
+  return paymentCapacity/(paymentPerCurrencyUnit*ltvRatio)-financedNonPurchaseCosts;
  };
  const neutralPrice=priceForTarget(0),positivePrice=priceForTarget(targetPositive);
- const showPrice=value=>value===null?'Nedosažitelné při tomto nájmu':value===Infinity?'Bez hypotéky nelze stanovit strop z cashflow':fmt(Math.max(0,value));
+ const showPrice=value=>value===null?'Nedosažitelné při tomto nájmu':value===Infinity?'Bez hypotéky nelze stanovit strop z cashflow':value<0?'Nedosažitelné ani při kupní ceně 0 Kč':fmt(value);
  if(neutralEl)neutralEl.textContent=showPrice(neutralPrice);
  if(positiveEl)positiveEl.textContent=showPrice(positivePrice);
  if(noteEl){
   if(units<=0)noteEl.textContent='Zadej alespoň jeden byt a odhad jeho měsíčního nájmu.';
   else if(netRent<0)noteEl.textContent='Odhadované provozní náklady a rezerva převyšují nájemné. Uprav vstupy; samotná kupní cena tento provozní deficit nevyřeší.';
-  else noteEl.textContent='Strop se počítá při LTV '+Math.round(ltvRatio*100)+' %, úroku '+annualRate.toLocaleString('cs-CZ')+' % p. a. a splatnosti '+termYears+' let. Kladný scénář cílí na '+fmt(targetPositive)+' měsíčně. Nezahrnuje daně, mimořádné opravy ani další náklady, které nejsou ve vstupních procentech.';
+  else noteEl.textContent='Hypotéka pro měsíční cashflow je modelově počítána z kupní ceny ('+fmt(purchasePrice)+') + pořizovacích nákladů ('+fmt(acquisitionCosts)+') + rekonstrukce ('+fmt(renovationCosts)+') + projektu ('+fmt(projectCosts)+') + rezervy ('+fmt(contingencyCosts)+'). LTV '+Math.round(ltvRatio*100)+' %, úrok '+annualRate.toLocaleString('cs-CZ')+' % p. a., splatnost '+termYears+' let. Doporučené ceny odečítají stejné vedlejší a rekonstrukční náklady od cenového stropu. Cílové kladné cashflow: '+fmt(targetPositive)+' měsíčně. Model neznamená, že banka všechny tyto položky skutečně profinancuje; ověř podmínky financování, daně, pojištění, správu a rezervy.';
  }
  const years=Math.max(1,Number($('projectionYears').value)||5);
  const rate=Number($('appreciation').value)||0;
