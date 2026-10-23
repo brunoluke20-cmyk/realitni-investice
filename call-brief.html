@@ -162,9 +162,9 @@ $('loadContact').addEventListener('click',async()=>{
    if(v&&typeof v==='object')return [v.phone,v.telephone,v.mobile,v.gsm,v.number,v.phone_number].find(x=>typeof x==='string'||typeof x==='number')||'';
    return '';
   }).find(v=>String(v).trim())||'';
-  const phoneMatch=String(contactPayload).match(/(?:\\+420|00420|(?<!\\d)420)?[\\s().\\-\\u00a0]*\\d(?:[\\s().\\-\\u00a0]*\\d){8,14}/);
+  const phoneMatch=String(contactPayload).match(/(?:\+420|00420|(?<!\d)420)?[\s().\-\u00a0]*\d(?:[\s().\-\u00a0]*\d){8,14}/);
   const phoneCandidate=phoneMatch?phoneMatch[0].trim():String(contactPayload).trim();
-  if(phoneCandidate && phoneCandidate.replace(/\\D/g,'').length>=9 && phoneCandidate.replace(/\\D/g,'').length<=15){$('phone').value=phoneCandidate;found.push('telefon')}
+  if(phoneCandidate && phoneCandidate.replace(/\D/g,'').length>=9 && phoneCandidate.replace(/\D/g,'').length<=15){$('phone').value=phoneCandidate;found.push('telefon')}
   if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}
   const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
   $('listingKeyPoints').value=JSON.stringify(points);
