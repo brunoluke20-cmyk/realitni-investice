@@ -145,8 +145,368 @@ const STARTER_LISTINGS=[
  {title:'Vícegenerační dům – V Hrobech, Praha 12 – Libuš',url:'https://stredo.ceskereality.cz/prodej/rodinne-domy/rodinne-domy/praha/prodej-rodinneho-domu-280-m2-v-hrobech-3930256.html',address:'V Hrobech 1095, Praha 12 – Libuš',price:32000000,floorArea:280,landArea:258,floors:'Více podlaží; přesný počet ověřit',layout:'Samostatná jednotka cca 50 m² v suterénu',metro:'Pouze budoucí metro D – Libuš; nyní není v provozu',contact:'Ing. Jiří Doskočil · 774 171 500 · doskocil@dumrealit.cz',potential:'Samostatná jednotka cca 50 m²; ověřit kolaudaci a pronajímatelnost',verificationStatus:'Inzerát zveřejněný v říjnu 2026; potvrdit aktuální dostupnost',notes:'Zdroj uvádí 32 000 000 Kč, užitnou plochu 280 m², pozemek 258 m². Budoucí metro D není současná stanice.'},
  {title:'Velká vila – V louce, Praha-Kolovraty',url:'https://www.maxirealitypraha.cz/prodej/rodinne-domy/rodinne-domy/praha/praha-kolovraty/qara-sro-prodej-rodinneho-domu-470-m2-v-louce-3747254.html',address:'V louce, Praha-Kolovraty',price:34500000,floorArea:470,landArea:1038,floors:'Neověřeno',layout:'8 ložnic, 5 koupelen',metro:'Dostupnost metra do 10 min není doložena',contact:'Jaroslav Beránek / QARA s.r.o. – kontakt přes inzerát',potential:'Velká plocha; právní rozdělení na byty neověřeno',verificationStatus:'Veřejný inzerát nalezen; potvrdit aktuální dostupnost',notes:'Zdroj uvádí 34 500 000 Kč, užitnou plochu 470 m² a pozemek 1 038 m².'},
  {title:'Vícegenerační dům – Ke Klimentce, Praha 5 – Smíchov',url:'https://www.ceskereality.cz/prodej/rodinne-domy/rodinne-domy/praha/prodej-rodinneho-domu-180-m2-ke-klimentce-3929181.html',address:'Ke Klimentce 2102, Praha 5 – Smíchov',price:24000000,floorArea:180,landArea:175,floors:'4 (3 nadzemní + 1 podzemní)',layout:'2 až 3 bytové jednotky dle nabídky; 60 m² nebytové plochy uvedeno zvlášť',metro:'Metro do 10 min neověřeno; zdroj uvádí MHD',contact:'Jitka Přibylová – kontakt přes inzerát',potential:'Inzerát uvádí možnost 2–3 bytových jednotek; ověřit kolaudaci',verificationStatus:'Nový veřejný inzerát z října 2026; potvrdit aktuálnost',notes:'Zdroj uvádí 24 000 000 Kč, užitnou plochu 180 m², obytnou plochu 240 m² a pozemek 175 m². Cena za m² se počítá z užitné plochy.'}
-[{"title":"Vícegenerační dům – Jižní II, Praha 4","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-zabehlice-jizni-ii/2516041804","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qE_D/nPYADvcUkmDcXILWaHmTJjO/4810.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Jižní II, Praha 4 – Záběhlice","price":17899000,"floorArea":191,"landArea":601,"floors":"4 včetně suterénu","layout":"Byty 76 m² a 22 m²; suterén 98 m² nyní provozovna","metro":"Metro Roztyly cca 1 km; do 10 min MHD ověřit","contact":"Kontakt přes Sreality","potential":"Suterénní provozovnu prověřit pro další bytové využití; nutné stavební a kolaudační posouzení.","verificationStatus":"Aktivní veřejný inzerát; dostupnost potvrdit","notes":"Klidná lokalita se zahradou a garáží. Pozor: prodává se spoluvlastnický podíl 1/2, proto je zásadní právní prověrka."},{"title":"Vícegenerační dům – Stodůlky, Praha 13","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-stodulky-/2793997132","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qG_A/kcKfrMAkFCpZ9wPH3IAOrOD/cd72.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Praha 13 – Stodůlky","price":43000000,"floorArea":250,"landArea":569,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; dispozice ověřit","metro":"Metro B v oblasti Stodůlek; přesnou pěší trasu ověřit","contact":"Eva Žďánská / HVB Real Estate – kontakt přes inzerát","potential":"Velká plocha a pozemek mohou umožnit oddělené jednotky; ověřit současné uspořádání a kolaudaci.","verificationStatus":"Aktualizováno 15. 10. 2026; dostupnost potvrdit","notes":"Klidná rezidenční lokalita, ale vysoká pořizovací cena. Investičně dává smysl jen při doloženém počtu legálních jednotek a realistickém nájemném."},{"title":"Dvougenerační dům – V zápolí, Praha 4 – Michle","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-michle-v-zapoli/256893004","address":"V Zápolí 1104/3, Praha 4 – Michle","price":24950000,"floorArea":211,"landArea":676,"floors":"3 podlaží + částečný suterén","layout":"6+2; samostatné části prověřit","metro":"Kačerov/Budějovická; čas MHD do 10 min nutno ověřit","contact":"100klíčů – kontakt přes inzerát","potential":"Prvorepublikový dům se zahradou, bazénem a garáží; prověřit oddělení vstupů, instalací a právní rozdělení.","verificationStatus":"Aktuální veřejný inzerát; dostupnost potvrdit","notes":"Zahrada a pozemek jsou výhodou. Výsledek investice závisí na nákladech modernizace a možnosti legálně vytvořit samostatné jednotky."},{"title":"Velká vila – Jiříkovská, Praha-Ďáblice","url":"https://www.sreality.cz/detail/prodej/dum/vila/praha-dablice-jirikovska/3051888716","address":"Jiříkovská, Praha 8 – Ďáblice","price":"","floorArea":438,"landArea":1025,"floors":"Více podlaží + nedokončené podkroví","layout":"7+kk; část podkroví nedokončená","metro":"MHD do metra nutno ověřit; 10 min nepotvrzeno","contact":"LOOK reality – kontakt přes Sreality","potential":"Velká vila a 146 m² nedokončeného podkroví; prověřit možnost samostatné jednotky a stavební povolení.","verificationStatus":"Aktuální veřejný inzerát; cena na vyžádání, dostupnost potvrdit","notes":"Pozemek 1 025 m² a hotová plocha cca 292 m² plus podkroví. Bez zveřejněné ceny nelze cenu za m² spočítat; metro do 10 minut není potvrzeno."},{"title":"Vícegenerační dům – Pod rovinou, Praha 4 – Krč","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-krc-pod-rovinou/3504533580","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qF_D/nOdL4BtPEyDrQHrUKH4La9I/a65e.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Pod rovinou, Praha 4 – Krč","price":22500000,"floorArea":400,"landArea":483,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; dispozice ověřit","metro":"Krč/Kačerov; přesný čas MHD do 10 min ověřit","contact":"Jana Müllerová – +420 602 128 288, kontakt přes inzerát","potential":"Inzerát zmiňuje projekt/stavební povolení; prověřit platnost povolení a přesný rozsah schválených prací.","verificationStatus":"Upraveno 7. 10. 2026; dostupnost potvrdit","notes":"Nízká cena za m² vzhledem k ploše může být zajímavá, ale ověřit, kolik ze 400 m² je legálně obytných a zda je projekt použitelný."},{"title":"Vícegenerační dům – U střešovických hřišť, Praha 6","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-stresovice-u-stresovickych-hrist/2681782348","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qE_C/kPVqmweP7JB25pTCD2HgZrX6/e47f.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"U střešovických hřišť, Praha 6 – Střešovice","price":34790000,"floorArea":198,"landArea":317,"floors":"3 podlaží + sklep","layout":"Dvě jednotky 4+1 a 2+1 dle inzerátu","metro":"Hradčanská/Dejvická – čas MHD ověřit","contact":"Kontakt přes Sreality","potential":"Dvě existující jednotky snižují dispoziční riziko; ověřit právní oddělení, měřidla a kolaudaci.","verificationStatus":"Aktuální veřejný inzerát; dostupnost potvrdit","notes":"Žádaná rezidenční lokalita, zahrada, garáž a terasa. Cena je vyšší, ale dvě jednotky mohou usnadnit pronájem."},{"title":"Rodinný dům – V domcích, Praha 6 – Liboc","url":"https://www.digireality.cz/inzerat/6aa73a17fb75ac5e82ef298a","address":"V domcích, Praha 6 – Liboc","price":29990000,"floorArea":260,"landArea":566,"floors":"3 podlaží","layout":"Vícegenerační využití; rozdělení bytů neověřeno","metro":"Petřiny cca 4 min autobusem dle inzerátu","contact":"Bidli – kontakt přes DigiReality","potential":"Třípodlažní dům v zelené Liboci; modernizace možná, ale samostatné byty nejsou potvrzeny.","verificationStatus":"Aktualizováno 16. 9. 2026; dostupnost potvrdit","notes":"Obora Hvězda a Divoká Šárka jsou silnou lokalitní výhodou. Elektrické vytápění může ovlivnit provozní náklady."},{"title":"Dvougenerační dům – Horní Počernice, 267 m²","url":"https://www.digireality.cz/inzerat/6a9926ac930b94262c1137a8","address":"Horní Počernice, Praha 9","price":22500000,"floorArea":267,"landArea":571,"floors":"2 podlaží + půda","layout":"Dva byty 4+1 a 5+1; studie třetího bytu","metro":"Metro do 10 min nepotvrzeno; vlak/MHD prověřit","contact":"Bidli – kontakt přes DigiReality","potential":"Projekt na rozdělení na 3 byty je uveden v inzerátu; ověřit povolení, parkování a dopravní dostupnost.","verificationStatus":"Inzerát dohledán; dostupnost potvrdit","notes":"Dvě existující jednotky a studie třetího bytu jsou zajímavé. Dopravní podmínka metra do 10 minut ale není potvrzena, takže jde o záložní tip."},{"title":"Vícegenerační dům – Potoční, Praha 6 – Veleslavín","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-veleslavin-potocni/494850124","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qF_A/nOdL4BtPEyBHthwW4HtFebd/e5d8.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Potoční, Praha 6 – Veleslavín","price":24990000,"floorArea":200,"landArea":307,"floors":"3 podlaží včetně suterénu","layout":"5 bytových jednotek; možnost úpravy na 6","metro":"Veleslavín – metro A a vlak; přesný čas pěšky ověřit","contact":"Kontakt přes Sreality","potential":"Velmi silný konverzní kandidát: inzerát uvádí 5 jednotek s možností 6 a půdu vhodnou k vestavbě. Kompletní rekonstrukce a památková omezení mohou zvýšit náklady.","verificationStatus":"Upraveno 7. 9. 2026; dostupnost potvrdit","notes":"Jedna z nejzajímavějších investičních nabídek díky již existujícím jednotkám a poloze v Praze 6. Nutné prověřit památkovou péči, rozpočet rekonstrukce a právní stav bytů."},{"title":"Dvojdům – Ibišková, Praha-Křeslice","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kreslice-ibiskova/3911000140","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qG_A/nCR9NVflLCsdQ6SLhH8OAS8/79f7.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Ibišková, Praha 10 – Křeslice","price":52900000,"floorArea":304,"landArea":2708,"floors":"2 patrové domy","layout":"Dvě samostatně vymezené části, každá 5+kk","metro":"Metro do 10 min nepotvrzeno","contact":"Kontakt přes Sreality","potential":"Dvě samostatné části v katastru jsou výhodou; jde ale o drahý dvojdům, ne levný konverzní projekt.","verificationStatus":"Aktuální veřejný inzerát; dostupnost potvrdit","notes":"Velký pozemek a dvě samostatné části zvyšují flexibilitu. Dopravní filtr metra zatím není splněn, jde o záložní srovnání."},{"title":"Vícegenerační dům – Žampiónová, Praha-Pitkovice","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-pitkovice-zampionova/557367372","address":"Žampiónová, Praha 10 – Pitkovice","price":34000000,"floorArea":200,"landArea":1941,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; dispozice ověřit","metro":"Metro do 10 min nepotvrzeno","contact":"Kontakt přes Sreality","potential":"Pozemek téměř 2 000 m² může mít vlastní rozvojovou hodnotu; prověřit územní plán.","verificationStatus":"Veřejný inzerát dohledán; dostupnost potvrdit","notes":"Velký pozemek může nést hodnotu nezávisle na domě. Poloha v Pitkovicích ale neodpovídá přísnému filtru rychlého metra."},{"title":"Vícegenerační dům – Divišova, Praha-Kbely","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kbely-divisova/2560041036","address":"Divišova, Praha 19 – Kbely","price":21500000,"floorArea":195,"landArea":317,"floors":"2 podlaží + podzemní","layout":"Vícegenerační dům; přesný počet bytů ověřit","metro":"Metro do 10 min nepotvrzeno","contact":"Kontakt přes Sreality","potential":"Cihlový dům v dobrém stavu; rozdělení na jednotky ověřit podle dispozice a kolaudace.","verificationStatus":"Veřejný inzerát dohledán; dostupnost potvrdit","notes":"Cena za m² může být zajímavá, ale Kbely nejsou v docházkové vzdálenosti metra. Záložní tip mimo hlavní filtr."},{"title":"Vícepatrový dům – Dolnojirčanská, Praha-Kamýk","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kamyk-dolnojircanska/3403665484","address":"Dolnojirčanská, Praha 12 – Kamýk","price":"","floorArea":340,"landArea":422,"floors":"Více podlaží; ověřit","layout":"Vícegenerační / komerční využití","metro":"Metro do 10 min nepotvrzeno; budoucí metro D není v provozu","contact":"Kontakt přes Sreality","potential":"Variabilní objekt pro bydlení a podnikání; změnu užívání nutno povolit.","verificationStatus":"Cena neuvedena; dostupnost potvrdit","notes":"Bez ceny nelze spočítat cenu za m². Kamýk je pouze záložní tip, protože budoucí metro D zatím nefunguje."},{"title":"Vícegenerační dům – Žďárská, Praha-Dolní Chabry","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-dolni-chabry-zdarska/3032100940","address":"Žďárská, Praha 8 – Dolní Chabry","price":35985000,"floorArea":345,"landArea":520,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; dispozice ověřit","metro":"Metro do 10 min nepotvrzeno; ověřit MHD","contact":"Kontakt přes Sreality","potential":"Velká plocha a pozemek; prověřit současné jednotky, parkování a kolaudaci.","verificationStatus":"Veřejný inzerát dohledán; dostupnost potvrdit","notes":"Rezidenční lokalita s rodinným charakterem. Bez potvrzeného spojení na metro do 10 minut jde jen o záložní srovnání."},{"title":"Vícegenerační dům – V lipkách, Praha-Slivenec","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-slivenec-v-lipkach/3440169036","address":"V lipkách, Praha 5 – Slivenec","price":44900000,"floorArea":298,"landArea":712,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; jednotky ověřit","metro":"Metro do 10 min nepotvrzeno","contact":"Kontakt přes Sreality","potential":"Velká plocha a pozemek; počet legálních jednotek ověřit v dokumentaci.","verificationStatus":"Veřejný inzerát dohledán; dostupnost potvrdit","notes":"Zelená rezidenční lokalita, ale vysoká cena a nejistá dostupnost metra snižují shodu s investičním filtrem."},{"title":"Vícegenerační dům – U olšiček, Praha-Točná","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-tocna-u-olsicek/6303820","address":"U olšiček, Praha 12 – Točná","price":46900000,"floorArea":484,"landArea":5684,"floors":"Více podlaží; ověřit","layout":"Vícegenerační dům; ověřit","metro":"Metro do 10 min nesplněno / nepotvrzeno","contact":"Kontakt přes Sreality","potential":"Rozsáhlý pozemek a velký dům; potenciál může být hlavně v pozemku, ale lokalita je mimo dopravní filtr.","verificationStatus":"Veřejný inzerát dohledán; dostupnost potvrdit","notes":"Zařazeno pouze jako cenové srovnání velkého domu, ne jako hlavní investiční kandidát."},{"title":"Rodinný dům – Bříšťanská, Praha-Horní Počernice","url":"https://www.sreality.cz/detail/prodej/dum/rodinny/praha-horni-pocernice-bristanska/1832263756","address":"Bříšťanská, Praha 20 – Horní Počernice","price":22490000,"floorArea":218,"landArea":372,"floors":"Ověřit v detailu","layout":"Rodinný dům; rozdělení na jednotky neověřeno","metro":"Metro do 10 min nepotvrzeno; ověřit vlak/MHD","contact":"Kontakt přes výsledky Sreality","potential":"Plocha přes 200 m² umožňuje prověřit vícegenerační dispozici; bez detailu zatím nelze potvrdit oddělené jednotky.","verificationStatus":"Výsledek hledání aktuální; přímý inzerát a dostupnost nutno ověřit","notes":"Tato položka odkazuje na vyhledávání, ne přímo na konkrétní inzerát; před investičním rozhodnutím nahradit přímým odkazem."},{"title":"Rodinný dům – Ďáblická, Praha-Ďáblice (3 zkolaudované byty)","url":"https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-dablicka/1448943692","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qF_D/nOdL4BtPEyC2Er43EH14lyN/0b27.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Ďáblická 18, Praha 8 – Ďáblice","price":19500000,"floorArea":244,"landArea":849,"floors":"2 podlaží","layout":"3 samostatné plně kolaudované bytové jednotky; navíc komerční prostor","metro":"MHD do metra Ládví; do 10 min ověřit podle konkrétního spoje","contact":"Kontakt přes Sreality","potential":"Tři již zkolaudované jednotky a samostatný komerční prostor jsou silným investičním základem. Ověřit rozpracovaný stav, cenu dokončení a využití komerční části.","verificationStatus":"Aktualizováno 22. 9. 2026; dostupnost potvrdit","notes":"Velký pozemek 849 m² a 3 legální byty jsou výhoda. Dům je dle nabídky v pokročilé fázi výstavby, takže je třeba pečlivě spočítat dokončovací náklady."},{"title":"Rodinný dům – Legionářů, Praha-Ďáblice","url":"https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-legionaru/173547596","imageUrl":"https://d18-a.sdn.cz/d_18/c_img_qF_C/k0OqwCKRB7OXgBlnH1N88Q/e7f7.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80","address":"Legionářů, Praha 8 – Ďáblice","price":19500000,"floorArea":318,"landArea":318,"floors":"3 nadzemní + 1 podzemní","layout":"5+kk; velký suterén a více pater, bytové rozdělení prověřit","metro":"MHD do metra Ládví; skutečný čas do 10 min ověřit","contact":"Kontakt přes Sreality","potential":"Velká plocha a 4 podlaží umožňují prověřit oddělené jednotky; stávající popis potvrzuje spíše vícegenerační využití než samostatné byty.","verificationStatus":"Aktuální veřejný inzerát; dostupnost potvrdit","notes":"Zahrada a dvougaráž zvyšují užitnou hodnotu. Cena za m² je relativně nízká, ale musí se ověřit, kolik plochy je obytné a legálně oddělitelné."},{"title":"Rodinný dům – U hájovny, Praha-Ďáblice","url":"https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-u-hajovny/2532040780","address":"U hájovny, Praha 8 – Ďáblice","price":21000000,"floorArea":206,"landArea":351,"floors":"3 podlaží","layout":"Možné dvougenerační využití; suterén lze prověřit pro obytné prostory","metro":"Autobus Květnová cca 230–300 m; metro Ládví cca 1,74 km, přímou návaznost a čas ověřit","contact":"Ing. Milan Šámal · +420 602 100 722 · samal@justo.cz","potential":"Dům je navržen pro dvougenerační využití a suterén nebyl plně obytně dokončen; ověřit kolaudaci, vlhkost a požární požadavky.","verificationStatus":"Aktualizováno 18. 10. 2026; dostupnost potvrdit","notes":"Klidná lokalita u Ďáblického háje, garáž a třípodlažní dispozice. Cena 21 mil. Kč a 206 m² dávají přibližně 101 942 Kč/m²; metro není pěšky do 10 minut, proto ověřit spojení MHD."},{"title":"Vícegenerační dům – Potoční, Praha 6 – Veleslavín","url":"https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-veleslavin-potocni/494850124","address":"Potoční, Praha 6 – Veleslavín","price":24990000,"floorArea":200,"landArea":307,"floors":"Ověřit v detailu","layout":"Vícegenerační dům; dispozice ověřit","metro":"Nádraží Veleslavín – pěší/MHD čas ověřit","contact":"Kontakt přes výsledky Sreality","potential":"Veleslavín je žádaná lokalita s metrem A a vlakem; ověřit skutečný dům, právní jednotky a stav.","verificationStatus":"Výsledek hledání aktuální; přímý inzerát nutno potvrdit","notes":"Odkaz zatím vede na výsledky hledání, nikoli na konkrétní nabídku. Před koupí doplnit přímý odkaz a ověřit dispozici."}]
+[
+  {
+    "title": "Vícegenerační dům – Jižní II, Praha 4",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-zabehlice-jizni-ii/2516041804",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qE_D/nPYADvcUkmDcXILWaHmTJjO/4810.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Jižní II, Praha 4 – Záběhlice",
+    "price": 17899000,
+    "floorArea": 191,
+    "landArea": 601,
+    "floors": "4 včetně suterénu",
+    "layout": "Byty 76 m² a 22 m²; suterén 98 m² nyní provozovna",
+    "metro": "Metro Roztyly cca 1 km; do 10 min MHD ověřit",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Suterénní provozovnu prověřit pro další bytové využití; nutné stavební a kolaudační posouzení.",
+    "verificationStatus": "Aktivní veřejný inzerát; dostupnost potvrdit",
+    "notes": "Klidná lokalita se zahradou a garáží. Pozor: prodává se spoluvlastnický podíl 1/2, proto je zásadní právní prověrka."
+  },
+  {
+    "title": "Vícegenerační dům – Stodůlky, Praha 13",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-stodulky-/2793997132",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qG_A/kcKfrMAkFCpZ9wPH3IAOrOD/cd72.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Praha 13 – Stodůlky",
+    "price": 43000000,
+    "floorArea": 250,
+    "landArea": 569,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; dispozice ověřit",
+    "metro": "Metro B v oblasti Stodůlek; přesnou pěší trasu ověřit",
+    "contact": "Eva Žďánská / HVB Real Estate – kontakt přes inzerát",
+    "potential": "Velká plocha a pozemek mohou umožnit oddělené jednotky; ověřit současné uspořádání a kolaudaci.",
+    "verificationStatus": "Aktualizováno 15. 10. 2026; dostupnost potvrdit",
+    "notes": "Klidná rezidenční lokalita, ale vysoká pořizovací cena. Investičně dává smysl jen při doloženém počtu legálních jednotek a realistickém nájemném."
+  },
+  {
+    "title": "Dvougenerační dům – V zápolí, Praha 4 – Michle",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-michle-v-zapoli/256893004",
+    "address": "V Zápolí 1104/3, Praha 4 – Michle",
+    "price": 24950000,
+    "floorArea": 211,
+    "landArea": 676,
+    "floors": "3 podlaží + částečný suterén",
+    "layout": "6+2; samostatné části prověřit",
+    "metro": "Kačerov/Budějovická; čas MHD do 10 min nutno ověřit",
+    "contact": "100klíčů – kontakt přes inzerát",
+    "potential": "Prvorepublikový dům se zahradou, bazénem a garáží; prověřit oddělení vstupů, instalací a právní rozdělení.",
+    "verificationStatus": "Aktuální veřejný inzerát; dostupnost potvrdit",
+    "notes": "Zahrada a pozemek jsou výhodou. Výsledek investice závisí na nákladech modernizace a možnosti legálně vytvořit samostatné jednotky.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_B/nOdL4BtPEyCi6LRBT1Hu41iD/b4e8.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
+  },
+  {
+    "title": "Velká vila – Jiříkovská, Praha-Ďáblice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vila/praha-dablice-jirikovska/3051888716",
+    "address": "Jiříkovská, Praha 8 – Ďáblice",
+    "price": "",
+    "floorArea": 438,
+    "landArea": 1025,
+    "floors": "Více podlaží + nedokončené podkroví",
+    "layout": "7+kk; část podkroví nedokončená",
+    "metro": "MHD do metra nutno ověřit; 10 min nepotvrzeno",
+    "contact": "LOOK reality – kontakt přes Sreality",
+    "potential": "Velká vila a 146 m² nedokončeného podkroví; prověřit možnost samostatné jednotky a stavební povolení.",
+    "verificationStatus": "Aktuální veřejný inzerát; cena na vyžádání, dostupnost potvrdit",
+    "notes": "Pozemek 1 025 m² a hotová plocha cca 292 m² plus podkroví. Bez zveřejněné ceny nelze cenu za m² spočítat; metro do 10 minut není potvrzeno."
+  },
+  {
+    "title": "Vícegenerační dům – Pod rovinou, Praha 4 – Krč",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-krc-pod-rovinou/3504533580",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_D/nOdL4BtPEyDrQHrUKH4La9I/a65e.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Pod rovinou, Praha 4 – Krč",
+    "price": 22500000,
+    "floorArea": 400,
+    "landArea": 483,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; dispozice ověřit",
+    "metro": "Krč/Kačerov; přesný čas MHD do 10 min ověřit",
+    "contact": "Jana Müllerová – +420 602 128 288, kontakt přes inzerát",
+    "potential": "Inzerát zmiňuje projekt/stavební povolení; prověřit platnost povolení a přesný rozsah schválených prací.",
+    "verificationStatus": "Upraveno 7. 10. 2026; dostupnost potvrdit",
+    "notes": "Nízká cena za m² vzhledem k ploše může být zajímavá, ale ověřit, kolik ze 400 m² je legálně obytných a zda je projekt použitelný."
+  },
+  {
+    "title": "Vícegenerační dům – U střešovických hřišť, Praha 6",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-stresovice-u-stresovickych-hrist/2681782348",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qE_C/kPVqmweP7JB25pTCD2HgZrX6/e47f.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "U střešovických hřišť, Praha 6 – Střešovice",
+    "price": 34790000,
+    "floorArea": 198,
+    "landArea": 317,
+    "floors": "3 podlaží + sklep",
+    "layout": "Dvě jednotky 4+1 a 2+1 dle inzerátu",
+    "metro": "Hradčanská/Dejvická – čas MHD ověřit",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Dvě existující jednotky snižují dispoziční riziko; ověřit právní oddělení, měřidla a kolaudaci.",
+    "verificationStatus": "Aktuální veřejný inzerát; dostupnost potvrdit",
+    "notes": "Žádaná rezidenční lokalita, zahrada, garáž a terasa. Cena je vyšší, ale dvě jednotky mohou usnadnit pronájem."
+  },
+  {
+    "title": "Rodinný dům – V domcích, Praha 6 – Liboc",
+    "url": "https://www.digireality.cz/inzerat/6aa73a17fb75ac5e82ef298a",
+    "address": "V domcích, Praha 6 – Liboc",
+    "price": 29990000,
+    "floorArea": 260,
+    "landArea": 566,
+    "floors": "3 podlaží",
+    "layout": "Vícegenerační využití; rozdělení bytů neověřeno",
+    "metro": "Petřiny cca 4 min autobusem dle inzerátu",
+    "contact": "Bidli – kontakt přes DigiReality",
+    "potential": "Třípodlažní dům v zelené Liboci; modernizace možná, ale samostatné byty nejsou potvrzeny.",
+    "verificationStatus": "Aktualizováno 16. 9. 2026; dostupnost potvrdit",
+    "notes": "Obora Hvězda a Divoká Šárka jsou silnou lokalitní výhodou. Elektrické vytápění může ovlivnit provozní náklady."
+  },
+  {
+    "title": "Dvougenerační dům – Horní Počernice, 267 m²",
+    "url": "https://www.digireality.cz/inzerat/6a9926ac930b94262c1137a8",
+    "address": "Horní Počernice, Praha 9",
+    "price": 22500000,
+    "floorArea": 267,
+    "landArea": 571,
+    "floors": "2 podlaží + půda",
+    "layout": "Dva byty 4+1 a 5+1; studie třetího bytu",
+    "metro": "Metro do 10 min nepotvrzeno; vlak/MHD prověřit",
+    "contact": "Bidli – kontakt přes DigiReality",
+    "potential": "Projekt na rozdělení na 3 byty je uveden v inzerátu; ověřit povolení, parkování a dopravní dostupnost.",
+    "verificationStatus": "Inzerát dohledán; dostupnost potvrdit",
+    "notes": "Dvě existující jednotky a studie třetího bytu jsou zajímavé. Dopravní podmínka metra do 10 minut ale není potvrzena, takže jde o záložní tip."
+  },
+  {
+    "title": "Vícegenerační dům – Potoční, Praha 6 – Veleslavín",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-veleslavin-potocni/494850124",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_A/nOdL4BtPEyBHthwW4HtFebd/e5d8.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Potoční, Praha 6 – Veleslavín",
+    "price": 24990000,
+    "floorArea": 200,
+    "landArea": 307,
+    "floors": "3 podlaží včetně suterénu",
+    "layout": "5 bytových jednotek; možnost úpravy na 6",
+    "metro": "Veleslavín – metro A a vlak; přesný čas pěšky ověřit",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Velmi silný konverzní kandidát: inzerát uvádí 5 jednotek s možností 6 a půdu vhodnou k vestavbě. Kompletní rekonstrukce a památková omezení mohou zvýšit náklady.",
+    "verificationStatus": "Upraveno 7. 9. 2026; dostupnost potvrdit",
+    "notes": "Jedna z nejzajímavějších investičních nabídek díky již existujícím jednotkám a poloze v Praze 6. Nutné prověřit památkovou péči, rozpočet rekonstrukce a právní stav bytů."
+  },
+  {
+    "title": "Dvojdům – Ibišková, Praha-Křeslice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kreslice-ibiskova/3911000140",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qG_A/nCR9NVflLCsdQ6SLhH8OAS8/79f7.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Ibišková, Praha 10 – Křeslice",
+    "price": 52900000,
+    "floorArea": 304,
+    "landArea": 2708,
+    "floors": "2 patrové domy",
+    "layout": "Dvě samostatně vymezené části, každá 5+kk",
+    "metro": "Metro do 10 min nepotvrzeno",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Dvě samostatné části v katastru jsou výhodou; jde ale o drahý dvojdům, ne levný konverzní projekt.",
+    "verificationStatus": "Aktuální veřejný inzerát; dostupnost potvrdit",
+    "notes": "Velký pozemek a dvě samostatné části zvyšují flexibilitu. Dopravní filtr metra zatím není splněn, jde o záložní srovnání."
+  },
+  {
+    "title": "Vícegenerační dům – Žampiónová, Praha-Pitkovice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-pitkovice-zampionova/557367372",
+    "address": "Žampiónová, Praha 10 – Pitkovice",
+    "price": 34000000,
+    "floorArea": 200,
+    "landArea": 1941,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; dispozice ověřit",
+    "metro": "Metro do 10 min nepotvrzeno",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Pozemek téměř 2 000 m² může mít vlastní rozvojovou hodnotu; prověřit územní plán.",
+    "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
+    "notes": "Velký pozemek může nést hodnotu nezávisle na domě. Poloha v Pitkovicích ale neodpovídá přísnému filtru rychlého metra."
+  },
+  {
+    "title": "Vícegenerační dům – Divišova, Praha-Kbely",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kbely-divisova/2560041036",
+    "address": "Divišova, Praha 19 – Kbely",
+    "price": 21500000,
+    "floorArea": 195,
+    "landArea": 317,
+    "floors": "2 podlaží + podzemní",
+    "layout": "Vícegenerační dům; přesný počet bytů ověřit",
+    "metro": "Metro do 10 min nepotvrzeno",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Cihlový dům v dobrém stavu; rozdělení na jednotky ověřit podle dispozice a kolaudace.",
+    "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
+    "notes": "Cena za m² může být zajímavá, ale Kbely nejsou v docházkové vzdálenosti metra. Záložní tip mimo hlavní filtr."
+  },
+  {
+    "title": "Vícepatrový dům – Dolnojirčanská, Praha-Kamýk",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-kamyk-dolnojircanska/3403665484",
+    "address": "Dolnojirčanská, Praha 12 – Kamýk",
+    "price": "",
+    "floorArea": 340,
+    "landArea": 422,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační / komerční využití",
+    "metro": "Metro do 10 min nepotvrzeno; budoucí metro D není v provozu",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Variabilní objekt pro bydlení a podnikání; změnu užívání nutno povolit.",
+    "verificationStatus": "Cena neuvedena; dostupnost potvrdit",
+    "notes": "Bez ceny nelze spočítat cenu za m². Kamýk je pouze záložní tip, protože budoucí metro D zatím nefunguje."
+  },
+  {
+    "title": "Vícegenerační dům – Žďárská, Praha-Dolní Chabry",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-dolni-chabry-zdarska/3032100940",
+    "address": "Žďárská, Praha 8 – Dolní Chabry",
+    "price": 35985000,
+    "floorArea": 345,
+    "landArea": 520,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; dispozice ověřit",
+    "metro": "Metro do 10 min nepotvrzeno; ověřit MHD",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Velká plocha a pozemek; prověřit současné jednotky, parkování a kolaudaci.",
+    "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
+    "notes": "Rezidenční lokalita s rodinným charakterem. Bez potvrzeného spojení na metro do 10 minut jde jen o záložní srovnání.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_B/k0OqwCKRZSJdCLdHuwgoL/92c9.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
+  },
+  {
+    "title": "Vícegenerační dům – V lipkách, Praha-Slivenec",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-slivenec-v-lipkach/3440169036",
+    "address": "V lipkách, Praha 5 – Slivenec",
+    "price": 44900000,
+    "floorArea": 298,
+    "landArea": 712,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; jednotky ověřit",
+    "metro": "Metro do 10 min nepotvrzeno",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Velká plocha a pozemek; počet legálních jednotek ověřit v dokumentaci.",
+    "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
+    "notes": "Zelená rezidenční lokalita, ale vysoká cena a nejistá dostupnost metra snižují shodu s investičním filtrem."
+  },
+  {
+    "title": "Vícegenerační dům – U olšiček, Praha-Točná",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-tocna-u-olsicek/6303820",
+    "address": "U olšiček, Praha 12 – Točná",
+    "price": 46900000,
+    "floorArea": 484,
+    "landArea": 5684,
+    "floors": "Více podlaží; ověřit",
+    "layout": "Vícegenerační dům; ověřit",
+    "metro": "Metro do 10 min nesplněno / nepotvrzeno",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Rozsáhlý pozemek a velký dům; potenciál může být hlavně v pozemku, ale lokalita je mimo dopravní filtr.",
+    "verificationStatus": "Veřejný inzerát dohledán; dostupnost potvrdit",
+    "notes": "Zařazeno pouze jako cenové srovnání velkého domu, ne jako hlavní investiční kandidát."
+  },
+  {
+    "title": "Rodinný dům – Bříšťanská, Praha-Horní Počernice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-horni-pocernice-bristanska/1832263756",
+    "address": "Bříšťanská, Praha 20 – Horní Počernice",
+    "price": 22490000,
+    "floorArea": 218,
+    "landArea": 372,
+    "floors": "Ověřit v detailu",
+    "layout": "Rodinný dům; rozdělení na jednotky neověřeno",
+    "metro": "Metro do 10 min nepotvrzeno; ověřit vlak/MHD",
+    "contact": "Kontakt přes výsledky Sreality",
+    "potential": "Plocha přes 200 m² umožňuje prověřit vícegenerační dispozici; bez detailu zatím nelze potvrdit oddělené jednotky.",
+    "verificationStatus": "Výsledek hledání aktuální; přímý inzerát a dostupnost nutno ověřit",
+    "notes": "Tato položka odkazuje na vyhledávání, ne přímo na konkrétní inzerát; před investičním rozhodnutím nahradit přímým odkazem."
+  },
+  {
+    "title": "Rodinný dům – Ďáblická, Praha-Ďáblice (3 zkolaudované byty)",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-dablicka/1448943692",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_D/nOdL4BtPEyC2Er43EH14lyN/0b27.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Ďáblická 18, Praha 8 – Ďáblice",
+    "price": 19500000,
+    "floorArea": 244,
+    "landArea": 849,
+    "floors": "2 podlaží",
+    "layout": "3 samostatné plně kolaudované bytové jednotky; navíc komerční prostor",
+    "metro": "MHD do metra Ládví; do 10 min ověřit podle konkrétního spoje",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Tři již zkolaudované jednotky a samostatný komerční prostor jsou silným investičním základem. Ověřit rozpracovaný stav, cenu dokončení a využití komerční části.",
+    "verificationStatus": "Aktualizováno 22. 9. 2026; dostupnost potvrdit",
+    "notes": "Velký pozemek 849 m² a 3 legální byty jsou výhoda. Dům je dle nabídky v pokročilé fázi výstavby, takže je třeba pečlivě spočítat dokončovací náklady."
+  },
+  {
+    "title": "Rodinný dům – Legionářů, Praha-Ďáblice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-legionaru/173547596",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_C/k0OqwCKRB7OXgBlnH1N88Q/e7f7.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "address": "Legionářů, Praha 8 – Ďáblice",
+    "price": 19500000,
+    "floorArea": 318,
+    "landArea": 318,
+    "floors": "3 nadzemní + 1 podzemní",
+    "layout": "5+kk; velký suterén a více pater, bytové rozdělení prověřit",
+    "metro": "MHD do metra Ládví; skutečný čas do 10 min ověřit",
+    "contact": "Kontakt přes Sreality",
+    "potential": "Velká plocha a 4 podlaží umožňují prověřit oddělené jednotky; stávající popis potvrzuje spíše vícegenerační využití než samostatné byty.",
+    "verificationStatus": "Aktuální veřejný inzerát; dostupnost potvrdit",
+    "notes": "Zahrada a dvougaráž zvyšují užitnou hodnotu. Cena za m² je relativně nízká, ale musí se ověřit, kolik plochy je obytné a legálně oddělitelné."
+  },
+  {
+    "title": "Rodinný dům – U hájovny, Praha-Ďáblice",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dablice-u-hajovny/2532040780",
+    "address": "U hájovny, Praha 8 – Ďáblice",
+    "price": 21000000,
+    "floorArea": 206,
+    "landArea": 351,
+    "floors": "3 podlaží",
+    "layout": "Možné dvougenerační využití; suterén lze prověřit pro obytné prostory",
+    "metro": "Autobus Květnová cca 230–300 m; metro Ládví cca 1,74 km, přímou návaznost a čas ověřit",
+    "contact": "Ing. Milan Šámal · +420 602 100 722 · samal@justo.cz",
+    "potential": "Dům je navržen pro dvougenerační využití a suterén nebyl plně obytně dokončen; ověřit kolaudaci, vlhkost a požární požadavky.",
+    "verificationStatus": "Aktualizováno 18. 10. 2026; dostupnost potvrdit",
+    "notes": "Klidná lokalita u Ďáblického háje, garáž a třípodlažní dispozice. Cena 21 mil. Kč a 206 m² dávají přibližně 101 942 Kč/m²; metro není pěšky do 10 minut, proto ověřit spojení MHD.",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qD_A/kQMlcCt5zmChFvGM2QHF2YTW/9c1d.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80"
+  },
+  {
+    "title": "Vícegenerační dům – Potoční, Praha 6 – Veleslavín",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-veleslavin-potocni/494850124",
+    "address": "Potoční, Praha 6 – Veleslavín",
+    "price": 24990000,
+    "floorArea": 200,
+    "landArea": 307,
+    "floors": "Ověřit v detailu",
+    "layout": "Vícegenerační dům; dispozice ověřit",
+    "metro": "Nádraží Veleslavín – pěší/MHD čas ověřit",
+    "contact": "Kontakt přes výsledky Sreality",
+    "potential": "Veleslavín je žádaná lokalita s metrem A a vlakem; ověřit skutečný dům, právní jednotky a stav.",
+    "verificationStatus": "Výsledek hledání aktuální; přímý inzerát nutno potvrdit",
+    "notes": "Odkaz zatím vede na výsledky hledání, nikoli na konkrétní nabídku. Před koupí doplnit přímý odkaz a ověřit dispozici."
+  },
+  {
+    "title": "Rodinný dům / bytový dům – Zdibská, Praha 8 – Kobylisy",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-kobylisy-zdibska/4259590220",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_C/k0OqwCKRDgcHsd5Hx2VSj/1744.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80",
+    "address": "Zdibská, Praha 8 – Kobylisy",
+    "price": "",
+    "floorArea": 260,
+    "landArea": 404,
+    "floors": "Projekt počítá s 1. NP a obytným podkrovím; stav ověřit",
+    "layout": "V katastru bytový dům, aktuálně 2 jednotky; projektovaná plocha cca 283 m²",
+    "metro": "Metro Kobylisy cca 5 minut pěšky dle inzerátu",
+    "contact": "Kontakt přes Sreality – přímý inzerát",
+    "potential": "Velmi zajímavý konverzní kandidát: dům je veden jako bytový, má projekt rekonstrukce z roku 2026 a možnost dalšího kapacitního využití. Cena není zveřejněna, proto nelze spočítat cenu za m².",
+    "verificationStatus": "Aktuální inzerát otevřen 23. 10. 2026; cena na vyžádání, dostupnost potvrdit",
+    "notes": "Pozemek 404 m²; inzerát uvádí projektovanou podlahovou plochu cca 283 m². Před koupí vyžádat projekt, rozpočet rekonstrukce a potvrzení stavebního úřadu."
+  },
+  {
+    "title": "Rodinný dům se 2 byty – Spořická, Praha 8 – Dolní Chabry",
+    "url": "https://www.sreality.cz/detail/prodej/dum/rodinny/praha-dolni-chabry-sporicka/839725132",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qF_A/k0OqwCKRCO7AFCRpHtD9zx/1c9a.jpeg?fl=res%2C1200%2C1200%2C1%7Cjpg%2C80",
+    "address": "Spořická, Praha 8 – Dolní Chabry",
+    "price": 18950000,
+    "floorArea": 120,
+    "landArea": 442,
+    "floors": "2 nadzemní podlaží + sklep",
+    "layout": "2 samostatné jednotky 2+1, každá cca 60 m²",
+    "metro": "Autobusová zastávka před domem; metro Kobylisy cca 10 minut autobusem dle inzerátu",
+    "contact": "Kontakt přes Sreality – přímý inzerát",
+    "potential": "Dvě již existující bytové jednotky a rekonstrukce z roku 2019 snižují dispoziční nejistotu. Třetí jednotka není potvrzena; ověřit možnost dalšího dělení a parkovací kapacitu.",
+    "verificationStatus": "Aktualizováno 3. 10. 2026; dostupnost potvrdit u prodejce",
+    "notes": "Cena 18 950 000 Kč; užitná plocha 120 m²; pozemek 442 m²; cena za m² se počítá z uvedené užitné plochy."
+  }
+]
 ];
+const LISTING_RECORDS=STARTER_LISTINGS.flat(Infinity);
 function normalizeImportedRecord(item){
  const r=item&&typeof item==='object'?item:{};
  const title=String(r.title||r.name||r.address||r.location||'Nový inzerát').trim().slice(0,140)||'Nový inzerát';
@@ -191,7 +551,7 @@ function openBulkImport(){
  const makeButton=(label,primary,handler)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='border:1px solid '+(primary?'#2457d6':'#cbd5df')+';background:'+(primary?'#2457d6':'white')+';color:'+(primary?'white':'#17212b')+';padding:10px 13px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer';b.addEventListener('click',handler);return b};
  const status=document.createElement('p');status.setAttribute('role','status');status.style.cssText='font-size:13px;color:#475569';
  actions.append(
-  makeButton('Přidat '+STARTER_LISTINGS.length+' položek z předchozího seznamu',true,()=>{if(!confirm('Vytvořit '+STARTER_LISTINGS.length+' samostatných složek? Záznamy budou označené jako neověřené.'))return;let count=0;STARTER_LISTINGS.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Vytvořeno '+count+' nových složek. Záznamy jsou označené jako neověřené; otevři každou kartu a ověř původní zdroj.';}),
+  makeButton('Přidat '+STARTER_LISTINGS.length+' položek z předchozího seznamu',true,()=>{if(!confirm('Vytvořit '+STARTER_LISTINGS.length+' samostatných složek? Záznamy budou označené jako neověřené.'))return;let count=0;LISTING_RECORDS.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Vytvořeno '+count+' nových složek. Záznamy jsou označené jako neověřené; otevři každou kartu a ověř původní zdroj.';}),
   makeButton('Importovat JSON',true,()=>{let parsed;try{parsed=JSON.parse(textarea.value)}catch(err){status.textContent='JSON není platný: '+err.message;return}const rows=Array.isArray(parsed)?parsed:(parsed&&Array.isArray(parsed.properties)?parsed.properties:null);if(!rows){status.textContent='Vlož JSON pole objektů nebo objekt s polem properties.';return}let count=0;rows.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Import dokončen: přidáno '+count+' složek. Duplicitní URL nebo názvy bez odkazu byly přeskočeny.';}),
   makeButton('Zavřít',false,()=>overlay.remove())
  );
@@ -202,7 +562,7 @@ function openBulkImport(){
 
 // Automatically seed every property previously listed in this conversation.
 // This is additive and idempotent: existing folders and calculator data are preserved.
-const STARTER_IMPORT_KEY='rei-starter-listings-imported-v2';
+const STARTER_IMPORT_KEY='rei-starter-listings-imported-v3';
 function updateExistingImportedFolder(folder,record){
  folder.title=record.title;folder.url=record.url;folder.address=record.address;folder.price=String(record.price??'');folder.record=record;folder.migratedFromBulkImport=true;
  const id=folder.id;
@@ -216,7 +576,7 @@ function updateExistingImportedFolder(folder,record){
 }
 function ensureStarterListings(){
  let added=0,updated=0;
- STARTER_LISTINGS.forEach(raw=>{
+ LISTING_RECORDS.forEach(raw=>{
   const record=normalizeImportedRecord(raw);
   const street=String(record.address||'').split(',')[0].trim().toLocaleLowerCase('cs-CZ');
   let existing=registry.projects.find(p=>p.title&&p.title.startsWith('Tip k prověření –')&&String(p.address||'').split(',')[0].trim().toLocaleLowerCase('cs-CZ')===street);
@@ -229,7 +589,7 @@ function ensureStarterListings(){
   }
   existing=registry.projects.find(p=>record.url&&p.url===record.url);
   if(!existing)existing=registry.projects.find(p=>p.title===record.title);
-  if(existing)return;
+  if(existing){if(existing.migratedFromBulkImport||existing.record){updateExistingImportedFolder(existing,record);updated++;}return;}
   saveImportedProperty(record);added++;
  });
  if(added||updated||nativeGet.call(ls,STARTER_IMPORT_KEY)!=='yes'){
@@ -244,7 +604,7 @@ function renderHomeListingCatalog(){
  const main=document.querySelector('main'),tools=main&&main.querySelector('.cards');
  if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
  const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
- const h=document.createElement('h2');h.textContent='Všechny nalezené domy ('+STARTER_LISTINGS.length+')';h.style.cssText='font-size:23px;margin:0 0 6px';
+ const h=document.createElement('h2');h.textContent='Všechny nalezené domy ('+LISTING_RECORDS.length+')';h.style.cssText='font-size:23px;margin:0 0 6px';
  const intro=document.createElement('p');intro.textContent='Cena za m² = cena domu ÷ užitná/podlahová plocha. Neověřené tipy a dostupnost metra jsou jasně označené.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
