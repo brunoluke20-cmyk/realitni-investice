@@ -195,7 +195,8 @@ const STARTER_LISTINGS=[
   },
   {
     "title": "Velká vila – Jiříkovská, Praha-Ďáblice",
-    "url": "https://www.sreality.cz/detail/prodej/dum/vila/praha-dablice-jirikovska/3051888716',imageUrl:'https://d18-a.sdn.cz/d_18/c_img_qG_B/nCR9NVflLChOIjk1HIDn65x/a282.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
+    "url": "https://www.sreality.cz/detail/prodej/dum/vila/praha-dablice-jirikovska/3051888716",
+    "imageUrl": "https://d18-a.sdn.cz/d_18/c_img_qG_B/nCR9NVflLChOIjk1HIDn65x/a282.jpeg?fl=res%2C2200%2C2200%2C1%7Cwrm%2C%2Fwatermark%2Fsreality.png%2C10%7Cshr%2C%2C20%7Cwebp%2C80",
     "address": "Jiříkovská, Praha 8 – Ďáblice",
     "price": "",
     "floorArea": 438,
