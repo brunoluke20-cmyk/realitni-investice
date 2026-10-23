@@ -88,12 +88,91 @@ function renderWorkspace(){
  function button(text,fn,secondary){const b=document.createElement('button');b.type='button';b.textContent=text;b.style.cssText='border:1px solid #cbd5df;border-radius:8px;padding:9px 11px;font:inherit;font-weight:650;cursor:pointer;background:'+(secondary?'white':'#2457d6')+';color:'+(secondary?'#17212b':'white');b.addEventListener('click',fn);return b}
  row.append(select,
  button('+ Nová složka',()=>{const name=prompt('Název nové nemovitosti / složky:','Nový inzerát');if(name===null)return;const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);registry.projects.push({id,title:name.trim()||'Nový inzerát',url:'',address:'',createdAt:new Date().toISOString()});registry.activeId=id;writeRegistry(registry);switchProject(id)}),
+ button('Importovat seznam',()=>openBulkImport(),true),
  button('Přejmenovat',()=>{const name=prompt('Nový název složky:',p&&p.title||'');if(name===null||!name.trim())return;p.title=name.trim().slice(0,140);writeRegistry(registry);renderWorkspace()} ,true),
  button('Smazat',()=>{if(registry.projects.length<=1){alert('Musí zůstat alespoň jedna složka.');return}if(!confirm('Smazat složku „'+(p.title||'Nová nemovitost')+'“ včetně všech dat uložených v tomto prohlížeči?'))return;const prefix=STORAGE_PREFIX+activeId+'__';const remove=[];for(let i=0;i<ls.length;i++){const k=nativeKey.call(ls,i);if(k&&k.startsWith(prefix))remove.push(k)}remove.forEach(k=>nativeRemove.call(ls,k));registry.projects=registry.projects.filter(x=>x.id!==activeId);activeId=registry.projects[0].id;registry.activeId=activeId;writeRegistry(registry);switchProject(activeId)},true)
  );
  const subtitle=document.createElement('div');subtitle.style.cssText='font-size:12px;color:#617080;margin-top:5px';subtitle.textContent=(p&&p.address?p.address+' · ':'')+(p&&p.url?'Inzerát je přiřazen k této složce':'Každá složka má vlastní uložená data.');
  root.append(label,row,subtitle);
+ if(p&&p.record){
+  const details=document.createElement('details');details.style.cssText='margin-top:10px;border-top:1px solid #e2e8f0;padding-top:9px';
+  const summary=document.createElement('summary');summary.textContent='Karta nemovitosti · '+(p.record.verificationStatus||'údaje k ověření');summary.style.cssText='cursor:pointer;font-weight:700;color:#334155';details.appendChild(summary);
+  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:10px';
+  const entries=[['Cena',p.record.price?Number(p.record.price).toLocaleString('cs-CZ')+' Kč':'Neuvedena'],['Podlahová plocha',p.record.floorArea? p.record.floorArea+' m²':'Neuvedena'],['Pozemek',p.record.landArea?p.record.landArea+' m²':'Neuveden'],['Podlaží',p.record.floors||'Neuvedena'],['Dispozice',p.record.layout||'Neuvedena'],['Adresa / lokalita',p.record.address||p.address||'Neuvedena'],['Metro',p.record.metro||'Neověřeno'],['Kontakt',p.record.contact||'V inzerátu / neověřeno'],['Potenciál',p.record.potential||'Prověřit stavebně a právně'],['Stav ověření',p.record.verificationStatus||'K ověření']];
+  entries.forEach(([k,v])=>{const cell=document.createElement('div');cell.style.cssText='padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc';const key=document.createElement('div');key.style.cssText='font-size:11px;color:#64748b;font-weight:700';key.textContent=k;const value=document.createElement('div');value.style.cssText='overflow-wrap:anywhere';value.textContent=String(v);cell.append(key,value);grid.appendChild(cell)});
+  details.appendChild(grid);
+  if(p.record.notes){const note=document.createElement('p');note.style.cssText='font-size:13px;color:#64748b;margin:8px 0 0';note.textContent=p.record.notes;details.appendChild(note)}
+  if(p.url){const link=document.createElement('a');link.href=p.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='display:inline-block;margin-top:10px;color:#2457d6;font-weight:650';details.appendChild(link)}
+  root.appendChild(details);
+ }
 }
+
+// Additive bulk import: existing calculator, valuation, checklist and call-brief flows remain unchanged.
+const STARTER_LISTINGS=[
+ {title:'Rodinný dům – Prosecká, Praha 9 – Prosek',url:'https://stredo.ceskereality.cz/index.php/prodej/rodinne-domy/rodinne-domy/praha/prodej-rodinneho-domu-274-m2-prosecka-3789317.html',address:'Prosecká, Praha 9 – Prosek',price:24500000,floorArea:274,landArea:165,floors:'Neověřeno',layout:'Více pokojů; přesná dispozice neověřena',metro:'Metro Prosek – ověřit skutečnou pěší trasu',contact:'Neověřen; otevřít původní inzerát',potential:'Předchozí popis uváděl možnost rozdělení; ověřit povolené užívání a dokumentaci',verificationStatus:'NEOVĚŘENO – znovu potvrdit aktivní inzerát a všechny údaje',notes:'Údaje převzaty z předchozího seznamu v chatu, nikoli nově potvrzeny. Podlaží, kontakt a aktuální dostupnost nejsou potvrzeny.'},
+ {title:'Vícegenerační dům – Nad Kundratkou, Praha 9 – Prosek',url:'https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-prosek-nad-kundratkou/2475683916',address:'Nad Kundratkou, Praha 9 – Prosek',price:19999999,floorArea:240,landArea:197,floors:'4 (dle předchozího popisu; ověřit)',layout:'3 obytné prostory – ověřit právní stav',metro:'Metro Prosek – ověřit skutečnou pěší trasu',contact:'Neověřen; otevřít původní inzerát',potential:'Předchozí popis uváděl tři samostatné obytné prostory; ověřit kolaudaci',verificationStatus:'NEOVĚŘENO – znovu potvrdit aktivní inzerát a všechny údaje',notes:'Údaje převzaty z předchozího seznamu v chatu, nikoli nově potvrzeny. Kontakt a aktuální dostupnost nejsou potvrzeny.'},
+ {title:'Vícegenerační dům – Loutkářská, Praha 6 – Břevnov',url:'https://www.jenreality.cz/reality/prodej-vicegeneracniho-domu-431-m2-praha-6-brevnov-283416/',address:'Loutkářská, Praha 6 – Břevnov',price:'',floorArea:431,landArea:654,floors:'4 podlaží (dle předchozího popisu; ověřit)',layout:'2 hlavní jednotky a další prostory – ověřit',metro:'Neověřeno; prověřit pěší trasu k metru',contact:'Neověřen; otevřít původní inzerát',potential:'Prostory v suterénu/podkroví; právní možnost samostatných bytů neověřena',verificationStatus:'NEOVĚŘENO – cena a aktivita inzerátu nepotvrzeny',notes:'Předchozí popis uváděl plochy jednotek, ale nejsou zde nově ověřeny. Chybějící údaje zůstávají prázdné.'},
+ {title:'Rodinný dům – Na Radosti, Praha-Zličín / Třebonice',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-praha-zlicin-na-radosti/3418824780',address:'Na Radosti, Praha-Zličín / Třebonice',price:25990000,floorArea:198,landArea:641,floors:'Neověřeno',layout:'Neověřeno',metro:'Zličín – předchozí popis uváděl cca 200 m; ověřit trasu',contact:'Neověřen; otevřít původní inzerát',potential:'Možnost rozdělení nepotvrzena; prověřit územní plán a kolaudaci',verificationStatus:'NEOVĚŘENO – znovu potvrdit aktivní inzerát a všechny údaje',notes:'Údaje převzaty z předchozího seznamu v chatu. Podlaží, dispozice, kontakt a aktuální dostupnost nejsou potvrzeny.'},
+ {title:'Rodinný dům – Ratajova, Praha-Kunratice',url:'https://www.sreality.cz/detail/prodej/dum/rodinny/praha-kunratice-ratajova/206291020',address:'Ratajova, Praha-Kunratice',price:42000000,floorArea:350,landArea:450,floors:'3 (dle předchozího popisu; ověřit)',layout:'3 jednotky (dle předchozího popisu; ověřit)',metro:'Nesplnění podmínky 10 minut k existujícímu metru není vyloučeno; ověřit',contact:'Neověřen; otevřít původní inzerát',potential:'Předchozí popis uváděl 3 jednotky; ověřit kolaudaci a skutečnou dopravu',verificationStatus:'NEOVĚŘENO – znovu potvrdit aktivní inzerát a všechny údaje',notes:'Doplňkový tip z předchozího seznamu; dostupnost metra do 10 minut není potvrzena.'},
+ {title:'Tip k prověření – Ohnivcova, Praha-Braník',url:'',address:'Ohnivcova, Praha-Braník',price:39980000,floorArea:298,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'},
+ {title:'Tip k prověření – Hostouňská, Praha-Liboc',url:'',address:'Hostouňská, Praha-Liboc',price:26990000,floorArea:278,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'},
+ {title:'Tip k prověření – Na bateriích, Praha-Břevnov',url:'',address:'Na bateriích, Praha-Břevnov',price:33000000,floorArea:324,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'},
+ {title:'Tip k prověření – Hejtmanská, Praha-Kyje',url:'',address:'Hejtmanská, Praha-Kyje',price:24650000,floorArea:275,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'},
+ {title:'Tip k prověření – Čechurova, Praha-Horní Počernice',url:'',address:'Čechurova, Praha-Horní Počernice',price:19997000,floorArea:365,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'},
+ {title:'Tip k prověření – Herbenova, Praha-Hostivař',url:'',address:'Herbenova, Praha-Hostivař',price:26990000,floorArea:360,landArea:'',floors:'Neznámé',layout:'Neznámá',metro:'Neověřeno',contact:'Není k dispozici – chybí přímý inzerát',potential:'Neověřeno',verificationStatus:'POUZE TIP – chybí konkrétní odkaz na inzerát',notes:'Předchozí odpověď uvedla pouze lokalitu, plochu a cenu bez konkrétního odkazu. Nejde o potvrzený aktuální inzerát.'}
+];
+function normalizeImportedRecord(item){
+ const r=item&&typeof item==='object'?item:{};
+ const title=String(r.title||r.name||r.address||r.location||'Nový inzerát').trim().slice(0,140)||'Nový inzerát';
+ const url=String(r.url||r.listingURL||r.listingUrl||'').trim();
+ return {
+  title,url:/^https?:\/\//i.test(url)?url:'',address:String(r.address||r.location||'').trim().slice(0,220),
+  price:r.price??r.listingPrice??'',floorArea:r.floorArea??r.area??r.listingArea??'',landArea:r.landArea??r.listingLandArea??'',
+  floors:r.floors??r.storeys??'',layout:r.layout??r.disposition??'',metro:r.metro??r.metroAccess??'',
+  contact:r.contact??r.phone??r.contactName??'',potential:r.potential??r.investmentPotential??'',
+  verificationStatus:r.verificationStatus||'K ověření – údaje importovány, ověřit proti zdroji',
+  notes:String(r.notes||r.description||'').slice(0,2000)
+ };
+}
+function saveImportedProperty(record){
+ const id='property-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+ const price=String(record.price??'');
+ const area=String(record.floorArea??'');
+ const values={
+  name:record.title,url:record.url,listingURL:record.url,listingAddress:record.address,
+  listingPrice:price,listingArea:area,listingLandArea:String(record.landArea??''),
+  listingDisposition:String(record.layout??''),marketLocation:record.address,
+  locationAnalysisAddress:record.address
+ };
+ const folder={id,title:record.title,url:record.url,address:record.address,price,createdAt:new Date().toISOString(),record,migratedFromBulkImport:true};
+ registry.projects.push(folder);
+ const shared={projectId:id,name:record.title,title:record.title,address:record.address,location:record.address,url:record.url,listingURL:record.url,price,listingPrice:price,area,listingArea:area,landArea:String(record.landArea??''),listingLandArea:String(record.landArea??''),updatedAt:new Date().toISOString()};
+ nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-shared-project-v1',JSON.stringify(shared));
+ nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-calc-listings-v1',JSON.stringify([{id:'imported-'+id,title:record.title,values}]));
+ nativeSet.call(ls,STORAGE_PREFIX+id+'__rei-property-record-v1',JSON.stringify(record));
+ return folder;
+}
+function openBulkImport(){
+ const existing=document.getElementById('reiBulkImportModal');if(existing){existing.remove();return}
+ const overlay=document.createElement('div');overlay.id='reiBulkImportModal';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:#0f172acc;display:flex;align-items:center;justify-content:center;padding:14px';
+ const panel=document.createElement('section');panel.style.cssText='width:min(860px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px #0004;font:14px/1.5 system-ui,sans-serif;color:#17212b';
+ const h=document.createElement('h2');h.textContent='Hromadné přidání nemovitostí';h.style.margin='0 0 6px';
+ const intro=document.createElement('p');intro.textContent='Každá položka vytvoří samostatnou složku a předvyplní známé údaje v kalkulačce. Neznámé údaje zůstanou prázdné. Importované záznamy se uloží pouze v tomto prohlížeči.';
+ const warning=document.createElement('p');warning.textContent='Pozor: připravený seznam níže obsahuje položky z předchozí konverzace. Nejsou znovu ověřené jako aktivní inzeráty; první část jsou historické nabídky k ověření a posledních šest jsou pouze tipy bez přímého odkazu.';
+ warning.style.cssText='background:#fff7ed;border:1px solid #fed7aa;padding:10px;border-radius:8px;color:#9a3412';
+ const textarea=document.createElement('textarea');textarea.id='reiBulkImportJson';textarea.rows=10;textarea.placeholder='Vlož JSON pole, např. [{"title":"Dům – Praha","url":"https://…","address":"Praha","price":20000000,"floorArea":250,"landArea":400,"floors":"3","layout":"5+kk","metro":"8 min pěšky","contact":"jméno / telefon","potential":"Prověřit","verificationStatus":"K ověření"}]';textarea.style.cssText='width:100%;padding:10px;border:1px solid #cbd5df;border-radius:8px;font:12px/1.5 ui-monospace,monospace;resize:vertical';
+ const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
+ const makeButton=(label,primary,handler)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='border:1px solid '+(primary?'#2457d6':'#cbd5df')+';background:'+(primary?'#2457d6':'white')+';color:'+(primary?'white':'#17212b')+';padding:10px 13px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer';b.addEventListener('click',handler);return b};
+ const status=document.createElement('p');status.setAttribute('role','status');status.style.cssText='font-size:13px;color:#475569';
+ actions.append(
+  makeButton('Přidat 11 položek z předchozího seznamu',true,()=>{if(!confirm('Vytvořit 11 samostatných složek? Záznamy budou označené jako neověřené.'))return;let count=0;STARTER_LISTINGS.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Vytvořeno '+count+' nových složek. Záznamy jsou označené jako neověřené; otevři každou kartu a ověř původní zdroj.';}),
+  makeButton('Importovat JSON',true,()=>{let parsed;try{parsed=JSON.parse(textarea.value)}catch(err){status.textContent='JSON není platný: '+err.message;return}const rows=Array.isArray(parsed)?parsed:(parsed&&Array.isArray(parsed.properties)?parsed.properties:null);if(!rows){status.textContent='Vlož JSON pole objektů nebo objekt s polem properties.';return}let count=0;rows.forEach(raw=>{const record=normalizeImportedRecord(raw);if(record.url&&registry.projects.some(p=>p.url===record.url))return;if(!record.url&&registry.projects.some(p=>p.title===record.title))return;saveImportedProperty(record);count++});registry.activeId=activeId;writeRegistry(registry);renderWorkspace();status.textContent='Import dokončen: přidáno '+count+' složek. Duplicitní URL nebo názvy bez odkazu byly přeskočeny.';}),
+  makeButton('Zavřít',false,()=>overlay.remove())
+ );
+ const closeTop=document.createElement('button');closeTop.type='button';closeTop.textContent='✕';closeTop.setAttribute('aria-label','Zavřít import');closeTop.style.cssText='float:right;border:0;background:transparent;font-size:20px;cursor:pointer';closeTop.addEventListener('click',()=>overlay.remove());
+ panel.append(closeTop,h,intro,warning,textarea,actions,status);overlay.appendChild(panel);overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});document.body.appendChild(overlay);
+}
+
 function syncInternalLinks(){
  document.querySelectorAll('a[href]').forEach(a=>{const href=a.getAttribute('href');if(!href||href.startsWith('#')||/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin!==location.origin)return;u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}catch(_){}});
 }
