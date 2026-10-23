@@ -46,28 +46,28 @@ function prosCons(d){
  return {pros:pros.slice(0,3),cons:cons.slice(0,3)};
 }
 function unitPotentialScore(d){
- const raw=[d.title,d.address,...d.points,d.notes,d.shared?.description,d.shared?.notes,d.cv?.description,d.call?.listingDescription,d.call?.listingKeyPoints].filter(Boolean).join(' ');
- const t=raw.toLocaleLowerCase('cs-CZ');
- const norm=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- const investor=/pro investory|investorum|investor|investicni prilezitost|investicni potencial|investicni nemovitost|vynosova nemovitost/.test(norm);
- const area=d.area||num(raw.match(/(?:užitná plocha|obytná plocha|podlahová plocha|celková plocha|plocha domu|užitná plocha domu)[^\d]{0,18}(\d{2,4})\s*m²/i)?.[1]);
- const house=/dům|dum|rodinný|rodinny|vila|usedlost|statek|činžovní|cinzovni/.test(norm);
- const explicitInvestor=/pro investory|investorum|investicni|vynosova/.test(norm);
- const statedExisting=[...norm.matchAll(/\b([1-9])\s*(?:samostatn\w*\s*)?(?:byt\w*|jednotk\w*)/g)].map(m=>Number(m[1]));
- const existing=statedExisting.length?Math.max(...statedExisting):1;
- const proposedMatch=[...norm.matchAll(/(?:moznost|lze|plan|navrzen|projekt|studie|rozdel\w*)[^.!?]{0,120}?(?:na|pro|az)\s*([2-9])\s*(?:byt\w*|jednotk\w*)/g)].map(m=>Number(m[1]));
- let additional=proposedMatch.length?Math.max(0,Math.max(...proposedMatch)-existing):0;
- let confidence='Nízká',reason='';
- if(!additional && house && area>=105){additional=2;reason='Plocha domu orientačně umožňuje uvažovat o 2 bytech navíc (odhad, ne potvrzená dispozice).';}
- else if(!additional && house && area>=70){additional=1;reason='Plocha domu orientačně umožňuje uvažovat o 1 bytě navíc (odhad, ne potvrzená dispozice).';}
- else if(additional>0){reason='Text inzerátu naznačuje možnost více bytových jednotek.';}
+ const raw=[d.title,d.address,...(d.points||[]),d.notes,d.shared?.description,d.shared?.notes,d.cv?.description,d.call?.listingDescription,d.call?.listingKeyPoints,d.call?.description].filter(Boolean).join(' ');
+ const norm=raw.toLocaleLowerCase('cs-CZ').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const investor=/pro investory|investorum|investor|investicni|vynosova/.test(norm);
+ const area=num(d.area)||num(raw.match(/(?:uzitna|obytn[aá]|podlahov[aá]|celkov[aá]|plocha domu|plocha objektu)?[^\d]{0,22}(\d{2,4}(?:[,.]\d+)?)\s*m(?:2|²)/i)?.[1]);
+ const house=/dum|rodinny|vila|usedlost|statek|cinzovni|bytovy dum|vicegeneracni/.test(norm);
+ const existingMatch=[...norm.matchAll(/\b([1-9])\s*(?:samostatn\w*\s*)?(?:byt\w*|jednotk\w*)/g)].map(m=>Number(m[1]));
+ const existing=existingMatch.length?Math.max(...existingMatch):1;
+ const proposed=[...norm.matchAll(/(?:moznost|lze|plan|navrzen|projekt|studie|rozdel\w*)[^.!?]{0,120}?(?:na|pro|az)\s*([2-9])\s*(?:byt\w*|jednotk\w*)/g)].map(m=>Number(m[1]));
+ let additional=proposed.length?Math.max(0,Math.max(...proposed)-existing):0;
+ let reason='';
+ if(!additional&&house&&area>=105){additional=2;reason='Předběžný odhad podle plochy: potenciál alespoň 2 bytů navíc.';}
+ else if(!additional&&house&&area>=70){additional=1;reason='Předběžný odhad podle plochy: potenciál 1 bytu navíc.';}
+ else if(additional>0){reason='Text inzerátu naznačuje možnost vytvoření dalších bytů.';}
  const layout=additional>=2?5:additional===1?3:0;
- const bath=(norm.match(/koupeln\w*/g)||[]).length;
- const wc=(norm.match(/\bwc\b|toalet\w*|zachod\w*/g)||[]).length;
+ const bathrooms=(norm.match(/koupeln\w*/g)||[]).length;
+ const toilets=(norm.match(/\bwc\b|toalet\w*|zachod\w*/g)||[]).length;
  const stair=/centralni schodiste|schodist\w*|samostatny vstup|samostatne vstupy/.test(norm);
- const hygieneKnown=bath>=2&&wc>=2;
- if(additional>0&&!hygieneKnown){reason+=' Počet koupelen/WC není v datech potvrzen; nutná kontrola inzerátu a stavební proveditelnosti.';}
- if(!reason)reason='Z uložených údajů zatím nelze potvrdit další byt; doplň plochu a dispozici nebo načti popis inzerátu.';
+ if(additional>0){
+   if(bathrooms===0||toilets===0)reason+=' Vlastní koupelna a WC pro každou jednotku nejsou z popisu potvrzené; ověřit technickou proveditelnost.';
+   if(!stair&&(bathrooms===0||toilets===0))reason+=' Chybí potvrzení centrálního schodiště pro alternativní řešení.';
+ }
+ if(!reason)reason='Nedostatek údajů o ploše nebo typu nemovitosti; skóre zatím nelze spolehlivě odhadnout.';
  return {layout,investor:investor?5:0,total:Math.min(10,layout+(investor?5:0)),additional,investor,reason};
 }
 function transportScore(d){const t=[d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');const a=[{re:/náměstí míru|vinohrad|jiřího z poděbrad/,walk:4,mins:8},{re:/vršovice|vrsovice/,walk:6,mins:15},{re:/žižkov|zizkov|flóra|flora/,walk:7,mins:17},{re:/strašnice|strasnice|skalka/,walk:8,mins:20},{re:/hostivař|hostivar|háje|haje|opatov|chodov/,walk:9,mins:28},{re:/dejvice|dejvická|dejvicka|hradčanská|hradcanska/,walk:6,mins:19},{re:/smíchov|smichov|anděl|andel/,walk:5,mins:18},{re:/holešovice|holesovice|letná|letna/,walk:6,mins:19},{re:/prosek|střížkov|strizkov|ládví|ladvi|kobylisy/,walk:8,mins:27},{re:/černý most|cerny most|kyje/,walk:9,mins:32},{re:/zličín|zlicin|stodůlky|stodulky|luka|luziny/,walk:8,mins:32},{re:/modřany|modrany|braník|branik|libuš|libus/,walk:8,mins:29},{re:/krč|krc|kačerov|kacerov|pankrác|pankrac/,walk:7,mins:23},{re:/centrum|nové město|nove mesto|muzeum|můstek|mustek|karlovo náměstí/,walk:4,mins:10}];const a1=a.find(x=>x.re.test(t));const walk=a1?a1.walk:(/u metra|metro/.test(t)?5:/tramvaj|tram\./.test(t)?7:/autobus|zastávka/.test(t)?10:null);const mins=a1?a1.mins:null;const access=walk===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,walk-2)/18))));const journey=mins===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,mins-5)/45))));const total=access!==null&&journey!==null?access+journey:null;return {walk,mins,access,journey,total,score:total===null?null:Math.round(total/10*10)/10};}
