@@ -730,6 +730,14 @@ try{
   else applyProject(projects[0]);
  }else createProject(($('name').value||'První nabídka'),readProjectValues());
 }catch(e){projects=[];createProject(($('name').value||'První nabídka'),readProjectValues())}
+const incomingListingParams=new URLSearchParams(location.search);
+if(incomingListingParams.has('listingURL')||incomingListingParams.has('listingAddress')){
+ const incoming={name:incomingListingParams.get('listingTitle')||incomingListingParams.get('listingAddress')||'Vybraná nemovitost',listingAddress:incomingListingParams.get('listingAddress')||'',listingURL:incomingListingParams.get('listingURL')||'',listingPrice:incomingListingParams.get('listingPrice')||'',listingArea:incomingListingParams.get('listingArea')||'',listingLandArea:incomingListingParams.get('listingLandArea')||''};
+ Object.entries(incoming).forEach(([id,value])=>{const el=$(id);if(el&&value!=='')el.value=value});
+ if(incoming.listingPrice&&$('purchase'))$('purchase').value=String(Number(incoming.listingPrice)||incoming.listingPrice);
+ createProject(incoming.name,readProjectValues());
+ const clean=new URL(location.href);['listingTitle','listingAddress','listingURL','listingPrice','listingArea','listingLandArea'].forEach(k=>clean.searchParams.delete(k));history.replaceState(null,'',clean.pathname+clean.search+clean.hash);
+}
 projectFields().forEach(el=>{if(!['listingPriceM2'].includes(el.id)){el.addEventListener('input',saveActiveProject);el.addEventListener('change',saveActiveProject)}});
 if(!$('listingURL').value&&$('url').value)$('listingURL').value=$('url').value;
 updateListingPriceM2();
