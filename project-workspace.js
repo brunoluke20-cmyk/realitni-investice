@@ -105,6 +105,19 @@ function renderWorkspace(){
   if(p.url){const link=document.createElement('a');link.href=p.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='display:inline-block;margin-top:10px;color:#2457d6;font-weight:650';details.appendChild(link)}
   root.appendChild(details);
  }
+ const directory=document.createElement('details');directory.style.cssText='margin-top:12px;border-top:1px solid #e2e8f0;padding-top:9px';
+ const directorySummary=document.createElement('summary');directorySummary.textContent='Všechny složky nemovitostí ('+registry.projects.length+')';directorySummary.style.cssText='cursor:pointer;font-weight:750;color:#334155';directory.appendChild(directorySummary);
+ const directoryList=document.createElement('div');directoryList.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:10px';
+ registry.projects.forEach(item=>{
+  const card=document.createElement('div');card.style.cssText='border:1px solid #e2e8f0;border-radius:9px;padding:10px;background:'+(item.id===activeId?'#eff6ff':'#fff');
+  const heading=document.createElement('div');heading.textContent=item.title||'Nový inzerát';heading.style.cssText='font-weight:700;overflow-wrap:anywhere';
+  const meta=document.createElement('div');meta.textContent=[item.address,item.price?(Number(item.price).toLocaleString('cs-CZ')+' Kč'):''].filter(Boolean).join(' · ')||'Údaje se ověřují';meta.style.cssText='font-size:12px;color:#64748b;margin:4px 0 8px;overflow-wrap:anywhere';
+  const open=document.createElement('button');open.type='button';open.textContent=item.id===activeId?'Právě otevřeno':'Otevřít složku';open.disabled=item.id===activeId;open.style.cssText='border:1px solid #cbd5df;border-radius:7px;padding:6px 9px;background:'+(item.id===activeId?'#dbeafe':'white')+';font:inherit;font-size:12px;cursor:pointer';open.addEventListener('click',()=>switchProject(item.id));
+  card.append(heading,meta,open);
+  if(item.url){const link=document.createElement('a');link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Původní inzerát ↗';link.style.cssText='display:inline-block;margin-left:8px;font-size:12px';card.appendChild(link)}
+  directoryList.appendChild(card);
+ });
+ directory.appendChild(directoryList);root.appendChild(directory);
 }
 
 // Additive bulk import: existing calculator, valuation, checklist and call-brief flows remain unchanged.
@@ -172,6 +185,25 @@ function openBulkImport(){
  const closeTop=document.createElement('button');closeTop.type='button';closeTop.textContent='✕';closeTop.setAttribute('aria-label','Zavřít import');closeTop.style.cssText='float:right;border:0;background:transparent;font-size:20px;cursor:pointer';closeTop.addEventListener('click',()=>overlay.remove());
  panel.append(closeTop,h,intro,warning,textarea,actions,status);overlay.appendChild(panel);overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});document.body.appendChild(overlay);
 }
+
+
+// Automatically seed every property previously listed in this conversation.
+// This is additive and idempotent: existing folders and calculator data are preserved.
+const STARTER_IMPORT_KEY='rei-starter-listings-imported-v2';
+function ensureStarterListings(){
+ let added=0;
+ STARTER_LISTINGS.forEach(raw=>{
+  const record=normalizeImportedRecord(raw);
+  const exists=registry.projects.some(p=>(record.url&&p.url===record.url)||p.title===record.title);
+  if(exists)return;
+  saveImportedProperty(record);added++;
+ });
+ if(added||nativeGet.call(ls,STARTER_IMPORT_KEY)!=='yes'){
+  registry.activeId=activeId;writeRegistry(registry);
+  try{nativeSet.call(ls,STARTER_IMPORT_KEY,'yes')}catch(_){}
+ }
+}
+ensureStarterListings();
 
 function syncInternalLinks(){
  document.querySelectorAll('a[href]').forEach(a=>{const href=a.getAttribute('href');if(!href||href.startsWith('#')||/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin!==location.origin)return;u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}catch(_){}});
