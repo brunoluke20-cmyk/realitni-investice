@@ -662,7 +662,7 @@ function renderHomeListingCatalog(){
  if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
  const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
  const h=document.createElement('h2');h.textContent='Bytové a vícegenerační domy';h.style.cssText='font-size:23px;margin:0 0 6px';
- const intro=document.createElement('p');intro.textContent='Pouze bytové a vícegenerační domy nebo domy s výslovně uvedenými samostatnými bytovými jednotkami. Filtruj metro, počet bytů a potenciál rekonstrukce. Právní možnost rozdělení i aktuální dostupnost vždy ověř.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
+ const intro=document.createElement('p');intro.textContent='Vždy hledáme mix investičních i rekonstrukčních příležitostí mezi bytovými a vícegeneračními domy. Filtruj jen dostupnost metra, počet bytových jednotek a lokalitu; právní možnost rozdělení i aktuální dostupnost ověř.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
  const refreshRow=document.createElement('div');refreshRow.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px';
  const refreshButton=document.createElement('button');refreshButton.id='reiListingRefreshButton';refreshButton.type='button';refreshButton.textContent='↻ Aktualizovat inzeráty';refreshButton.style.cssText='border:0;border-radius:9px;background:#2457d6;color:#fff;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer';
  const refreshStatus=document.createElement('p');refreshStatus.id='reiListingRefreshStatus';refreshStatus.setAttribute('role','status');refreshStatus.setAttribute('aria-live','polite');refreshStatus.style.cssText='font-size:12px;color:#617080;margin:0';
@@ -673,8 +673,7 @@ function renderHomeListingCatalog(){
  filters.appendChild(searchInput);
  const metroFilter=filterSelect('Metro – pěšky',[['all','Vše / neověřeno'],['10','Do 10 minut dle inzerátu'],['15','Do 15 minut dle inzerátu']]);
  const unitsFilter=filterSelect('Počet jednotek',[['all','Všechny'],['2','Nejméně 2'],['3','Nejméně 3 / potenciál dalších']]);
- const renovationFilter=filterSelect('Rekonstrukce / rozvoj',[['all','Všechny'],['yes','Potenciál rekonstrukce'],['attic','Půda / vestavba']]);
- metroFilter.id='reiListingMetroFilter';unitsFilter.id='reiListingUnitsFilter';renovationFilter.id='reiListingRenovationFilter';
+ metroFilter.id='reiListingMetroFilter';unitsFilter.id='reiListingUnitsFilter';
  const resultCount=document.createElement('p');resultCount.style.cssText='font-size:12px;color:#617080;margin:0 0 10px';
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
@@ -755,8 +754,8 @@ function renderHomeListingCatalog(){
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
   grid.appendChild(card);cards.push(card);
  });
- function applyFilters(){const q=searchInput.value.trim().toLowerCase(),m=metroFilter.value,u=unitsFilter.value,r=renovationFilter.value;let shown=0;cards.forEach(c=>{const mins=c.dataset.metro===''?null:Number(c.dataset.metro);const okSearch=!q||c.dataset.search.includes(q);const okMetro=m==='all'||(mins!==null&&mins<=Number(m));const okUnits=u==='all'||Number(c.dataset.units)>=Number(u);const okReno=r==='all'||(r==='yes'&&c.dataset.reno==='yes')||(r==='attic'&&c.dataset.attic==='yes');const visible=okSearch&&okMetro&&okUnits&&okReno;c.hidden=!visible;c.style.display=visible?'flex':'none';if(visible)shown++});resultCount.textContent='Zobrazeno '+shown+' z '+cards.length+' nabídek.'}
- [searchInput,metroFilter,unitsFilter,renovationFilter].forEach(el=>{el.addEventListener('input',applyFilters);el.addEventListener('change',applyFilters)});
+ function applyFilters(){const q=searchInput.value.trim().toLowerCase(),m=metroFilter.value,u=unitsFilter.value;let shown=0;cards.forEach(c=>{const mins=c.dataset.metro===''?null:Number(c.dataset.metro);const okSearch=!q||c.dataset.search.includes(q);const okMetro=m==='all'||(mins!==null&&mins<=Number(m));const okUnits=u==='all'||Number(c.dataset.units)>=Number(u);const visible=okSearch&&okMetro&&okUnits;c.hidden=!visible;c.style.display=visible?'flex':'none';if(visible)shown++});resultCount.textContent='Zobrazeno '+shown+' z '+cards.length+' nabídek — vždy kombinace investičních i rekonstrukčních příležitostí.'}
+ [searchInput,metroFilter,unitsFilter].forEach(el=>{el.addEventListener('input',applyFilters);el.addEventListener('change',applyFilters)});
  refreshButton.addEventListener('click',async()=>{
   refreshButton.disabled=true;refreshButton.textContent='Aktualizuji…';refreshStatus.textContent='Načítám připojený seznam inzerátů…';
   try{
@@ -779,12 +778,12 @@ function renderHomeListingCatalog(){
     refreshStatus.textContent='Žádné nové nabídky k přidání. '+note;
     return;
    }
-   const previous={search:searchInput.value,metro:metroFilter.value,units:unitsFilter.value,renovation:renovationFilter.value};
+   const previous={search:searchInput.value,metro:metroFilter.value,units:unitsFilter.value};
    LISTING_RECORDS.push(...additions);
    const oldChooser=document.getElementById('reiListingToolChooser');if(oldChooser)oldChooser.remove();
    section.remove();renderHomeListingCatalog();
-   const search=document.getElementById('reiListingSearch'),metro=document.getElementById('reiListingMetroFilter'),units=document.getElementById('reiListingUnitsFilter'),renovation=document.getElementById('reiListingRenovationFilter');
-   if(search)search.value=previous.search;if(metro)metro.value=previous.metro;if(units)units.value=previous.units;if(renovation)renovation.value=previous.renovation;
+   const search=document.getElementById('reiListingSearch'),metro=document.getElementById('reiListingMetroFilter'),units=document.getElementById('reiListingUnitsFilter');
+   if(search)search.value=previous.search;if(metro)metro.value=previous.metro;if(units)units.value=previous.units;
    if(search)search.dispatchEvent(new Event('input',{bubbles:true}));
    const status=document.getElementById('reiListingRefreshStatus');if(status)status.textContent='Přidáno '+additions.length+' nových nabídek z datového feedu. Zdroje a aktuální dostupnost ověř u inzerenta.';
   }catch(error){refreshStatus.textContent='Aktualizace se nepodařila: '+(error&&error.message?error.message:'neznámá chyba')+'. Zkontroluj připojení a dostupnost datového feedu.'}
