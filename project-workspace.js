@@ -781,6 +781,7 @@ function renderHomeListingCatalog(){
    }
    const previous={search:searchInput.value,metro:metroFilter.value,units:unitsFilter.value,renovation:renovationFilter.value};
    LISTING_RECORDS.push(...additions);
+   const oldChooser=document.getElementById('reiListingToolChooser');if(oldChooser)oldChooser.remove();
    section.remove();renderHomeListingCatalog();
    const search=document.getElementById('reiListingSearch'),metro=document.getElementById('reiListingMetroFilter'),units=document.getElementById('reiListingUnitsFilter'),renovation=document.getElementById('reiListingRenovationFilter');
    if(search)search.value=previous.search;if(metro)metro.value=previous.metro;if(units)units.value=previous.units;if(renovation)renovation.value=previous.renovation;
