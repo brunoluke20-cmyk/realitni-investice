@@ -634,8 +634,23 @@ function assessListingLocation(record){
  if(/nepotvrzeno|neověřeno|nutno ověřit|budoucí metro/.test(hints)){basis+=' Pozor: popis výslovně upozorňuje, že údaj o metru není ověřen.'}
  return {score,stop,commute,basis};
 }
+function assessListingPotential(record){
+ const raw=[record.title,record.address,record.potential,record.notes,record.description,record.layout].filter(Boolean).join(' ');
+ const text=raw.toLocaleLowerCase('cs-CZ');
+ const norm=text.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+ let score=4;
+ const reasons=[];
+ if(/investic|pronaj|najem|vynos/.test(norm)){score+=1;reasons.push('inzerát zmiňuje investiční nebo nájemní využití');}
+ if(/vice jednot|samostatn|dva byty|tri byty|3 jednot|2 jednot|rozdeleni|rozdělen|vicegenera|vícegenera|bytove jednot|bytové jednot/.test(norm)){score+=2;reasons.push('možnost více jednotek');}
+ if(/puda|půda|podkrovi|podkroví|vestavb|pristavb|přístavb|rozsireni|rozšíření/.test(norm)){score+=1;reasons.push('možné rozšíření plochy');}
+ if(Number(record.landArea)>300){score+=1;reasons.push('větší pozemek');}
+ if(Number(record.floorArea)>180){score+=1;reasons.push('větší podlahová plocha');}
+ score=Math.max(1,Math.min(10,score));
+ return {score,basis:reasons.length?'Orientační potenciál podle textu inzerátu: '+reasons.join(', ')+'. Stavební možnosti, kolaudaci a výnos je nutné ověřit.':'Orientační skóre podle omezených údajů v inzerátu; stavební možnosti, kolaudaci a výnos je nutné ověřit.'};
+}
 function renderHomeListingCatalog(){
- if(!location.pathname.endsWith('index.html'))return;
+ const path=location.pathname;
+ if(!(/(?:^|\/)index\.html$/i.test(path)||path.endsWith('/')))return;
  const main=document.querySelector('main'),tools=main&&main.querySelector('.cards');
  if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
  const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
@@ -692,13 +707,16 @@ function renderHomeListingCatalog(){
   if(Number.isFinite(unitPrice)&&unitPrice<90000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Pod 90 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
   const locationAssessment=assessListingLocation(r);
   const locationScore=document.createElement('div');locationScore.textContent='Hodnocení lokality: '+locationAssessment.score+'/10';locationScore.style.cssText='font-size:14px;font-weight:800;color:'+(locationAssessment.score>=8?'#15803d':locationAssessment.score>=6?'#a16207':'#b45309')+';margin-top:3px';
+  const potentialAssessment=assessListingPotential(r);
+  const potentialScore=document.createElement('div');potentialScore.textContent='Investiční potenciál: '+potentialAssessment.score+'/10';potentialScore.style.cssText='font-size:14px;font-weight:800;color:'+(potentialAssessment.score>=8?'#15803d':potentialAssessment.score>=6?'#a16207':'#b45309')+';margin-top:3px';
+  const potentialBasis=document.createElement('div');potentialBasis.textContent=potentialAssessment.basis;potentialBasis.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
   const transitDetails=document.createElement('div');transitDetails.textContent='MHD: '+locationAssessment.stop+' · cesta na Náměstí Míru: '+locationAssessment.commute;transitDetails.style.cssText='font-size:12px;color:#475569;line-height:1.45';
   const locationBasis=document.createElement('div');locationBasis.textContent=locationAssessment.basis;locationBasis.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
   const land=document.createElement('div');land.textContent=r.landArea?('Pozemek: '+r.landArea+' m²'):'Pozemek neuveden';land.style.cssText='font-size:12px;color:#617080';
   const address=document.createElement('div');address.textContent=r.address||'Lokalita neověřena';address.style.cssText='font-size:13px';
   const metro=document.createElement('div');metro.textContent='Metro: '+(r.metro||'neověřeno');metro.style.cssText='font-size:12px;color:#617080';
   const status=document.createElement('div');status.textContent=r.verificationStatus||'Údaje k ověření';status.style.cssText='font-size:11px;color:#8a4b08;background:#fff7ed;padding:6px 8px;border-radius:7px';
-  card.append(photoWrap,title,price,area,unit,locationScore,transitDetails,locationBasis,land,address,metro,status);
+  card.append(photoWrap,title,price,area,unit,locationScore,locationBasis,potentialScore,potentialBasis,transitDetails,land,address,metro,status);
   if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
   grid.appendChild(card);
