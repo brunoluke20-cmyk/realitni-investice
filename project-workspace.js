@@ -714,7 +714,7 @@ function renderHomeListingCatalog(){
   if(raw.url)seenListingUrls.add(raw.url);
   const r=normalizeImportedRecord(raw),card=document.createElement('article');
   const searchable=[r.title,r.address,r.layout,r.potential,r.notes].filter(Boolean).join(' ').toLowerCase();
-  const unitCount=multiUnits(raw)?(/(?:3|4|5|6|7|8|9)\s*(?:samostatn[eé]\s*)?(?:bytov[eé]\s*)?jednotk|(?:3|4|5|6|7|8|9)\s*byt[yů]|pět\s+bytov|šest\s+bytov|11\s*bytov/i.test(searchable)?3:2):0;
+  const unitCount=multiUnits(raw)?(/(?:3|4|5|6|7|8|9)\s*(?:samostatn[eé]\s*)?(?:bytov[eé]\s*)?jednotk|(?:3|4|5|6|7|8|9)\s*byt[yů]|pět\s+bytov|šest\s+bytov|11\s*bytov|2\s*byt[yů].{0,100}samostatn[aá]\s+jednotk/i.test(searchable)?3:2):0;
   const minutes=walkMinutes(raw);
   card.dataset.search=searchable;card.dataset.metro=minutes===null?'':String(minutes);card.dataset.units=String(unitCount);
   card.dataset.reno=reno(raw)?'yes':'no';card.dataset.attic=/půd|podkrov|vestavb|další\s+obytn[eé]\s+prostor/i.test(searchable)?'yes':'no';
