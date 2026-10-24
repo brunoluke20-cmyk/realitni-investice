@@ -728,7 +728,7 @@ function renderHomeListingCatalog(){
   const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
   const unitPrice=Number(r.price)>0&&Number(r.floorArea)>0?Number(r.price)/Number(r.floorArea):NaN;
   const unit=document.createElement('div');unit.textContent=Number.isFinite(unitPrice)?('Cena za m²: '+money(Math.round(unitPrice))+'/m²'):'Cena za m² nelze spočítat';
-  unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<=100000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<90000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
+  unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<=100000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<=100000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
   if(Number.isFinite(unitPrice)&&unitPrice<=100000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Do 100 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
   const benchmark=getLocalApartmentBenchmark(r);
   const benchmarkRow=document.createElement('div');
