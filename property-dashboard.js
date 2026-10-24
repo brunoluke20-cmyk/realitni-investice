@@ -20,7 +20,7 @@ function getData(p){
  const price=num(first(p.price,shared.price,shared.listingPrice,cv.listingPrice,cv.price,call.listingPrice));
  const area=num(first(shared.area,shared.listingArea,cv.listingArea,cv.usableArea,call.usableArea));
  const land=num(first(shared.landArea,shared.listingLandArea,cv.landArea,call.landArea));
- const locationParts=[p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress,p.title,shared.title,cv.name,call.listingTitle].filter(x=>x!==null&&x!==undefined&&String(x).trim()!=='').map(String);
+ const locationParts=[p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress].filter(x=>x!==null&&x!==undefined&&String(x).trim()!=='').map(String);if(!locationParts.length)locationParts.push(...[p.title,shared.title,cv.name,call.listingTitle].filter(x=>x!==null&&x!==undefined&&String(x).trim()!=='').map(String));
  const address=first(p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress,'');
  const points=parsePoints(first(call.listingKeyPoints,shared.keyPoints,shared.description,cv.description,''));
  const notes=first(call.liveNotes,call.callResult,call.notes,shared.notes,'');
@@ -73,7 +73,7 @@ function unitPotentialScore(d){
 }
 function transportScore(d){const t=[...(d.locationParts||[]),d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');const a=[{re:/náměstí míru|vinohrad|jiřího z poděbrad/,walk:4,mins:8},{re:/vršovice|vrsovice/,walk:6,mins:15},{re:/žižkov|zizkov|flóra|flora/,walk:7,mins:17},{re:/strašnice|strasnice|skalka/,walk:8,mins:20},{re:/hostivař|hostivar|háje|haje|opatov|chodov/,walk:9,mins:28},{re:/dejvice|dejvická|dejvicka|hradčanská|hradcanska/,walk:6,mins:19},{re:/smíchov|smichov|anděl|andel/,walk:5,mins:18},{re:/holešovice|holesovice|letná|letna/,walk:6,mins:19},{re:/prosek|střížkov|strizkov|ládví|ladvi|kobylisy/,walk:8,mins:27},{re:/černý most|cerny most|kyje/,walk:9,mins:32},{re:/zličín|zlicin|stodůlky|stodulky|luka|luziny/,walk:8,mins:32},{re:/modřany|modrany|braník|branik|libuš|libus/,walk:8,mins:29},{re:/krč|krc|kačerov|kacerov|pankrác|pankrac/,walk:7,mins:23},{re:/centrum|nové město|nove mesto|muzeum|můstek|mustek|karlovo náměstí/,walk:4,mins:10}];const a1=a.find(x=>x.re.test(t));const walk=a1?a1.walk:(/u metra|metro/.test(t)?5:/tramvaj|tram\./.test(t)?7:/autobus|zastávka/.test(t)?10:null);const mins=a1?a1.mins:null;const access=walk===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,walk-2)/18))));const journey=mins===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,mins-5)/45))));const total=access!==null&&journey!==null?access+journey:null;return {walk,mins,access,journey,total,score:total===null?null:Math.round(total/10*10)/10};}
 function marketReference(d){
- const raw=[...(d.locationParts||[]),d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ');
+ const raw=[...(d.locationParts||[]),d.address].filter(Boolean).join(' ');
  const t=raw.toLocaleLowerCase('cs-CZ');
  const areas=[
  [/nové město|nove mesto/,199000,'Nové Město'],[/staré město|stare mesto/,204000,'Staré Město'],[/vinohrad|náměstí míru|namesti miru|jiřího z poděbrad/,193000,'Vinohrady'],
