@@ -1,0 +1,12 @@
+{
+  "name": "realitni-investice-quality-gates",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node tests/static-audit.mjs && playwright test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
