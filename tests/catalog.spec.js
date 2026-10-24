@@ -88,6 +88,51 @@ test('refresh merges new feed entries and deduplicates repeated URLs', async ({ 
   await expect(page.locator('#reiListingRefreshStatus')).toContainText('Žádné nové nabídky');
 });
 
+
+test('apartment benchmark resolves Krč and declined form Troje and provides transparent fallback', async ({ page }) => {
+  await page.route('**/listings-feed.json*', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ listings: [
+      {
+        title: 'Vícegenerační dům – Krč',
+        url: 'https://example.com/benchmark-krc',
+        address: 'Praha 4 – Krč',
+        price: 18000000,
+        floorArea: 180,
+        layout: '3 bytové jednotky',
+        potential: 'Investiční dům'
+      },
+      {
+        title: 'Bytový dům – Troje',
+        url: 'https://example.com/benchmark-troje',
+        address: 'Praha – Troje',
+        price: 20000000,
+        floorArea: 200,
+        layout: '3 bytové jednotky'
+      },
+      {
+        title: 'Bytový dům – neznámá lokalita',
+        url: 'https://example.com/benchmark-unknown',
+        address: 'Neznámá obec',
+        price: 9000000,
+        floorArea: 100,
+        layout: '2 bytové jednotky'
+      }
+    ] })
+  }));
+  await page.getByRole('button', { name: /Aktualizovat inzeráty/ }).click();
+  const krc = page.locator('#reiHomeListingCatalog article[role="button"]').filter({ hasText: 'Vícegenerační dům – Krč' });
+  const troje = page.locator('#reiHomeListingCatalog article[role="button"]').filter({ hasText: 'Bytový dům – Troje' });
+  const unknown = page.locator('#reiHomeListingCatalog article[role="button"]').filter({ hasText: 'Bytový dům – neznámá lokalita' });
+  await expect(krc).toContainText('156 290 Kč/m²');
+  await expect(krc).toContainText('realitify.cz');
+  await expect(troje).toContainText('140 000 Kč/m²');
+  await expect(troje).toContainText('tomaskopa.cz');
+  await expect(unknown).toContainText('97 081 Kč/m²');
+  await expect(unknown).toContainText('celostátní medián');
+});
+
 test('malicious listing title is rendered as text, not HTML', async ({ page }) => {
   await page.route('**/listings-feed.json*', route => route.fulfill({
     status: 200,
