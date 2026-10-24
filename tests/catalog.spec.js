@@ -108,6 +108,29 @@ test('malicious listing title is rendered as text, not HTML', async ({ page }) =
   await expect(card.locator('img')).toHaveCount(0);
 });
 
+
+test('all main tools load without uncaught JavaScript errors', async ({ page }) => {
+  const routes = [
+    '/index.html',
+    '/investicni-kalkulacka.html',
+    '/investicni-kalkulacka-nova.html',
+    '/odhad-zastavni-hodnoty.html',
+    '/spravce-projektu.html',
+    '/call-brief.html',
+    '/lukrativita-okoli.html'
+  ];
+  for (const route of routes) {
+    const errors = [];
+    const onPageError = error => errors.push(error.message);
+    page.on('pageerror', onPageError);
+    const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
+    expect(response && response.ok(), route + ' should return HTTP 200').toBeTruthy();
+    await expect(page.locator('body')).not.toBeEmpty();
+    expect(errors, 'Uncaught page errors on ' + route).toEqual([]);
+    page.off('pageerror', onPageError);
+  }
+});
+
 test('empty source feed explains that portal connectors are not configured', async ({ page }) => {
   await page.getByRole('button', { name: /Aktualizovat inzeráty/ }).click();
   await expect(page.locator('#reiListingRefreshStatus')).toContainText('Žádné nové nabídky');
