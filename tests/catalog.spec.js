@@ -126,9 +126,9 @@ test('apartment benchmark resolves Krč and declined form Troje and provides tra
   const troje = page.locator('#reiHomeListingCatalog article[role="button"]').filter({ hasText: 'Bytový dům – Troje' });
   const unknown = page.locator('#reiHomeListingCatalog article[role="button"]').filter({ hasText: 'Bytový dům – neznámá lokalita' });
   await expect(krc).toContainText('156 290 Kč/m²');
-  await expect(krc).toContainText('realitify.cz');
+  await expect(krc.locator('a[href*="realitify.cz"]')).toHaveCount(1);
   await expect(troje).toContainText('140 000 Kč/m²');
-  await expect(troje).toContainText('tomaskopa.cz');
+  await expect(troje.locator('a[href*="tomaskopa.cz"]')).toHaveCount(1);
   await expect(unknown).toContainText('97 081 Kč/m²');
   await expect(unknown).toContainText('celostátní medián');
 });
