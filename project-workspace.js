@@ -615,25 +615,6 @@ function ensureStarterListings(){
 }
 ensureStarterListings();
 
-function assessListingLocation(record){
- const text=[record.title,record.address,record.location,record.metro].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');
- const hasMetro=/(metro|stanice|\b[a-zá-ž]+\s+[abc]\b)/i.test(String(record.metro||''));
- const hints=String(record.metro||'').toLocaleLowerCase('cs-CZ');
- let score=4,stop='zastávka a vzdálenost neověřeny',commute='nutno ověřit v PID Lítačce',basis='Předběžný odhad podle popisu inzerátu a čtvrti; přesná pěší trasa ani aktuální jízdní řád nejsou v datech ověřeny.';
- if(/zličín/.test(text)){score=7;stop='metro Zličín – inzerát uvádí cca 200 m';commute='cca 25–35 min (orientační odhad)';basis='Zličín má metro B; celkový čas závisí na pěší trase, čekání a přestupu.'}
- else if(/rajská zahrada/.test(text)){score=7;stop='metro Rajská zahrada – dle popisu cca 8 min pěšky';commute='cca 25–35 min (orientační odhad)';basis='Odhad podle uvedené stanice; přesný čas ověřit pro konkrétní adresu a dobu odjezdu.'}
- else if(/prosek/.test(text)){score=7;stop='metro Prosek – vzdálenost od domu neověřena';commute='cca 20–30 min (orientační odhad)';basis='Čtvrť má přístup k lince C, ale čas chůze ke stanici není potvrzen.'}
- else if(/kobylisy/.test(text)){score=8;stop='metro Kobylisy – u jedné nabídky uváděno cca 5 min pěšky';commute='cca 20–30 min (orientační odhad)';basis='Dobré napojení na linku C; čas chůze je potřeba potvrdit podle přesné adresy.'}
- else if(/veleslavín/.test(text)){score=8;stop='metro A Nádraží Veleslavín – vzdálenost neověřena';commute='cca 15–25 min (orientační odhad)';basis='Linka A vede přímo přes Náměstí Míru; čas zahrnuje chůzi a čekání.'}
- else if(/liboc/.test(text)){score=7;stop='metro Petřiny / Nádraží Veleslavín; inzerát uvádí autobus';commute='cca 20–35 min (orientační odhad)';basis='Přestup a docházka závisí na konkrétní trase; údaj o autobusu není nezávisle ověřen.'}
- else if(/břevnov/.test(text)){score=7;stop='tramvajové spojení; metro pěšky neověřeno';commute='cca 20–35 min (orientační odhad)';basis='Břevnov má tramvajové spojení, ale dostupnost metra se výrazně liší podle ulice.'}
- else if(/ďáblice/.test(text)){score=6;stop='autobus na metro Ládví; pěší vzdálenost neověřena';commute='cca 25–40 min (orientační odhad)';basis='Přestup na metro je nutný; limit 10 minut k metru není u adresy potvrzen.'}
- else if(/středo|záběhlice|kunratice|braník|hostivař|horní počernice|kolovraty|křeslice|pitkovice|kbely|kamýk|točná|slivenec|dolní chabry/.test(text)){score=4;stop='MHD / metro do 10 min není potvrzeno';commute='cca 25–45+ min; nutno ověřit';basis='Předběžně nižší skóre, protože přímá dostupnost metra do 10 minut není v údajích doložena.'}
- else if(/smíchov|střešovice|michle|krč|stodůlky/.test(text)){score=6;stop='MHD dostupná; nejbližší stanice a chůze neověřeny';commute='cca 15–35 min (orientační odhad)';basis='Skóre je předběžné podle širší lokality, nikoli výpočtu trasy od domu.'}
- if(/do 10 min|5 minut pěšky|cca 200 m|8 min pěšky/.test(hints))score=Math.min(10,score+1);
- if(/nepotvrzeno|neověřeno|nutno ověřit|budoucí metro/.test(hints)){basis+=' Pozor: popis výslovně upozorňuje, že údaj o metru není ověřen.'}
- return {score,stop,commute,basis};
-}
 function getLocalApartmentBenchmark(record){
  const raw=[record.title,record.address,record.location].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');
  const entries=[
@@ -659,7 +640,7 @@ function renderHomeListingCatalog(){
  if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
  const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
  const h=document.createElement('h2');h.textContent='Všechny nalezené domy ('+LISTING_RECORDS.length+')';h.style.cssText='font-size:23px;margin:0 0 6px';
- const intro=document.createElement('p');intro.textContent='Cena za m² = cena domu ÷ užitná/podlahová plocha. Neověřené tipy a dostupnost metra jsou jasně označené.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
+ const intro=document.createElement('p');intro.textContent='Cena za m² se porovnává s referenční cenou bytu v dané lokalitě. Nabídky do 100 000 Kč/m² jsou zvýrazněné zeleně. Srovnání je orientační a zdroj i typ ceny jsou uvedené u každého dostupného srovnání.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
  const seenListingUrls=new Set();
