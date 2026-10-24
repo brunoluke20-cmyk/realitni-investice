@@ -42,7 +42,7 @@ jobs:
             echo 'Do not claim that all portals are connected unless a supported and authorized source adapter is implemented and tested.'
             echo
             echo '## Failure output (last 300 lines)'
-            tail -n 300 quality-gate.log
+            if [[ -f quality-gate.log ]]; then tail -n 300 quality-gate.log; else echo 'The test command did not start; inspect the preceding setup step.'; fi
           } > repair-prompt.md
       - name: Upload test report and repair prompt
         if: failure()
