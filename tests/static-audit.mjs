@@ -21,7 +21,8 @@ const workspace = fs.readFileSync(path.join(root, 'project-workspace.js'), 'utf8
 assert.match(workspace, /reiListingRefreshButton/, 'Refresh button must exist');
 assert.match(workspace, /reiListingMetroFilter/, 'Metro filter must exist');
 assert.match(workspace, /reiListingUnitsFilter/, 'Unit-count filter must exist');
-assert.match(workspace, /reiListingRenovationFilter/, 'Renovation filter must exist');
+assert.doesNotMatch(workspace, /reiListingRenovationFilter/, 'Mixed search must not ask users to choose renovation mode');
+assert.match(workspace, /mix investičních i rekonstrukčních příležitostí/, 'Catalog must describe the always-mixed listing set');
 assert.match(workspace, /openListingToolChooser\(r\)/, 'Listing-to-tool chooser workflow must remain wired');
 assert.ok(workspace.includes("link.rel='noopener noreferrer'"), 'External listing links should use opener protection');
 assert.ok(!workspace.includes('Hodnocení lokality:'), 'Removed location-score UI must not return');
