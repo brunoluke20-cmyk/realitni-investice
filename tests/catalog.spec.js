@@ -22,21 +22,42 @@ test('catalog renders only house-style listings and preserves chooser', async ({
   await expect(page.getByRole('button', { name: /Brief na telefonát/ })).toBeVisible();
 });
 
-test('metro, unit-count, renovation and text filters combine', async ({ page }) => {
-  const cards = page.locator('#reiHomeListingCatalog article[role="button"]');
-  const initialCount = await cards.count();
-  await page.locator('#reiListingMetroFilter').selectOption('10');
-  let visible = page.locator('#reiHomeListingCatalog article[role="button"]:visible');
-  expect(await visible.count()).toBeGreaterThan(0);
-  expect(await visible.count()).toBeLessThanOrEqual(initialCount);
-
-  await page.locator('#reiListingUnitsFilter').selectOption('3');
-  expect(await visible.count()).toBeGreaterThan(0);
-  await page.locator('#reiListingRenovationFilter').selectOption('yes');
-  expect(await visible.count()).toBeGreaterThan(0);
-  await page.locator('#reiListingSearch').fill('Hejtmanská');
-  await expect(visible).toHaveCount(1);
-  await expect(visible.first()).toContainText('Hejtmanská');
+test('all combinations of metro, unit-count and renovation filters behave consistently', async ({ page }) => {
+  const metroFilter = page.locator('#reiListingMetroFilter');
+  const unitsFilter = page.locator('#reiListingUnitsFilter');
+  const renovationFilter = page.locator('#reiListingRenovationFilter');
+  const search = page.locator('#reiListingSearch');
+  const visibleCards = page.locator('#reiHomeListingCatalog article[role="button"]:visible');
+  for (const metro of ['all', '10', '15']) {
+    for (const units of ['all', '2', '3']) {
+      for (const renovation of ['all', 'yes', 'attic']) {
+        await metroFilter.selectOption(metro);
+        await unitsFilter.selectOption(units);
+        await renovationFilter.selectOption(renovation);
+        await search.fill('');
+        const cards = await visibleCards.evaluateAll(nodes => nodes.map(node => ({
+          search: node.dataset.search || '',
+          metro: node.dataset.metro === '' ? null : Number(node.dataset.metro),
+          units: Number(node.dataset.units || 0),
+          renovation: node.dataset.reno,
+          attic: node.dataset.attic
+        })));
+        for (const card of cards) {
+          if (metro !== 'all') expect(card.metro).not.toBeNull();
+          if (metro !== 'all') expect(card.metro).toBeLessThanOrEqual(Number(metro));
+          if (units !== 'all') expect(card.units).toBeGreaterThanOrEqual(Number(units));
+          if (renovation === 'yes') expect(card.renovation).toBe('yes');
+          if (renovation === 'attic') expect(card.attic).toBe('yes');
+        }
+      }
+    }
+  }
+  await metroFilter.selectOption('all');
+  await unitsFilter.selectOption('all');
+  await renovationFilter.selectOption('all');
+  await search.fill('Hejtmanská');
+  await expect(visibleCards).toHaveCount(1);
+  await expect(visibleCards.first()).toContainText('Hejtmanská');
 });
 
 test('refresh merges new feed entries and deduplicates repeated URLs', async ({ page }) => {
