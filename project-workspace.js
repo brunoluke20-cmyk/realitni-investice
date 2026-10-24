@@ -788,7 +788,7 @@ function renderHomeListingCatalog(){
   const benchmark=getLocalApartmentBenchmark(r);
   const benchmarkRow=document.createElement('div');
   benchmarkRow.style.cssText='font-size:13px;font-weight:750;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 9px;line-height:1.45';
-  benchmarkRow.textContent=benchmark?'Srovnávací byt v lokalitě: '+money(benchmark.pricePerM2)+'/m²':'Srovnávací cena bytu v této lokalitě nebyla nalezena';
+  benchmarkRow.textContent=benchmark?'Srovnávací cena bytu: '+money(benchmark.pricePerM2)+'/m²'+(benchmark.name?' · '+benchmark.name:''):'Srovnávací cena bytu v této lokalitě nebyla nalezena';
   const benchmarkNote=document.createElement('div');
   benchmarkNote.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
   benchmarkNote.textContent=benchmark?benchmark.note:'Bez lokálních dat se srovnávací cena nezobrazuje; nechci ji odhadovat naslepo.';
