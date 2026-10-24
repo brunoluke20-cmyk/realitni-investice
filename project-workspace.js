@@ -664,12 +664,12 @@ ensureStarterListings();
 
 function getLocalApartmentBenchmark(record){
  // Normalize accents and common Czech declensions before matching the listing's location.
- const normalize=value=>String(value||'').toLocaleLowerCase('cs-CZ').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[–—]/g,'-').replace(/\\s+/g,' ').trim();
+ const normalize=value=>String(value||'').toLocaleLowerCase('cs-CZ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
  const raw=normalize([record.title,record.address,record.location,record.notes,record.description].filter(Boolean).join(' '));
  const entries=[
   // Current online asking-price benchmarks; sources and date are shown in each card.
-  {match:/\\bkrc\\b|krcske|antala staska|ruzinovska|na dvorcich/,pricePerM2:156290,note:'Medián aktuálních nabídkových cen bytů v Krči: 156 290 Kč/m²; 385 nabídek, aktualizace 23. 10. 2026. Nabídková, nikoli realizovaná cena.',url:'https://realitify.cz/trh/krc/prodej'},
-  {match:/\\btroj(?:a|e|i|u|ou)\\b|hn[eě]zdensk[aá]|krosensk[aá]|pomeransk[aá]|pomořansk[aá]/,pricePerM2:140000,note:'Medián aktuálních nabídkových cen bytů v Troji: 140 000 Kč/m²; přehled trhu k 19. 10. 2026. Nabídková, nikoli realizovaná cena.',url:'https://tomaskopa.cz/realitni-makler-troja/'},
+  {match:/\bkrc\b|krcske|antala staska|ruzinovska|na dvorcich/,pricePerM2:156290,note:'Medián aktuálních nabídkových cen bytů v Krči: 156 290 Kč/m²; 385 nabídek, aktualizace 23. 10. 2026. Nabídková, nikoli realizovaná cena.',url:'https://realitify.cz/trh/krc/prodej'},
+  {match:/\btroj(?:a|e|i|u|ou)\b|hn[eě]zdensk[aá]|krosensk[aá]|pomeransk[aá]|pomořansk[aá]/,pricePerM2:140000,note:'Medián aktuálních nabídkových cen bytů v Troji: 140 000 Kč/m²; přehled trhu k 19. 10. 2026. Nabídková, nikoli realizovaná cena.',url:'https://tomaskopa.cz/realitni-makler-troja/'},
   {match:/prosek|proseck/,pricePerM2:120946,note:'Orientační cena z nabídkového bytu na Proseku: 8 950 000 Kč / cca 74 m². Jednotlivý příklad, ne medián všech bytů.',url:'https://hlidejreality.cz/prodej/praha-prosek'},
   {match:/brevnov/,pricePerM2:176768,note:'Medián nabídkové ceny bytů v Břevnově, přehled Realitify aktualizovaný 17. 10. 2026.',url:'https://realitify.cz/trh/brevnov/prodej'},
   {match:/kunratice/,pricePerM2:149200,note:'Medián nabídkové ceny bytů v Kunraticích, přehled Realitify aktualizovaný 23. 10. 2026.',url:'https://realitify.cz/trh/kunratice/prodej'},
@@ -688,17 +688,17 @@ function getLocalApartmentBenchmark(record){
  // If a street or smaller quarter is not in the local table, show the nearest
  // defensible parent-market benchmark rather than leaving the card blank.
  const cityBenchmarks=[
-  {match:/\\bpraha\\b|praha-[1-9]|praha 1[0-9]/,pricePerM2:167250,name:'Praha – celoměstský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v celé Praze, září 2026 (6 494 nabídek). Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bbrno\\b/,pricePerM2:135882,name:'Brno – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Brně, září 2026 (1 566 nabídek). Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bostrava\\b/,pricePerM2:69118,name:'Ostrava – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Ostravě, září 2026. Není to přesná cena dané čtvrti.',url:'https://realitify.cz/trh/ostrava/prodej'},
-  {match:/\\bplzen\\b/,pricePerM2:93881,name:'Plzeň – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Plzni, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bolomouc\\b/,pricePerM2:95369,name:'Olomouc – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Olomouci, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bliberec\\b/,pricePerM2:92791,name:'Liberec – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Liberci, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bhradec kralove\\b/,pricePerM2:101452,name:'Hradec Králové – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Hradci Králové, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bkladno\\b/,pricePerM2:109855,name:'Kladno – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Kladně, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bceske budejovice\\b/,pricePerM2:94091,name:'České Budějovice – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Českých Budějovicích, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bpardubice\\b/,pricePerM2:92708,name:'Pardubice – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Pardubicích, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
-  {match:/\\bzlin\\b/,pricePerM2:89542,name:'Zlín – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů ve Zlíně, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'}
+  {match:/\bpraha\b|praha-[1-9]|praha 1[0-9]/,pricePerM2:167250,name:'Praha – celoměstský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v celé Praze, září 2026 (6 494 nabídek). Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bbrno\b/,pricePerM2:135882,name:'Brno – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Brně, září 2026 (1 566 nabídek). Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bostrava\b/,pricePerM2:69118,name:'Ostrava – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Ostravě, září 2026. Není to přesná cena dané čtvrti.',url:'https://realitify.cz/trh/ostrava/prodej'},
+  {match:/\bplzen\b/,pricePerM2:93881,name:'Plzeň – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Plzni, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bolomouc\b/,pricePerM2:95369,name:'Olomouc – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Olomouci, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bliberec\b/,pricePerM2:92791,name:'Liberec – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Liberci, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bhradec kralove\b/,pricePerM2:101452,name:'Hradec Králové – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Hradci Králové, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bkladno\b/,pricePerM2:109855,name:'Kladno – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Kladně, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bceske budejovice\b/,pricePerM2:94091,name:'České Budějovice – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Českých Budějovicích, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bpardubice\b/,pricePerM2:92708,name:'Pardubice – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů v Pardubicích, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'},
+  {match:/\bzlin\b/,pricePerM2:89542,name:'Zlín – městský medián',note:'Náhradní srovnání: medián nabídkových cen bytů ve Zlíně, září 2026. Není to přesná cena dané čtvrti.',url:'https://www.livinisto.cz/pro-media'}
  ];
  const city=cityBenchmarks.find(item=>item.match.test(raw));
  if(city)return city;
