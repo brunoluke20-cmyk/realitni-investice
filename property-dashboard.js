@@ -20,11 +20,12 @@ function getData(p){
  const price=num(first(p.price,shared.price,shared.listingPrice,cv.listingPrice,cv.price,call.listingPrice));
  const area=num(first(shared.area,shared.listingArea,cv.listingArea,cv.usableArea,call.usableArea));
  const land=num(first(shared.landArea,shared.listingLandArea,cv.landArea,call.landArea));
+ const locationParts=[p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress,p.title,shared.title,cv.name,call.listingTitle].filter(x=>x!==null&&x!==undefined&&String(x).trim()!=='').map(String);
  const address=first(p.address,shared.address,shared.location,cv.listingAddress,cv.address,call.listingAddress,'');
  const points=parsePoints(first(call.listingKeyPoints,shared.keyPoints,shared.description,cv.description,''));
  const notes=first(call.liveNotes,call.callResult,call.notes,shared.notes,'');
  const image=first(p.image,shared.image_url,shared.imageUrl,shared.image,call.image_url,call.imageUrl,'');
- return {id:p.id,title,url,address,price,area,land,ppm:price&&area?price/area:null,points,notes,image,call,cv,shared};
+ return {id:p.id,title,url,address,locationParts,price,area,land,ppm:price&&area?price/area:null,points,notes,image,call,cv,shared};
 }
 function prosCons(d){
  const text=[d.title,d.address,...d.points,d.notes].join(' ').toLocaleLowerCase('cs-CZ');
@@ -70,7 +71,7 @@ function unitPotentialScore(d){
  if(!reason)reason='Z uložených údajů zatím nelze potvrdit další byt; doplň plochu a dispozici nebo načti popis inzerátu.';
  return {layout,investor:investor?5:0,total:Math.min(10,layout+(investor?5:0)),additional,investor,reason};
 }
-function transportScore(d){const t=[d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');const a=[{re:/náměstí míru|vinohrad|jiřího z poděbrad/,walk:4,mins:8},{re:/vršovice|vrsovice/,walk:6,mins:15},{re:/žižkov|zizkov|flóra|flora/,walk:7,mins:17},{re:/strašnice|strasnice|skalka/,walk:8,mins:20},{re:/hostivař|hostivar|háje|haje|opatov|chodov/,walk:9,mins:28},{re:/dejvice|dejvická|dejvicka|hradčanská|hradcanska/,walk:6,mins:19},{re:/smíchov|smichov|anděl|andel/,walk:5,mins:18},{re:/holešovice|holesovice|letná|letna/,walk:6,mins:19},{re:/prosek|střížkov|strizkov|ládví|ladvi|kobylisy/,walk:8,mins:27},{re:/černý most|cerny most|kyje/,walk:9,mins:32},{re:/zličín|zlicin|stodůlky|stodulky|luka|luziny/,walk:8,mins:32},{re:/modřany|modrany|braník|branik|libuš|libus/,walk:8,mins:29},{re:/krč|krc|kačerov|kacerov|pankrác|pankrac/,walk:7,mins:23},{re:/centrum|nové město|nove mesto|muzeum|můstek|mustek|karlovo náměstí/,walk:4,mins:10}];const a1=a.find(x=>x.re.test(t));const walk=a1?a1.walk:(/u metra|metro/.test(t)?5:/tramvaj|tram\./.test(t)?7:/autobus|zastávka/.test(t)?10:null);const mins=a1?a1.mins:null;const access=walk===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,walk-2)/18))));const journey=mins===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,mins-5)/45))));const total=access!==null&&journey!==null?access+journey:null;return {walk,mins,access,journey,total,score:total===null?null:Math.round(total/10*10)/10};}
+function transportScore(d){const t=[...(d.locationParts||[]),d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');const a=[{re:/náměstí míru|vinohrad|jiřího z poděbrad/,walk:4,mins:8},{re:/vršovice|vrsovice/,walk:6,mins:15},{re:/žižkov|zizkov|flóra|flora/,walk:7,mins:17},{re:/strašnice|strasnice|skalka/,walk:8,mins:20},{re:/hostivař|hostivar|háje|haje|opatov|chodov/,walk:9,mins:28},{re:/dejvice|dejvická|dejvicka|hradčanská|hradcanska/,walk:6,mins:19},{re:/smíchov|smichov|anděl|andel/,walk:5,mins:18},{re:/holešovice|holesovice|letná|letna/,walk:6,mins:19},{re:/prosek|střížkov|strizkov|ládví|ladvi|kobylisy/,walk:8,mins:27},{re:/černý most|cerny most|kyje/,walk:9,mins:32},{re:/zličín|zlicin|stodůlky|stodulky|luka|luziny/,walk:8,mins:32},{re:/modřany|modrany|braník|branik|libuš|libus/,walk:8,mins:29},{re:/krč|krc|kačerov|kacerov|pankrác|pankrac/,walk:7,mins:23},{re:/centrum|nové město|nove mesto|muzeum|můstek|mustek|karlovo náměstí/,walk:4,mins:10}];const a1=a.find(x=>x.re.test(t));const walk=a1?a1.walk:(/u metra|metro/.test(t)?5:/tramvaj|tram\./.test(t)?7:/autobus|zastávka/.test(t)?10:null);const mins=a1?a1.mins:null;const access=walk===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,walk-2)/18))));const journey=mins===null?null:Math.max(0,Math.min(50,Math.round(50*(1-Math.max(0,mins-5)/45))));const total=access!==null&&journey!==null?access+journey:null;return {walk,mins,access,journey,total,score:total===null?null:Math.round(total/10*10)/10};}
 function marketReference(d){
  const t=[d.address,d.title,...d.points,d.notes].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');
  const areas=[
@@ -82,7 +83,10 @@ function marketReference(d){
  [/horní měcholupy|horni mecholupy/,150000,'Horní Měcholupy'],[/hostivař|hostivar/,119000,'Hostivař'],[/malešice|malesice/,147000,'Malešice'],[/strašnice|strasnice|skalka/,151000,'Strašnice'],[/vršovice|vrsovice/,149000,'Vršovice'],[/záběhlice|zabehlice/,135000,'Záběhlice']];
  const hit=areas.find(a=>a[0].test(t));if(hit)return {value:hit[1],name:hit[2],level:'čtvrť'};
  const districts=[[/praha\s*1|praha 1|staré město|stare mesto|nové město|nove mesto/,200000,'Praha 1'],[/praha\s*2/,194000,'Praha 2'],[/praha\s*3/,166000,'Praha 3'],[/praha\s*4/,143000,'Praha 4'],[/praha\s*5/,156000,'Praha 5'],[/praha\s*6/,150000,'Praha 6'],[/praha\s*7/,164000,'Praha 7'],[/praha\s*8/,164000,'Praha 8'],[/praha\s*9/,144000,'Praha 9'],[/praha\s*10/,134000,'Praha 10']];
- const district=districts.find(a=>a[0].test(t));return district?{value:district[1],name:district[2],level:'městská část'}:null;
+ const district=districts.find(a=>a[0].test(t));if(district)return {value:district[1],name:district[2],level:'městská část'};
+ const zip=(t.match(/(?:^|\D)(1[0-9]{4})(?:\D|$)/)||[])[1];
+ if(zip){const prefix=zip.slice(0,2);const zipMap={'10':[134000,'Praha 10'],'11':[200000,'Praha 1'],'12':[194000,'Praha 2'],'13':[166000,'Praha 3'],'14':[143000,'Praha 4'],'15':[156000,'Praha 5'],'16':[150000,'Praha 6'],'17':[164000,'Praha 7'],'18':[164000,'Praha 8'],'19':[144000,'Praha 9']};if(zipMap[prefix])return {value:zipMap[prefix][0],name:zipMap[prefix][1],level:'městská část (odhad z PSČ)'};}
+ return null;
 }
 function render(){
  const registry=read(REG,{projects:[]});
