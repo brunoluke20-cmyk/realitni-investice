@@ -634,19 +634,23 @@ function assessListingLocation(record){
  if(/nepotvrzeno|neověřeno|nutno ověřit|budoucí metro/.test(hints)){basis+=' Pozor: popis výslovně upozorňuje, že údaj o metru není ověřen.'}
  return {score,stop,commute,basis};
 }
-function assessListingPotential(record){
- const raw=[record.title,record.address,record.potential,record.notes,record.description,record.layout].filter(Boolean).join(' ');
- const text=raw.toLocaleLowerCase('cs-CZ');
- const norm=text.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
- let score=4;
- const reasons=[];
- if(/investic|pronaj|najem|vynos/.test(norm)){score+=1;reasons.push('inzerát zmiňuje investiční nebo nájemní využití');}
- if(/vice jednot|samostatn|dva byty|tri byty|3 jednot|2 jednot|rozdeleni|rozdělen|vicegenera|vícegenera|bytove jednot|bytové jednot/.test(norm)){score+=2;reasons.push('možnost více jednotek');}
- if(/puda|půda|podkrovi|podkroví|vestavb|pristavb|přístavb|rozsireni|rozšíření/.test(norm)){score+=1;reasons.push('možné rozšíření plochy');}
- if(Number(record.landArea)>300){score+=1;reasons.push('větší pozemek');}
- if(Number(record.floorArea)>180){score+=1;reasons.push('větší podlahová plocha');}
- score=Math.max(1,Math.min(10,score));
- return {score,basis:reasons.length?'Orientační potenciál podle textu inzerátu: '+reasons.join(', ')+'. Stavební možnosti, kolaudaci a výnos je nutné ověřit.':'Orientační skóre podle omezených údajů v inzerátu; stavební možnosti, kolaudaci a výnos je nutné ověřit.'};
+function getLocalApartmentBenchmark(record){
+ const raw=[record.title,record.address,record.location].filter(Boolean).join(' ').toLocaleLowerCase('cs-CZ');
+ const entries=[
+  {match:/prosek|proseck/,pricePerM2:120946,note:'Konkrétní nabídkový byt 3+1 na Proseku: 8 950 000 Kč / cca 74 m². Orientační výpočet z aktuální nabídky; nejde o realizovanou cenu.',url:'https://hlidejreality.cz/prodej/praha-prosek'},
+  {match:/břevnov|brevnov/,pricePerM2:176768,note:'Medián nabídkové ceny bytů v Břevnově, data Realitify aktualizovaná 17. 10. 2026.',url:'https://realitify.cz/trh/brevnov/prodej'},
+  {match:/kunratice/,pricePerM2:149200,note:'Medián nabídkové ceny bytů v Kunraticích, data Realitify aktualizovaná 23. 10. 2026.',url:'https://realitify.cz/trh/kunratice/prodej'},
+  {match:/zličín|trebonice|třebonice/,pricePerM2:135000,note:'Orientační medián realizovaných cen bytů v oblasti Zličína; jde o uskutečněné prodeje, ne aktuální inzerci.',url:'https://www.cenaodhad.cz/kalkulacka-ceny-bytu-praha'},
+  {match:/braník|branik/,pricePerM2:144000,note:'Orientační medián realizovaných cen bytů v Braníku; nejde o aktuální nabídkovou cenu.',url:'https://www.cenaodhad.cz/cena-bytu'},
+  {match:/liboc/,pricePerM2:149000,note:'Orientační údaj pro širší Prahu 6 (realizované ceny); konkrétní srovnání přímo v Liboci nebylo dostupné.',url:'https://www.cenaodhad.cz/cena-bytu'},
+  {match:/kyje/,pricePerM2:153000,note:'Medián nabídkové ceny bytů v Kyjích, přehled trhu k 1. 10. 2026.',url:'https://tomaskopa.cz/blog/ceny-bytu-praha-9-zari-2026/'},
+  {match:/horní počernice|horni pocernice/,pricePerM2:132000,note:'Medián nabídkové ceny bytů v Horních Počernicích, přehled trhu k 1. 10. 2026.',url:'https://tomaskopa.cz/blog/ceny-bytu-praha-9-zari-2026/'},
+  {match:/hostivař|hostivar/,pricePerM2:118000,note:'Orientační medián realizovaných cen bytů v Hostivaři; nejde o aktuální nabídkovou cenu.',url:'https://www.cenaodhad.cz/kalkulacka-ceny-bytu-praha'},
+  {match:/libuš|libus/,pricePerM2:144000,note:'Orientační medián realizovaných cen bytů pro oblast Libuš a okolí.',url:'https://www.cenaodhad.cz/cena-bytu'},
+  {match:/smíchov|smichov/,pricePerM2:169000,note:'Orientační medián realizovaných cen bytů na Smíchově; nejde o aktuální nabídkovou cenu.',url:'https://www.cenaodhad.cz/kalkulacka-ceny-bytu-praha'},
+  {match:/kolovraty/,pricePerM2:132000,note:'Orientační srovnání podle širší Prahy 10; přímá data pro Kolovraty nebyla dostupná.',url:'https://www.cenaodhad.cz/kalkulacka-ceny-bytu-praha'}
+ ];
+ return entries.find(item=>item.match.test(raw))||null;
 }
 function renderHomeListingCatalog(){
  const path=location.pathname;
@@ -703,20 +707,24 @@ function renderHomeListingCatalog(){
   const area=document.createElement('div');area.textContent=r.floorArea?('Užitná/podlahová plocha: '+r.floorArea+' m²'):'Plocha neuvedena';area.style.cssText='font-size:13px;color:#475569';
   const unitPrice=Number(r.price)>0&&Number(r.floorArea)>0?Number(r.price)/Number(r.floorArea):NaN;
   const unit=document.createElement('div');unit.textContent=Number.isFinite(unitPrice)?('Cena za m²: '+money(Math.round(unitPrice))+'/m²'):'Cena za m² nelze spočítat';
-  unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<90000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<90000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
-  if(Number.isFinite(unitPrice)&&unitPrice<90000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Pod 90 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
-  const locationAssessment=assessListingLocation(r);
-  const locationScore=document.createElement('div');locationScore.textContent='Hodnocení lokality: '+locationAssessment.score+'/10';locationScore.style.cssText='font-size:14px;font-weight:800;color:'+(locationAssessment.score>=8?'#15803d':locationAssessment.score>=6?'#a16207':'#b45309')+';margin-top:3px';
-  const potentialAssessment=assessListingPotential(r);
-  const potentialScore=document.createElement('div');potentialScore.textContent='Investiční potenciál: '+potentialAssessment.score+'/10';potentialScore.style.cssText='font-size:14px;font-weight:800;color:'+(potentialAssessment.score>=8?'#15803d':potentialAssessment.score>=6?'#a16207':'#b45309')+';margin-top:3px';
-  const potentialBasis=document.createElement('div');potentialBasis.textContent=potentialAssessment.basis;potentialBasis.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
-  const transitDetails=document.createElement('div');transitDetails.textContent='MHD: '+locationAssessment.stop+' · cesta na Náměstí Míru: '+locationAssessment.commute;transitDetails.style.cssText='font-size:12px;color:#475569;line-height:1.45';
-  const locationBasis=document.createElement('div');locationBasis.textContent=locationAssessment.basis;locationBasis.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
+  unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<=100000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<90000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
+  if(Number.isFinite(unitPrice)&&unitPrice<90000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Do 100 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
+  const benchmark=getLocalApartmentBenchmark(r);
+  const benchmarkRow=document.createElement('div');
+  benchmarkRow.style.cssText='font-size:13px;font-weight:750;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 9px;line-height:1.45';
+  benchmarkRow.textContent=benchmark?'Srovnávací byt v lokalitě: '+money(benchmark.pricePerM2)+'/m²':'Srovnávací cena bytu v této lokalitě nebyla nalezena';
+  const benchmarkNote=document.createElement('div');
+  benchmarkNote.style.cssText='font-size:11px;color:#64748b;line-height:1.4';
+  benchmarkNote.textContent=benchmark?benchmark.note:'Bez lokálních dat se srovnávací cena nezobrazuje; nechci ji odhadovat naslepo.';
+  if(benchmark&&benchmark.url){
+   const benchmarkLink=document.createElement('a');benchmarkLink.href=benchmark.url;benchmarkLink.target='_blank';benchmarkLink.rel='noopener noreferrer';benchmarkLink.textContent='Zdroj srovnání ↗';benchmarkLink.style.cssText='font-size:12px;font-weight:700;color:#2457d6';
+   benchmarkRow.append(document.createTextNode(' · '),benchmarkLink);
+  }
   const land=document.createElement('div');land.textContent=r.landArea?('Pozemek: '+r.landArea+' m²'):'Pozemek neuveden';land.style.cssText='font-size:12px;color:#617080';
   const address=document.createElement('div');address.textContent=r.address||'Lokalita neověřena';address.style.cssText='font-size:13px';
   const metro=document.createElement('div');metro.textContent='Metro: '+(r.metro||'neověřeno');metro.style.cssText='font-size:12px;color:#617080';
   const status=document.createElement('div');status.textContent=r.verificationStatus||'Údaje k ověření';status.style.cssText='font-size:11px;color:#8a4b08;background:#fff7ed;padding:6px 8px;border-radius:7px';
-  card.append(photoWrap,title,price,area,unit,locationScore,locationBasis,potentialScore,potentialBasis,transitDetails,land,address,metro,status);
+  card.append(photoWrap,title,price,area,unit,benchmarkRow,benchmarkNote,land,address,metro,status);
   if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
   grid.appendChild(card);
