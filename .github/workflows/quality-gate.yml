@@ -1,0 +1,56 @@
+name: Quality gate and browser regression tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Static audit and browser regression suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run static audit and end-to-end tests
+        shell: bash
+        run: npm test 2>&1 | tee quality-gate.log
+      - name: Generate automatic repair prompt if checks fail
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '# Automatic repair prompt'
+            echo
+            echo 'The Realitní investice quality gate failed. Inspect the attached test log and Playwright report.'
+            echo 'Fix only the demonstrated defects. Preserve existing local-storage keys/data migrations, listing-to-tool chooser, calculator links, call-brief flow, authentication behavior, and existing filters.'
+            echo 'Do not weaken or delete tests to make the build pass. Add a regression test for each defect fixed, then rerun the full suite.'
+            echo 'Review security issues including untrusted listing titles/URLs, unsafe HTML injection, duplicate listings, and invalid feed records.'
+            echo 'Do not claim that all portals are connected unless a supported and authorized source adapter is implemented and tested.'
+            echo
+            echo '## Failure output (last 300 lines)'
+            if [[ -f quality-gate.log ]]; then tail -n 300 quality-gate.log; else echo 'The test command did not start; inspect the preceding setup step.'; fi
+          } > repair-prompt.md
+      - name: Upload test report and repair prompt
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-failure-diagnostics
+          path: |
+            playwright-report/
+            quality-gate.log
+            repair-prompt.md
+          retention-days: 7
