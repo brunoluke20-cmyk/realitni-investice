@@ -26,11 +26,31 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run static audit and end-to-end tests
-        run: npm test
-      - name: Upload Playwright report on failure
+        shell: bash
+        run: npm test 2>&1 | tee quality-gate.log
+      - name: Generate automatic repair prompt if checks fail
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '# Automatic repair prompt'
+            echo
+            echo 'The Realitní investice quality gate failed. Inspect the attached test log and Playwright report.'
+            echo 'Fix only the demonstrated defects. Preserve existing local-storage keys/data migrations, listing-to-tool chooser, calculator links, call-brief flow, authentication behavior, and existing filters.'
+            echo 'Do not weaken or delete tests to make the build pass. Add a regression test for each defect fixed, then rerun the full suite.'
+            echo 'Review security issues including untrusted listing titles/URLs, unsafe HTML injection, duplicate listings, and invalid feed records.'
+            echo 'Do not claim that all portals are connected unless a supported and authorized source adapter is implemented and tested.'
+            echo
+            echo '## Failure output (last 300 lines)'
+            tail -n 300 quality-gate.log
+          } > repair-prompt.md
+      - name: Upload test report and repair prompt
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: quality-gate-failure-diagnostics
+          path: |
+            playwright-report/
+            quality-gate.log
+            repair-prompt.md
           retention-days: 7
