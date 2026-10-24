@@ -22,39 +22,36 @@ test('catalog renders only house-style listings and preserves chooser', async ({
   await expect(page.getByRole('button', { name: /Brief na telefonát/ })).toBeVisible();
 });
 
-test('all combinations of metro, unit-count and renovation filters behave consistently', async ({ page }) => {
+test('mixed listing search has no investment-versus-renovation choice and filters metro and unit count', async ({ page }) => {
+  await expect(page.locator('#reiListingRenovationFilter')).toHaveCount(0);
   const metroFilter = page.locator('#reiListingMetroFilter');
   const unitsFilter = page.locator('#reiListingUnitsFilter');
-  const renovationFilter = page.locator('#reiListingRenovationFilter');
   const search = page.locator('#reiListingSearch');
   const visibleCards = page.locator('#reiHomeListingCatalog article[role="button"]:visible');
+  const allCards = page.locator('#reiHomeListingCatalog article[role="button"]');
+  const renoTypes = await allCards.evaluateAll(nodes => new Set(nodes.map(node => node.dataset.reno)).size);
+  expect(renoTypes).toBeGreaterThan(1); // mixed set: renovation candidates and other opportunities
   for (const metro of ['all', '10', '15']) {
     for (const units of ['all', '2', '3']) {
-      for (const renovation of ['all', 'yes', 'attic']) {
-        await metroFilter.selectOption(metro);
-        await unitsFilter.selectOption(units);
-        await renovationFilter.selectOption(renovation);
-        await search.fill('');
-        const cards = await visibleCards.evaluateAll(nodes => nodes.map(node => ({
-          search: node.dataset.search || '',
-          metro: node.dataset.metro === '' ? null : Number(node.dataset.metro),
-          units: Number(node.dataset.units || 0),
-          renovation: node.dataset.reno,
-          attic: node.dataset.attic
-        })));
-        for (const card of cards) {
-          if (metro !== 'all') expect(card.metro).not.toBeNull();
-          if (metro !== 'all') expect(card.metro).toBeLessThanOrEqual(Number(metro));
-          if (units !== 'all') expect(card.units).toBeGreaterThanOrEqual(Number(units));
-          if (renovation === 'yes') expect(card.renovation).toBe('yes');
-          if (renovation === 'attic') expect(card.attic).toBe('yes');
+      await metroFilter.selectOption(metro);
+      await unitsFilter.selectOption(units);
+      await search.fill('');
+      const cards = await visibleCards.evaluateAll(nodes => nodes.map(node => ({
+        search: node.dataset.search || '',
+        metro: node.dataset.metro === '' ? null : Number(node.dataset.metro),
+        units: Number(node.dataset.units || 0)
+      })));
+      for (const card of cards) {
+        if (metro !== 'all') {
+          expect(card.metro).not.toBeNull();
+          expect(card.metro).toBeLessThanOrEqual(Number(metro));
         }
+        if (units !== 'all') expect(card.units).toBeGreaterThanOrEqual(Number(units));
       }
     }
   }
   await metroFilter.selectOption('all');
   await unitsFilter.selectOption('all');
-  await renovationFilter.selectOption('all');
   await search.fill('Hejtmanská');
   expect(await visibleCards.count()).toBeGreaterThan(0);
   const matchingTexts = await visibleCards.allTextContents();
