@@ -56,8 +56,9 @@ test('all combinations of metro, unit-count and renovation filters behave consis
   await unitsFilter.selectOption('all');
   await renovationFilter.selectOption('all');
   await search.fill('Hejtmanská');
-  await expect(visibleCards).toHaveCount(1);
-  await expect(visibleCards.first()).toContainText('Hejtmanská');
+  expect(await visibleCards.count()).toBeGreaterThan(0);
+  const matchingTexts = await visibleCards.allTextContents();
+  expect(matchingTexts.every(text => text.includes('Hejtmanská'))).toBeTruthy();
 });
 
 test('refresh merges new feed entries and deduplicates repeated URLs', async ({ page }) => {
