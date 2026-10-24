@@ -84,11 +84,11 @@ function marketReference(d){
  [/horni mecholupy/,150000,'Horní Měcholupy','čtvrť'],[/hostivar/,119000,'Hostivař','čtvrť'],[/malesice/,147000,'Malešice','čtvrť'],[/strasnice|skalka/,151000,'Strašnice','čtvrť'],[/vrsovice/,149000,'Vršovice','čtvrť'],[/zabehlice/,135000,'Záběhlice','čtvrť'],
  [/dablice/,140000,'Kobylisy – srovnávací lokalita u Ďáblic','náhradní odhad podle blízké čtvrti']];
  const hit=areas.find(a=>a[0].test(t));if(hit)return {value:hit[1],name:hit[2],level:hit[3]};
- const districts=[[/praha\\s*1|praha 1/,200000,'Praha 1'],[/praha\\s*2/,194000,'Praha 2'],[/praha\\s*3/,166000,'Praha 3'],[/praha\\s*4/,143000,'Praha 4'],[/praha\\s*5/,156000,'Praha 5'],[/praha\\s*6/,150000,'Praha 6'],[/praha\\s*7/,164000,'Praha 7'],[/praha\\s*8/,164000,'Praha 8'],[/praha\\s*9/,144000,'Praha 9'],[/praha\\s*10/,134000,'Praha 10']];
+ const districts=[[/praha\s*1|praha 1/,200000,'Praha 1'],[/praha\s*2/,194000,'Praha 2'],[/praha\s*3/,166000,'Praha 3'],[/praha\s*4/,143000,'Praha 4'],[/praha\s*5/,156000,'Praha 5'],[/praha\s*6/,150000,'Praha 6'],[/praha\s*7/,164000,'Praha 7'],[/praha\s*8/,164000,'Praha 8'],[/praha\s*9/,144000,'Praha 9'],[/praha\s*10/,134000,'Praha 10']];
  const district=districts.find(a=>a[0].test(t));if(district)return {value:district[1],name:district[2],level:'městská část – náhradní odhad'};
- const zip=(t.match(/(?:^|\\D)(1[0-9]{4})(?:\\D|$)/)||[])[1];
+ const zip=(t.match(/(?:^|\D)(1[0-9]{4})(?:\D|$)/)||[])[1];
  if(zip){const prefix=zip.slice(0,2);const zipMap={'10':[134000,'Praha 10'],'11':[200000,'Praha 1'],'12':[194000,'Praha 2'],'13':[166000,'Praha 3'],'14':[143000,'Praha 4'],'15':[156000,'Praha 5'],'16':[150000,'Praha 6'],'17':[164000,'Praha 7'],'18':[164000,'Praha 8'],'19':[144000,'Praha 9']};if(zipMap[prefix])return {value:zipMap[prefix][0],name:zipMap[prefix][1],level:'náhradní odhad podle PSČ'};}
- if(/\\bpraha\\b|hlavni mesto praha|prague/.test(t))return {value:158000,name:'Praha – obecný orientační základ',level:'náhradní odhad podle zveřejněných mediánů čtvrtí'};
+ if(/\bpraha\b|hlavni mesto praha|prague/.test(t))return {value:158000,name:'Praha – obecný orientační základ',level:'náhradní odhad podle zveřejněných mediánů čtvrtí'};
  return null;
 }
 function render(){
