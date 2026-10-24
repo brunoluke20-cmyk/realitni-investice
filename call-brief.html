@@ -158,15 +158,19 @@ $('loadContact').addEventListener('click',async()=>{
   if(d.agency){$('agency').value=d.agency;found.push('realitka')}
   // Contact providers sometimes return the revealed number under a nested or alternate field.
   const phonePattern=/(?:\+420|00420|(?<!\d)420)?[\s().\-\u00a0]*\d(?:[\s().\-\u00a0]*\d){8,14}/;
-  const contactPayloads=[d.phone,d.contactPhone,d.contact_phone,d.telephone,d.mobile,d.mobile_phone,d.contact,d.seller,d.agent]
+  const contactPayloads=[d.phone,d.phoneNumber,d.phone_number,d.contactPhone,d.contact_phone,d.telephone,d.mobile,d.mobile_phone,d.agentPhone,d.agent_phone,d.brokerPhone,d.broker_phone,d.contact,d.contactInfo,d.seller,d.agent,d.broker]
    .flatMap(v=>{
     if(typeof v==='string'||typeof v==='number')return [String(v)];
-    if(v&&typeof v==='object')return [v.phone,v.telephone,v.mobile,v.gsm,v.number,v.phone_number].filter(x=>typeof x==='string'||typeof x==='number').map(String);
+    if(v&&typeof v==='object')return [v.phone,v.phoneNumber,v.phone_number,v.contactPhone,v.contact_phone,v.telephone,v.mobile,v.mobile_phone,v.gsm,v.number,v.phone_number_raw,v.tel,v.agentPhone,v.agent_phone].filter(x=>typeof x==='string'||typeof x==='number').map(String);
     return [];
    });
   const phoneCandidate=contactPayloads.map(v=>v.match(phonePattern)?.[0]?.trim()||'')
    .find(v=>v&&v.replace(/\D/g,'').length>=9&&v.replace(/\D/g,'').length<=15)||'';
-  if(phoneCandidate){$('phone').value=phoneCandidate;found.push('telefon') }
+  if(phoneCandidate&&!$('phone').value.trim()){
+   const digits=phoneCandidate.replace(/\D/g,'');
+   $('phone').value=phoneCandidate.replace(/[^\d+]/g,'').replace(/^00420/,'+420').replace(/^(\d{9})$/,'+420$1');
+   found.push('telefon');
+  }
   if(d.email){$('contactEmail').value=d.email;found.push('e-mail')}
   const points=Array.isArray(d.keyPoints)?d.keyPoints:[];
   $('listingKeyPoints').value=JSON.stringify(points);
@@ -187,7 +191,7 @@ $('loadContact').addEventListener('click',async()=>{
   if(!$('listingPrice').value.trim())missing.push('cena');
   $('contactStatus').textContent=(unique.length?'Načteno: '+unique.join(', ')+'. ':'Nepodařilo se načíst žádné spolehlivé údaje. ')+
    (missing.length?'Chybí základní údaje: '+missing.join(', ')+'. ':'')+
-   (d.phone?'Telefon nalezen — před hovorem ověř, že patří k tomuto inzerátu.':'Telefon není ve veřejných datech dostupný, nebo jej portál skrývá.');
+   ($('phone').value.trim()?'Telefon je vyplněný — před hovorem ověř, že patří k tomuto inzerátu.':'Telefon není ve veřejných datech dostupný, nebo jej portál skrývá; zkontroluj profil makléře a případně číslo doplň ručně.');
   refreshLinks();capture();
  }catch(e){
   $('contactStatus').textContent=(e.message||'Načítání se nezdařilo.')+' Zkus veřejný odkaz na detail inzerátu, ne stránku výsledků vyhledávání.';
