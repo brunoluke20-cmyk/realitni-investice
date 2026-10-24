@@ -519,7 +519,29 @@ const STARTER_LISTINGS=[
     "verificationStatus": "Aktualizováno 3. 10. 2026; dostupnost potvrdit u prodejce",
     "notes": "Cena 18 950 000 Kč; užitná plocha 120 m²; pozemek 442 m²; cena za m² se počítá z uvedené užitné plochy."
   }
-];
+,
+ {
+  title:'Bytový dům / vícegenerační dům – Hejtmanská, Praha 9 – Rajská zahrada',
+  url:'https://www.housevip.cz/prodej-vicegeneracniho-domu-praha-prodej-bytoveho-domu-se-tremi-bytovymi-jednotkami-zahradou-a-tremi-garazemi-praha-9-rajska-zahrada-2025',
+  address:'Hejtmanská, Praha 9 – Kyje',price:24650000,floorArea:275,landArea:739,floors:'3 podlaží dle inzerátu',
+  layout:'2 byty 4+1 a samostatná jednotka 1+1; historicky 5 menších bytů',
+  metro:'Rajská zahrada – cca 8 minut pěšky dle inzerátu',
+  contact:'Ing. Valerie Zobková · +420 731 379 981 · valerie.zobkova@housevip.cz',
+  potential:'Půda cca 120 m² nabízí možnost dalšího využití nebo vestavby; nutno ověřit projekt, povolení a rozpočet.',
+  verificationStatus:'Veřejný inzerát nalezen 24. 10. 2026; dostupnost potvrdit u prodejce',
+  notes:'Bytový dům vedený v katastru a RÚIAN jako bytový dům. Aktuálně dvě velké jednotky a další samostatná jednotka; návrat k menším jednotkám je nutné právně a stavebně ověřit.'
+ },
+ {
+  title:'Bytový dům – Na Neklance, Praha 5 – Smíchov',
+  url:'https://www.digireality.cz/inzerat/6ac12f0a8611eb37667633e4',
+  address:'Na Neklance, Praha 5 – Smíchov',price:'',floorArea:736,landArea:535,
+  layout:'11 bytových jednotek; 736,4 m² souhrnné plochy bytů',
+  metro:'Metro Radlická poblíž; přesný pěší čas ověřit',
+  contact:'RE/MAX Search – kontakt přes inzerát',
+  potential:'Dům je podle nabídky rekonstruovaný a obsazený nájemníky; potenciál především v příjmu z nájmu.',
+  verificationStatus:'Inzerát nalezen v říjnu 2026; cena není zveřejněna, dostupnost potvrdit',
+  notes:'Veřejný popis uvádí 11 bytů, výtah, parkování ve dvoře a dlouhodobé nájemní smlouvy. Bez zveřejněné ceny nelze spočítat cenu za m² ani návratnost.'
+ }];
 const LISTING_RECORDS=STARTER_LISTINGS.flat(Infinity);
 const LISTING_PHOTOS_BY_URL=new Map(LISTING_RECORDS.filter(r=>r&&r.url&&r.imageUrl).map(r=>[r.url,r.imageUrl]));
 LISTING_RECORDS.forEach(r=>{if(r&&r.url&&!r.imageUrl&&LISTING_PHOTOS_BY_URL.has(r.url))r.imageUrl=LISTING_PHOTOS_BY_URL.get(r.url)});
@@ -639,8 +661,16 @@ function renderHomeListingCatalog(){
  const main=document.querySelector('main'),tools=main&&main.querySelector('.cards');
  if(!main||!tools||document.getElementById('reiHomeListingCatalog'))return;
  const section=document.createElement('section');section.id='reiHomeListingCatalog';section.className='card';
- const h=document.createElement('h2');h.textContent='Všechny nalezené domy ('+LISTING_RECORDS.length+')';h.style.cssText='font-size:23px;margin:0 0 6px';
- const intro=document.createElement('p');intro.textContent='Cena za m² se porovnává s referenční cenou bytu v dané lokalitě. Nabídky do 100 000 Kč/m² jsou zvýrazněné zeleně. Srovnání je orientační a zdroj i typ ceny jsou uvedené u každého dostupného srovnání.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
+ const h=document.createElement('h2');h.textContent='Bytové a vícegenerační domy';h.style.cssText='font-size:23px;margin:0 0 6px';
+ const intro=document.createElement('p');intro.textContent='Pouze bytové a vícegenerační domy nebo domy s výslovně uvedenými samostatnými bytovými jednotkami. Filtruj metro, počet bytů a potenciál rekonstrukce. Právní možnost rozdělení i aktuální dostupnost vždy ověř.';intro.style.cssText='font-size:13px;color:#617080;margin:0 0 14px';
+ const filters=document.createElement('div');filters.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:12px';
+ const searchInput=document.createElement('input');searchInput.type='search';searchInput.placeholder='Hledat lokalitu nebo dispozici';searchInput.style.cssText='width:100%;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit';
+ function filterSelect(labelText,options){const label=document.createElement('label');label.style.cssText='display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#475569';const span=document.createElement('span');span.textContent=labelText;const select=document.createElement('select');select.style.cssText='padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:#fff;min-width:0';options.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;select.appendChild(o)});label.append(span,select);filters.appendChild(label);return select}
+ filters.appendChild(searchInput);
+ const metroFilter=filterSelect('Metro – pěšky',[['all','Vše / neověřeno'],['10','Do 10 minut dle inzerátu'],['15','Do 15 minut dle inzerátu']]);
+ const unitsFilter=filterSelect('Počet jednotek',[['all','Všechny'],['2','Nejméně 2'],['3','Nejméně 3 / potenciál dalších']]);
+ const renovationFilter=filterSelect('Rekonstrukce / rozvoj',[['all','Všechny'],['yes','Potenciál rekonstrukce'],['attic','Půda / vestavba']]);
+ const resultCount=document.createElement('p');resultCount.style.cssText='font-size:12px;color:#617080;margin:0 0 10px';
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px';
  const money=n=>Number(n).toLocaleString('cs-CZ')+' Kč';
  const seenListingUrls=new Set();
@@ -667,12 +697,22 @@ function renderHomeListingCatalog(){
   chooser.hidden=false;chooser.style.display='flex';const first=chooserButtons.querySelector('button');if(first)first.focus();
  }
 
- const sortedRecords=LISTING_RECORDS.filter(raw=>raw&&raw.url).slice().sort((a,b)=>{const pa=Number(a.price)>0&&Number(a.floorArea)>0?Number(a.price)/Number(a.floorArea):Infinity;const pb=Number(b.price)>0&&Number(b.floorArea)>0?Number(b.price)/Number(b.floorArea):Infinity;return pa-pb});
- const sortNote=document.createElement('p');sortNote.textContent='Řazení: od nejnižší po nejvyšší cenu za m². Nabídky bez ověřené ceny nebo plochy jsou na konci.';sortNote.style.cssText='font-size:12px;color:#617080;margin:0 0 12px';
+ function targetHouse(raw){const t=[raw.title,raw.layout,raw.potential,raw.notes].filter(Boolean).join(' ').toLowerCase();return /bytov[yý] d[uů]m|činžovn|vícegenerační|dvougenerační|[2-9]\\s*(?:samostatn[eé]\\s*)?(?:bytov[eé]\\s*)?jednotk|[2-9]\\s*bytov[yý]ch\\s*jednotek|dv[aě]\\s*bytov[eé]\\s*jednotk/.test(t)}
+ function multiUnits(raw){return /bytov[yý] d[uů]m|činžovn|vícegenerační|dvougenerační|[2-9]\\s*(?:samostatn[eé]\\s*)?(?:bytov[eé]\\s*)?jednotk|[2-9]\\s*byt[yů]|pět\\s+bytov|šest\\s+bytov|11\\s*bytov/i.test([raw.title,raw.layout,raw.potential,raw.notes].filter(Boolean).join(' '))}
+ function reno(raw){return /rekonstrukc|půd|podkrov|vestavb|úprav.{0,20}dispozic|původn[ií]\\s+stav|další\\s+bytov[eé]\\s+jednotk/i.test([raw.layout,raw.potential,raw.notes].filter(Boolean).join(' '))}
+ function walkMinutes(raw){const t=String(raw.metro||'');if(/ověřit|neověř|nepotvrzen|autobusem|mhd/i.test(t))return null;const m=t.match(/(\\d{1,2})\\s*(?:minut|min)\\s*(?:pěšky|chůze)/i);return m?Number(m[1]):null}
+ const sortedRecords=LISTING_RECORDS.filter(raw=>raw&&raw.url&&targetHouse(raw)).slice().sort((a,b)=>{const pa=Number(a.price)>0&&Number(a.floorArea)>0?Number(a.price)/Number(a.floorArea):Infinity;const pb=Number(b.price)>0&&Number(b.floorArea)>0?Number(b.price)/Number(b.floorArea):Infinity;return pa-pb});
+ const sortNote=document.createElement('p');sortNote.textContent='Řazení podle ceny za m². Filtr metra počítá pouze výslovně uvedenou pěší dobu; neověřené časy se nezapočítávají.';sortNote.style.cssText='font-size:12px;color:#617080;margin:0 0 12px';
+ const cards=[];
  sortedRecords.forEach(raw=>{
   if(raw.url&&seenListingUrls.has(raw.url))return;
   if(raw.url)seenListingUrls.add(raw.url);
   const r=normalizeImportedRecord(raw),card=document.createElement('article');
+  const searchable=[r.title,r.address,r.layout,r.potential,r.notes].filter(Boolean).join(' ').toLowerCase();
+  const unitCount=multiUnits(raw)?(/(?:3|4|5|6|7|8|9)\\s*(?:samostatn[eé]\\s*)?(?:bytov[eé]\\s*)?jednotk|(?:3|4|5|6|7|8|9)\\s*byt[yů]|pět\\s+bytov|šest\\s+bytov|11\\s*bytov/i.test(searchable)?3:2):0;
+  const minutes=walkMinutes(raw);
+  card.dataset.search=searchable;card.dataset.metro=minutes===null?'':String(minutes);card.dataset.units=String(unitCount);
+  card.dataset.reno=reno(raw)?'yes':'no';card.dataset.attic=/půd|podkrov|vestavb|další\\s+obytn[eé]\\s+prostor/i.test(searchable)?'yes':'no';
   card.style.cssText='border:1px solid #dfe5eb;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:7px;min-width:0';
   const photoWrap=document.createElement('div');photoWrap.style.cssText='width:100%;min-height:190px;border-radius:8px;background:#f1f5f9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;font-size:12px;color:#64748b;text-align:center;padding:10px;box-sizing:border-box';
   if(r.imageUrl){const photo=document.createElement('img');photo.alt='Fotografie nemovitosti: '+r.title;photo.loading='eager';photo.decoding='async';photo.referrerPolicy='no-referrer';photo.style.cssText='display:block;width:100%;height:190px;object-fit:cover';photo.src=r.imageUrl;photo.onerror=()=>{photo.remove();photoWrap.textContent='Přímá fotografie není dostupná'};photoWrap.appendChild(photo)}
@@ -689,7 +729,7 @@ function renderHomeListingCatalog(){
   const unitPrice=Number(r.price)>0&&Number(r.floorArea)>0?Number(r.price)/Number(r.floorArea):NaN;
   const unit=document.createElement('div');unit.textContent=Number.isFinite(unitPrice)?('Cena za m²: '+money(Math.round(unitPrice))+'/m²'):'Cena za m² nelze spočítat';
   unit.style.cssText='font-size:14px;font-weight:800;color:'+(Number.isFinite(unitPrice)&&unitPrice<=100000?'#15803d':'#2457d6')+';'+(Number.isFinite(unitPrice)&&unitPrice<90000?'background:#dcfce7;border:1px solid #86efac;padding:7px 9px;border-radius:8px;':'');
-  if(Number.isFinite(unitPrice)&&unitPrice<90000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Do 100 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
+  if(Number.isFinite(unitPrice)&&unitPrice<=100000){const valueBadge=document.createElement('span');valueBadge.textContent=' ✓ Do 100 000 Kč/m²';valueBadge.style.cssText='display:inline-block;margin-left:6px;padding:3px 6px;border-radius:6px;background:#15803d;color:#fff;font-size:11px;font-weight:800';unit.appendChild(valueBadge)}
   const benchmark=getLocalApartmentBenchmark(r);
   const benchmarkRow=document.createElement('div');
   benchmarkRow.style.cssText='font-size:13px;font-weight:750;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 9px;line-height:1.45';
@@ -708,9 +748,11 @@ function renderHomeListingCatalog(){
   card.append(photoWrap,title,price,area,unit,benchmarkRow,benchmarkNote,land,address,metro,status);
   if(r.url){const link=document.createElement('a');link.href=r.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Otevřít původní inzerát ↗';link.style.cssText='font-weight:700;color:#2457d6;margin-top:auto';card.appendChild(link)}
   else {const note=document.createElement('div');note.textContent='Pouze tip – přímý inzerát chybí';note.style.cssText='font-size:12px;color:#b45309;margin-top:auto';card.appendChild(note)}
-  grid.appendChild(card);
+  grid.appendChild(card);cards.push(card);
  });
- section.append(h,intro,sortNote,grid);main.insertBefore(section,tools);
+ function applyFilters(){const q=searchInput.value.trim().toLowerCase(),m=metroFilter.value,u=unitsFilter.value,r=renovationFilter.value;let shown=0;cards.forEach(c=>{const mins=c.dataset.metro===''?null:Number(c.dataset.metro);const okSearch=!q||c.dataset.search.includes(q);const okMetro=m==='all'||(mins!==null&&mins<=Number(m));const okUnits=u==='all'||Number(c.dataset.units)>=Number(u);const okReno=r==='all'||(r==='yes'&&c.dataset.reno==='yes')||(r==='attic'&&c.dataset.attic==='yes');c.hidden=!(okSearch&&okMetro&&okUnits&&okReno);if(!c.hidden)shown++});resultCount.textContent='Zobrazeno '+shown+' z '+cards.length+' nabídek.'}
+ [searchInput,metroFilter,unitsFilter,renovationFilter].forEach(el=>{el.addEventListener('input',applyFilters);el.addEventListener('change',applyFilters)});
+ section.append(h,intro,filters,resultCount,sortNote,grid);main.insertBefore(section,tools);applyFilters();
 }
 function syncInternalLinks(){
  document.querySelectorAll('a[href]').forEach(a=>{const href=a.getAttribute('href');if(!href||href.startsWith('#')||/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href))return;try{const u=new URL(href,location.href);if(u.origin!==location.origin)return;u.searchParams.set('project',activeId);a.href=u.pathname+'?'+u.searchParams.toString()+u.hash}catch(_){}});
