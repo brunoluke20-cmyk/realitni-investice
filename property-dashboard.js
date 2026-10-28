@@ -102,7 +102,7 @@ function marketEstimate(d,mr){
 }
 
 const FOUND_LISTINGS=[
- {id:'hostivice-litovicka-cinzovni-24677525',title:'Činžovní dům Litovka – 5 zapsaných jednotek (3 byty + 2 komerční)',address:'Litovická, Hostivice, okres Praha-západ',price:24500000,area:322,land:330,url:'https://www.realingo.cz/prodej/dum-cinzovni-hostivice-okres-praha-zapad-stredocesky-kraj/24677525',transit:'Autobus Hostivice, Staré Litovice cca 120 m / 2 min pěšky; cesta na Náměstí Míru není z inzerátu potvrzená.',fit:'Investičně zajímavý již rozdělený celek: podle inzerátu jde o 5 jednotek zapsaných v katastru – prodejnu 102,6 m², provozovnu se sklady 77,8 m² a tři byty 36 m², 30,23 m² a 75,2 m². Cena 24,5 mil. Kč, přibližně 76 087 Kč za m² uvedené užitné plochy.',pros:'Tři existující byty, dvě komerční jednotky, parkování a skladovací plocha 156 m² u provozovny; v okolí je autobusová zastávka. Inzerát uvádí možnost dokoupit další mezonetový byt 4+1 o ploše 140 m².',risks:'Prodej pouze jako celek; část výnosu závisí na komerčních prostorech. Energetická třída G je podle inzerátu dočasná. Prověřit nájemní smlouvy, skutečné výnosy, stav domu, vlastnické vymezení, povolené užívání a náklady. Cena za m² dělí cenu celku plochou 322 m², nezohledňuje rozdílnou hodnotu bytů a komerčních prostor.',transitOk:false},
+ {id:'hostivice-litovicka-cinzovni-24677525',title:'Činžovní dům Litovka – 5 zapsaných jednotek (3 byty + 2 komerční)',address:'Litovická, Hostivice, okres Praha-západ',price:24500000,area:322,land:0,url:'https://www.realingo.cz/prodej/dum-cinzovni-hostivice-okres-praha-zapad-stredocesky-kraj/24677525',transit:'Autobus Hostivice, Staré Litovice cca 120 m / 2 min pěšky; cesta na Náměstí Míru není z inzerátu potvrzená.',fit:'Investičně zajímavý již rozdělený celek: podle inzerátu jde o 5 jednotek zapsaných v katastru – prodejnu 102,6 m², provozovnu se sklady 77,8 m² a tři byty 36 m², 30,23 m² a 75,2 m². Cena 24,5 mil. Kč, přibližně 76 087 Kč za m² uvedené užitné plochy.',pros:'Tři existující byty, dvě komerční jednotky, parkování a skladovací plocha 156 m² u provozovny; v okolí je autobusová zastávka. Inzerát uvádí možnost dokoupit další mezonetový byt 4+1 o ploše 140 m².',risks:'Prodej pouze jako celek; část výnosu závisí na komerčních prostorech. Energetická třída G je podle inzerátu dočasná. Prověřit nájemní smlouvy, skutečné výnosy, stav domu, vlastnické vymezení, povolené užívání a náklady. Cena za m² dělí cenu celku plochou 322 m², nezohledňuje rozdílnou hodnotu bytů a komerčních prostor.',transitOk:false},
 
  {id:'krc-pod-rovinou',title:'Projekt vily se 3 byty',address:'Pod rovinou, Praha 4 – Krč',price:22500000,area:400,land:483,areaIsPlanned:true,url:'https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-krc-pod-rovinou/3504533580',transit:'Metro Budějovická cca 294 m',fit:'Nejlepší shoda s požadavkem na metro a rozdělení: inzerát uvádí platné stavební povolení a projekt tří samostatných bytů.',pros:'Projekt 3 jednotek, stavební povolení, projektová dokumentace, metro velmi blízko.',risks:'Stávající vila je určena k demolici. Cena je za pozemek a projekt; nutno dopočítat demolici, výstavbu, financování a ověřit platnost povolení.',transitOk:true},
  {id:'zabehlice-jizni-ii',title:'Dům se dvěma byty a suterénem',address:'Jižní II, Praha 10 – Záběhlice',price:17899000,area:191,land:601,url:'https://www.sreality.cz/detail/prodej/dum/vicegeneracni-dum/praha-zabehlice-jizni-ii/2516041804',transit:'Autobus cca 100 m, metro Roztyly cca 1 km',fit:'Zajímavý potenciál: dva byty a suterén 98 m², nyní využívaný jako zubní laboratoř.',pros:'Více oddělených prostor, parkování a garáž; suterén by mohl zvýšit využití.',risks:'Pozor: inzerát uvádí prodej 1/2 rodinného domu. Právní rozsah vlastnictví a možnost změny užívání suterénu jsou zásadní rizika.',transitOk:true},
@@ -128,8 +128,19 @@ function addFoundListing(id){
  render();
 }
 
+function ensureHostiviceListing(registry){
+ const item=FOUND_LISTINGS.find(x=>x.id==='hostivice-litovicka-cinzovni-24677525');
+ if(!item)return registry;
+ if(!Array.isArray(registry.projects))registry.projects=[];
+ let p=registry.projects.find(x=>x.url===item.url||x.id==='research-'+item.id);
+ const id=p?p.id:'research-'+item.id;
+ if(!p){p={id,title:item.title,url:item.url,address:item.address,price:item.price,createdAt:new Date().toISOString(),researchListing:true};registry.projects.push(p);}
+ else {if(!p.title||/^nový projekt$/i.test(p.title))p.title=item.title;if(!p.url)p.url=item.url;if(!p.address)p.address=item.address;if(!p.price)p.price=item.price;}
+ try{localStorage.setItem(REG,JSON.stringify(registry));const key=PFX+id+'__rei-shared-project-v1';const saved=read(key,{});localStorage.setItem(key,JSON.stringify({...saved,projectId:id,title:p.title,name:p.title,address:p.address,location:p.address,url:p.url,listingURL:p.url,price:String(p.price||item.price),listingPrice:String(p.price||item.price),area:String(saved.area||item.area),listingArea:String(saved.listingArea||item.area),notes:saved.notes||item.fit+' Výhody: '+item.pros+' Rizika: '+item.risks,updatedAt:new Date().toISOString()}));}catch(_){}
+ return registry;
+}
 function render(){
- const registry=read(REG,{projects:[]});
+ const registry=ensureHostiviceListing(read(REG,{projects:[]}));
  const projects=(registry.projects||[]).map(getData).filter(d=>d.url||d.address||d.price||d.title);
  projects.sort((a,b)=>(a.ppm??Infinity)-(b.ppm??Infinity)||(a.price??Infinity)-(b.price??Infinity));
  const root=$('#propertyDashboard');if(!root)return;
