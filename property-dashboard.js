@@ -144,6 +144,8 @@ function render(){
  const projects=(registry.projects||[]).map(getData).filter(d=>d.url||d.address||d.price||d.title);
  projects.sort((a,b)=>(a.ppm??Infinity)-(b.ppm??Infinity)||(a.price??Infinity)-(b.price??Infinity));
  const root=$('#propertyDashboard');if(!root)return;
+ // Render the web-researched listings first so they remain visible even if a saved project has malformed data.
+ root.innerHTML=renderFoundListings();bindFoundButtons();
  if(!projects.length){root.innerHTML=renderFoundListings()+'<section class="card"><h2>Moje nemovitosti</h2><p class="muted">Zatím tu nemáš vlastní uložené nemovitosti. U nalezené nabídky klikni na „Přidat do mých složek“.</p></section>';bindFoundButtons();return}
  root.innerHTML='<section class="property-dashboard"><div class="dash-heading"><div><span class="pill">INVESTIČNÍ PŘEHLED</span><h2>Všechny nemovitosti</h2><p class="muted">Seřazeno od nejnižší ceny za m². Posouzení výhod a rizik je předběžné a vychází pouze z uložených údajů a popisu inzerátu.</p></div><span class="dash-count">'+projects.length+' '+(projects.length===1?'inzerát':projects.length<5?'inzeráty':'inzerátů')+'</span></div><div class="property-list">'+projects.map((d,i)=>{
  const pc=prosCons(d),points=d.points.length?d.points.slice(0,4):['Poznámky z popisu zatím nejsou k dispozici.'];
